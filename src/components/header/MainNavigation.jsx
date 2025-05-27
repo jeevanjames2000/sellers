@@ -22,13 +22,32 @@ const Mainnavigation = ({ toggleSidebar }) => {
     }, 2000);
   };
 
+  // Handle mouse enter for "More" link and dropdown
+  const handleMouseEnter = () => {
+    setOpen(true);
+  };
+
+  // Handle mouse leave for the entire dropdown container
+  const handleMouseLeave = () => {
+    setOpen(false);
+  };
+
+  // Handle click for mobile/touch devices to toggle dropdown
+  const handleToggleDropdown = (e) => {
+    if (window.innerWidth < 768) {
+      // Only toggle on mobile (md breakpoint)
+      e.preventDefault();
+      setOpen((prev) => !prev);
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col md:flex-row md:items-center justify-between px-5 md:px-0 gap-5 md:gap-10">
         <Link
-          href="/dashboard"
+          href="/"
           className={`font-semibold w-fit text-sm 2xl:text-[18px] 3xl:text-[20px] 4xl:text-[22px] text-[#1D3A76] ${
-            isActive("/dashboard") ? "border-b-2 border-[#1D3A76]" : ""
+            isActive("/") ? "border-b-2 border-[#1D3A76]" : ""
           }`}
           prefetch={true}
           onClick={toggleSidebar}
@@ -66,18 +85,23 @@ const Mainnavigation = ({ toggleSidebar }) => {
         </Link>
         <div
           className="relative"
-          onMouseEnter={() => setOpen(true)}
-          onMouseLeave={() => setOpen(false)}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
         >
           <Link
             href="#"
-            className="font-semibold text-sm 2xl:text-[18px] 3xl:text-[20px] 4xl:text-[22px] text-[#1D3A76] w-fit"
+            className="font-semibold text-sm 2xl:text-[18px] 3xl:text-[20px] 4xl:text-[22px] text-[#1D3A76] w-fit px-5"
+            onClick={handleToggleDropdown}
           >
             More
           </Link>
           {open && (
-            <div className="absolute top-full left-0 mt-2 w-[170px] bg-[#F2F2F2] p-4 flex flex-col gap-3 rounded-md shadow-lg z-50">
-              <Link href="/myprofile" onClick={toggleSidebar}>
+            <div
+              className="absolute top-full left-0 mt-2 w-[170px] bg-[#F2F2F2] p-4 flex flex-col gap-3 rounded-md shadow-lg z-50"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <Link href="/profile" onClick={toggleSidebar}>
                 <p className="text-[12px] 2xl:text-[16px] 3xl:text-[18px] 4xl:text-[20px] text-[#909090] font-semibold hover:text-[#1D3A76]">
                   My Profile
                 </p>

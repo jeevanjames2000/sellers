@@ -9,15 +9,18 @@ import login from "../../../public/assets/login.svg";
 import { usePathname } from "next/navigation";
 import Backdrop from "../shared/Backdrop";
 import Mainnavigation from "./MainNavigation";
-import { IoHomeOutline, IoMenuOutline } from "react-icons/io5";
+import { IoHomeOutline, IoMenuOutline, IoCloseOutline } from "react-icons/io5";
+
 function Header() {
   const pathname = usePathname();
   const isActive = (path) => pathname === path;
   const [scrollY, setScrollY] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
   useEffect(() => {
     const handleScroll = () => {
       setScrollY(window.scrollY);
@@ -27,12 +30,14 @@ function Header() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
   return (
     <header
       className={`h-[65px] 3xl:h-[120px] bg-[#F2F2F2] w-full py-2 transition-all duration-1000 shadow-xl flex flex-row justify-between items-center px-4 md:px-[4vw] lg:px-[6vw] sticky top-0 z-50 ${
         scrollY > 120 ? "shadow-lg" : ""
       }`}
     >
+      {/* Logo */}
       <Link href="/">
         <Image
           src={logo}
@@ -42,6 +47,8 @@ function Header() {
           className="3xl:h-20 3xl:w-56 object-cover"
         />
       </Link>
+
+      {/* Desktop Navigation */}
       <div className="hidden md:flex items-center gap-4">
         <Mainnavigation />
         {pathname !== "/addproperty" && (
@@ -50,35 +57,42 @@ function Header() {
             className="bg-[#1D3A76] flex flex-row items-center gap-2 p-2 rounded-md"
           >
             <IoHomeOutline size={25} color="white" />
-
             <button className="text-white text-[12px] md:text-sm 2xl:text-[18px] 3xl:text-[20px] 4xl:text-[22px] font-[700]">
               Add Property
             </button>
           </Link>
         )}
       </div>
-      {}
+
+      {/* Mobile Actions */}
       <div className="flex md:hidden items-center gap-2">
         {pathname !== "/addproperty" && (
-          <Link
-            href="/addproperty"
-            className="bg-[#1D3A76] flex flex-row items-center gap-2 p-2 rounded-md"
-          >
-            <IoMenuOutline size={25} color="white" onClick={toggleSidebar} />
-
-            <button className="text-white text-[12px] font-[700] hidden xs:flex">
-              Add Property
-            </button>
-          </Link>
+          <>
+            <Link
+              href="/addproperty"
+              className="bg-[#1D3A76] flex flex-row items-center gap-2 p-2 rounded-md"
+            >
+              <IoHomeOutline size={25} color="white" />
+              <button className="text-white text-[12px] font-[700] hidden xs:flex">
+                Add Property
+              </button>
+            </Link>
+          </>
         )}
-        {/* <Link href="/dashboard" className="md:hidden">
-          <IoHomeOutline size={30} color="blue" />
-        </Link> */}
-        {isSidebarOpen && (
-          <IoMenuOutline size={25} color="blue" onClick={toggleSidebar} />
-        )}
+        <button
+          onClick={toggleSidebar}
+          className="flex items-center justify-center w-10 h-10 rounded-md bg-[#1D3A76] text-white"
+          aria-label={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
+        >
+          {isSidebarOpen ? (
+            <IoCloseOutline size={25} />
+          ) : (
+            <IoMenuOutline size={25} />
+          )}
+        </button>
       </div>
 
+      {/* Mobile Sidebar */}
       <div
         id="sidebar"
         className={`fixed top-0 right-0 h-full w-[70%] z-[99999] bg-[#F2F2F2] md:hidden flex flex-col gap-4 transition-transform duration-300 ease-linear ${
@@ -86,20 +100,32 @@ function Header() {
         }`}
       >
         <div className="flex flex-row justify-between items-center p-4">
-          <IoMenuOutline
-            href="/dashboard"
-            size={25}
-            color="blue"
+          <Link href="/" onClick={toggleSidebar}>
+            <Image
+              src={logo}
+              alt="Meetowner Logo"
+              height={60}
+              width={90}
+              className="object-cover"
+            />
+          </Link>
+          <button
             onClick={toggleSidebar}
-          />
+            className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-md hover:bg-gray-100"
+            aria-label="Close Sidebar"
+          >
+            <IoCloseOutline size={25} color="#1D3A76" />
+          </button>
         </div>
         <div className="px-5">
           <Mainnavigation toggleSidebar={toggleSidebar} />
         </div>
       </div>
-      {}
+
+      {/* Backdrop for Mobile Sidebar */}
       <Backdrop isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-      {}
+
+      {/* Guest User Links */}
       {false && (
         <div className="flex flex-row justify-start items-center gap-4">
           <Link
@@ -119,11 +145,7 @@ function Header() {
             href="/addproperty"
             className="flex flex-row items-center justify-center gap-2 3xl:gap-4 p-2 rounded-md"
           >
-            {/* <ion-icon
-              name="home-outline"
-              style={{ fontSize: "22px", color: "#1D3A76" }}
-            ></ion-icon> */}
-
+            <IoHomeOutline size={25} color="#1D3A76" />
             <button className="text-[#1D3A76] hidden sm:flex text-[12px] md:text-[12px] lg:text-sm 2xl:text-[16px] 3xl:text-[32px] font-medium font-sans">
               Add Property
             </button>
@@ -146,4 +168,5 @@ function Header() {
     </header>
   );
 }
+
 export default Header;
