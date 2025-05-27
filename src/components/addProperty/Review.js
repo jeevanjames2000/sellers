@@ -1,10 +1,94 @@
 import { useFormContext } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
+const basicDetailsKeys = ["propertyType", "lookingTo", "transactionType"];
+const propertyDetailsKeys = [
+  "propertySubtype",
+  "constructionStatus",
+  "bhk",
+  "bathroom",
+  "balcony",
+  "furnishType",
+  "ageOfProperty",
+  "areaUnit",
+  "builtupArea",
+  "carpetArea",
+  "totalProjectArea",
+  "unitCost",
+  "pentHouse",
+  "propertyCost",
+  "facilities",
+  "possessionStatus",
+  "investorProperty",
+  "loanFacility",
+  "facing",
+  "carParking",
+  "bikeParking",
+  "openParking",
+  "nearbyPlace",
+  "distanceFromProperty",
+  "servantRoom",
+  "propertyDescription",
+];
+const addressKeys = [
+  "state",
+  "city",
+  "locality",
+  "flatNumber",
+  "floorNumber",
+  "totalFloors",
+];
+const photoKeys = ["photos", "videos", "floorPlans"];
+
+const formatKey = (key) =>
+  key
+    .replace(/([A-Z])/g, " $1")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
+const renderSection = (title, keys, formData) => {
+  const entries = keys
+    .map((key) => [key, formData[key]])
+    .filter(([_, value]) => value !== undefined && value !== "");
+
+  if (entries.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {entries.map(([key, value]) => {
+          let displayValue;
+
+          if (Array.isArray(value)) {
+            displayValue = value.length ? value.join(", ") : "Not specified";
+          } else if (typeof value === "boolean") {
+            displayValue = value ? "Yes" : "No";
+          } else {
+            displayValue = value;
+          }
+
+          return (
+            <div key={key} className="flex justify-between">
+              <span className="text-gray-600">{formatKey(key)}:</span>
+              <span className="font-medium text-right max-w-xs truncate">
+                {displayValue}
+              </span>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+};
 
 export default function Review() {
   const { watch } = useFormContext();
+
   const formData = watch();
+  console.log("formData: ", formData);
 
   return (
     <div className="space-y-6">
@@ -18,85 +102,10 @@ export default function Review() {
         </p>
       </div>
 
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Basic Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Property Type:</span>
-              <Badge variant="secondary">
-                {formData.propertyType || "Not specified"}
-              </Badge>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Looking to:</span>
-              <Badge variant="secondary">
-                {formData.lookingTo || "Not specified"}
-              </Badge>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Location:</span>
-              <span className="font-medium">
-                {formData.location || "Not specified"}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Property Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Bedrooms:</span>
-              <span className="font-medium">
-                {formData.bedrooms || "Not specified"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Bathrooms:</span>
-              <span className="font-medium">
-                {formData.bathrooms || "Not specified"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Area:</span>
-              <span className="font-medium">
-                {formData.area ? `${formData.area} sq ft` : "Not specified"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Price:</span>
-              <span className="font-medium text-green-600">
-                {formData.price
-                  ? `₹${Number(formData.price).toLocaleString()}`
-                  : "Not specified"}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Address</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-gray-700">
-              {[
-                formData.streetAddress,
-                formData.city,
-                formData.state,
-                formData.pincode,
-              ]
-                .filter(Boolean)
-                .join(", ") || "Address not provided"}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {renderSection("Basic Details", basicDetailsKeys, formData)}
+      {renderSection("Property Details", propertyDetailsKeys, formData)}
+      {renderSection("Address", addressKeys, formData)}
+      {renderSection("Photos & Media", photoKeys, formData)}
     </div>
   );
 }

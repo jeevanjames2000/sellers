@@ -1,4 +1,5 @@
 import { useFormContext } from "react-hook-form";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -10,10 +11,41 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Building, Home, Building2, MapPin, Landmark } from "lucide-react";
-
+import {
+  Building,
+  Home,
+  Building2,
+  MapPin,
+  Landmark,
+  House,
+  HomeIcon,
+  ShoppingCart,
+  Tractor,
+  IndianRupee,
+  Hotel,
+} from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useEffect, useRef } from "react";
+import { updatePropertyDetails } from "@/store/slices/addPropertySlice/propertyDetailsSlice";
+import _ from "lodash";
 export default function PropertyDetails() {
-  const { register, watch, setValue } = useFormContext();
+  const { register, watch, setValue, getValues, reset } = useFormContext();
+  const data = useSelector((state) => state.propertyDetails);
+  const dispatch = useDispatch();
+  const reduxData = useSelector((state) => state.propertyDetails, shallowEqual);
+  const formValues = watch();
+  useEffect(() => {
+    reset(reduxData);
+  }, [reset, reduxData]);
+  const debouncedDispatch = useRef(
+    _.debounce((values) => {
+      dispatch(updatePropertyDetails(values));
+    }, 300)
+  ).current;
+  useEffect(() => {
+    debouncedDispatch(formValues);
+    return () => debouncedDispatch.cancel();
+  }, [formValues, debouncedDispatch]);
   const propertySubtype = watch("propertySubtype");
   const constructionStatus = watch("constructionStatus");
   const loanFacility = watch("loanFacility");
@@ -28,7 +60,7 @@ export default function PropertyDetails() {
   const balcony = watch("balcony");
   const furnishType = watch("furnishType");
   const possessionStatus = watch("possessionStatus");
-
+  const facilities = watch("facilities") || [];
   const propertySubtypes = [
     { id: "apartment", label: "Apartment", icon: Building },
     { id: "independent-house", label: "Independent House", icon: Home },
@@ -36,24 +68,69 @@ export default function PropertyDetails() {
     { id: "plot", label: "Plot", icon: MapPin },
     { id: "land", label: "Land", icon: Landmark },
   ];
-
+  const landSubtypes = [
+    { id: "villa_development", label: "Villa Development", icon: House },
+    {
+      id: "apartment_development",
+      label: "Apartment development",
+      icon: Hotel,
+    },
+    {
+      id: "commercial_development",
+      label: "Commercial Development",
+      icon: ShoppingCart,
+    },
+    { id: "out_rate_sale", label: "Out Rate Sale", icon: IndianRupee },
+    { id: "farm_land", label: "Farm Land", icon: Tractor },
+  ];
+  const facilitiesOptions = [
+    "Lift",
+    "CCTV",
+    "Gym",
+    "Garden",
+    "Club House",
+    "Sports",
+    "Swimming Pool",
+    "Intercom",
+    "Power Backup",
+    "Gated Community",
+    "Regular Water",
+    "Community Hall",
+    "Pet Allowed",
+    "Entry / Exit",
+    "Outdoor Fitness Station",
+    "Half Basket Ball Court",
+    "Gazebo",
+    "Badminton Court",
+    "Children Play area",
+    "Ample Greenery",
+    "Water Harvesting Pit",
+    "Water Softner",
+    "Solar Fencing",
+    "Security Cabin",
+    "Lawn",
+    "Transformer Yard",
+    "Amphitheatre",
+    "Lawn with Stepping Stones",
+    "None",
+  ];
   const facingOptions = ["East", "West", "South", "North"];
   const parkingOptions = ["0", "1", "2", "3", "4+"];
   const bhkOptions = ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "4+ BHK"];
   const bathroomOptions = ["1", "2", "3", "4", "4+"];
   const balconyOptions = ["1", "2", "3", "4", "4+"];
   const furnishOptions = ["Fully", "Semi", "Unfurnished"];
-
   const isApartment = propertySubtype === "apartment";
   const isIndependentHouse = propertySubtype === "independent-house";
   const isIndependentVilla = propertySubtype === "independent-villa";
   const isPlot = propertySubtype === "plot";
   const isLand = propertySubtype === "land";
-
   const shouldShowConstruction =
     isApartment || isIndependentHouse || isIndependentVilla;
+  const shouldShowLandSubtypes = isLand;
   const shouldShowBHK = isApartment || isIndependentHouse || isIndependentVilla;
-  const shouldShowBathroom = isApartment;
+  const shouldShowBathroom =
+    isApartment || isIndependentHouse || isIndependentVilla;
   const shouldShowBalcony = isApartment;
   const shouldShowFurnish =
     isApartment || isIndependentHouse || isIndependentVilla;
@@ -63,10 +140,20 @@ export default function PropertyDetails() {
   const shouldShowPossession = isPlot || isLand;
   const shouldShowServant =
     isApartment || isIndependentHouse || isIndependentVilla;
-
+  const handleFacilityChange = (facility, checked) => {
+    const currentFacilities = getValues("facilities") || [];
+    if (checked) {
+      setValue("facilities", [...currentFacilities, facility]);
+    } else {
+      setValue(
+        "facilities",
+        currentFacilities.filter((f) => f !== facility)
+      );
+    }
+  };
   return (
     <div className="space-y-8">
-      {/* Property Sub Type */}
+      {}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Label className="text-base font-medium">Property Sub Type</Label>
@@ -90,8 +177,32 @@ export default function PropertyDetails() {
           })}
         </div>
       </div>
+      {shouldShowLandSubtypes && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Label className="text-base font-medium">Land Sub Type</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="grid grid-cols-5 gap-4">
+            {landSubtypes.map((type) => {
+              const IconComponent = type.icon;
+              return (
+                <Button
+                  key={type.id}
+                  type="button"
+                  variant={propertySubtype === type.id ? "default" : "outline"}
+                  onClick={() => setValue("propertySubtype", type.id)}
+                  className="h-20 flex flex-col items-center justify-center space-y-2 text-xs"
+                >
+                  <IconComponent className="w-6 h-6" />
+                  <span>{type.label}</span>
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-      {/* Construction Status */}
       {shouldShowConstruction && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -126,8 +237,7 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
-
-      {/* BHK */}
+      {}
       {shouldShowBHK && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -149,8 +259,7 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
-
-      {/* Bathroom */}
+      {}
       {shouldShowBathroom && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -172,8 +281,7 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
-
-      {/* Balcony */}
+      {}
       {shouldShowBalcony && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -195,8 +303,7 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
-
-      {/* Furnish Type */}
+      {}
       {shouldShowFurnish && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -218,8 +325,7 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
-
-      {/* Age of Property */}
+      {}
       {shouldShowAge && (
         <div className="space-y-2">
           <Label>Age of Property</Label>
@@ -236,8 +342,7 @@ export default function PropertyDetails() {
           </Select>
         </div>
       )}
-
-      {/* Area and Cost Details */}
+      {}
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label>Area units</Label>
@@ -303,18 +408,35 @@ export default function PropertyDetails() {
           <Input {...register("propertyCost")} placeholder="Property Cost" />
         </div>
       </div>
-
-      {/* Facilities */}
       {!isPlot && !isLand && (
         <div className="space-y-4">
           <Label className="text-lg font-medium">Facilities</Label>
           <p className="text-sm text-gray-600">
             Available facilities in the property
           </p>
+          <div className="grid grid-cols-3 gap-4">
+            {facilitiesOptions.map((facility) => (
+              <div key={facility} className="flex items-center space-x-2">
+                <Checkbox
+                  id={facility}
+                  checked={facilities.includes(facility)}
+                  onCheckedChange={(checked) =>
+                    handleFacilityChange(facility, checked)
+                  }
+                  className="border-gray-500"
+                />
+                <label
+                  htmlFor={facility}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  {facility}
+                </label>
+              </div>
+            ))}
+          </div>
         </div>
       )}
-
-      {/* Possession Status */}
+      {}
       {shouldShowPossession && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -341,8 +463,7 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
-
-      {/* Investor Property */}
+      {}
       {shouldShowInvestor && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -369,8 +490,7 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
-
-      {/* Loan Facility */}
+      {}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Label className="text-base font-medium">Loan Facility</Label>
@@ -395,12 +515,10 @@ export default function PropertyDetails() {
           </Button>
         </div>
       </div>
-
-      {/* Additional Details */}
+      {}
       <div className="space-y-6">
         <h3 className="text-lg font-medium">Add Additional Details</h3>
-
-        {/* Facing */}
+        {}
         <div className="space-y-4">
           <Label className="text-base font-medium">Facing</Label>
           <div className="grid grid-cols-4 gap-4">
@@ -417,8 +535,7 @@ export default function PropertyDetails() {
             ))}
           </div>
         </div>
-
-        {/* Car Parking */}
+        {}
         {!isPlot && !isLand && (
           <div className="space-y-4">
             <Label className="text-base font-medium">Car Parking</Label>
@@ -437,8 +554,7 @@ export default function PropertyDetails() {
             </div>
           </div>
         )}
-
-        {/* Bike Parking */}
+        {}
         {!isPlot && !isLand && (
           <div className="space-y-4">
             <Label className="text-base font-medium">Bike Parking</Label>
@@ -457,8 +573,7 @@ export default function PropertyDetails() {
             </div>
           </div>
         )}
-
-        {/* Open Parking */}
+        {}
         {!isPlot && !isLand && (
           <div className="space-y-4">
             <Label className="text-base font-medium">Open Parking</Label>
@@ -477,8 +592,7 @@ export default function PropertyDetails() {
             </div>
           </div>
         )}
-
-        {/* Around This Property */}
+        {}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Label className="text-base font-medium">
@@ -505,8 +619,7 @@ export default function PropertyDetails() {
             </div>
           </div>
         </div>
-
-        {/* Servant Room */}
+        {}
         {shouldShowServant && (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -533,8 +646,7 @@ export default function PropertyDetails() {
             </div>
           </div>
         )}
-
-        {/* Property Description */}
+        {}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Label>Property Description</Label>
