@@ -13,7 +13,7 @@ const steps = [
   { label: "Basic Details", component: BasicDetails },
   { label: "Property Details", component: PropertyDetails },
   { label: "Address", component: Address },
-  { label: "Photos", component: Photos },
+  { label: "Property Photos", component: Photos },
   { label: "Review", component: Review },
 ];
 export default function MultiStepForm() {
@@ -52,9 +52,13 @@ export default function MultiStepForm() {
                 </p>
               </div>
 
-              <div className="mb-8">
-                <Progress value={progressPercentage} className="h-2" />
-                <p className="text-sm text-gray-600 mt-2">
+              <div className="mb-8 ">
+                <Progress
+                  value={progressPercentage}
+                  className="h-2 bg-blue-100 [&>div]:bg-blue-600"
+                />
+
+                <p className="text-sm text-[#1D3A76] mt-2">
                   {Math.round(progressPercentage)}%
                 </p>
               </div>
@@ -65,7 +69,7 @@ export default function MultiStepForm() {
                     <div
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-medium ${
                         index < currentStep
-                          ? "bg-blue-600 border-blue-600 text-white"
+                          ? "bg-[#1D3A76] border-[#1D3A76] text-white"
                           : index === currentStep
                           ? "border-blue-600 text-blue-600 bg-white"
                           : "border-gray-300 text-gray-400 bg-white"
@@ -77,7 +81,7 @@ export default function MultiStepForm() {
                       <span
                         className={`text-sm font-medium ${
                           index === currentStep
-                            ? "text-blue-700"
+                            ? "text-[#1D3A76]"
                             : index < currentStep
                             ? "text-green-600"
                             : "text-gray-500"
@@ -101,7 +105,7 @@ export default function MultiStepForm() {
                 <p className="text-sm font-medium text-gray-700 mb-2">
                   Require Assistance?
                 </p>
-                <div className="flex items-center text-blue-600 font-semibold">
+                <div className="flex items-center text-[#1D3A76] font-semibold">
                   <Phone className="w-4 h-4 mr-2" />
                   +91 9553919919
                 </div>
@@ -109,8 +113,8 @@ export default function MultiStepForm() {
             </div>
 
             <div className="w-2/3 max-h-screen overflow-y-auto p-8">
-              <h2 className="text-2xl font-bold text-blue-900 mb-8 uppercase tracking-wide">
-                ADD {steps[currentStep].label}
+              <h2 className="text-2xl font-bold text-[#1D3A76] mb-8 uppercase tracking-wide">
+                {steps[currentStep].label}
               </h2>
               <div className="mb-8">
                 <CurrentComponent />
@@ -132,7 +136,7 @@ export default function MultiStepForm() {
                     <Button
                       type="button"
                       onClick={onNext}
-                      className="px-8 bg-blue-900 hover:bg-blue-800"
+                      className="px-8 bg-[#1D3A76] hover:bg-blue-800"
                     >
                       Next: Add {steps[currentStep + 1].label}
                     </Button>

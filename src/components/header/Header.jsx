@@ -51,9 +51,9 @@ function Header() {
       {/* Desktop Navigation */}
       <div className="hidden md:flex items-center gap-4">
         <Mainnavigation />
-        {pathname !== "/addproperty" && (
+        {pathname !== "/addProperty" && (
           <Link
-            href="/addproperty"
+            href="/addProperty"
             className="bg-[#1D3A76] flex flex-row items-center gap-2 p-2 rounded-md"
           >
             <IoHomeOutline size={25} color="white" />
@@ -66,10 +66,10 @@ function Header() {
 
       {/* Mobile Actions */}
       <div className="flex md:hidden items-center gap-2">
-        {pathname !== "/addproperty" && (
+        {pathname !== "/addProperty" && (
           <>
             <Link
-              href="/addproperty"
+              href="/addProperty"
               className="bg-[#1D3A76] flex flex-row items-center gap-2 p-2 rounded-md"
             >
               <IoHomeOutline size={25} color="white" />
@@ -142,7 +142,7 @@ function Header() {
             </button>
           </Link>
           <Link
-            href="/addproperty"
+            href="/addProperty"
             className="flex flex-row items-center justify-center gap-2 3xl:gap-4 p-2 rounded-md"
           >
             <IoHomeOutline size={25} color="#1D3A76" />
