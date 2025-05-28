@@ -17,6 +17,21 @@ function Card({
   );
 }
 
+function CustomCard({
+  className,
+  ...props
+}) {
+  return (
+    <div
+      data-slot="card"
+      className={cn(
+        "bg-card text-card-foreground flex flex-col gap-1 rounded-xl border py-0 shadow-sm",
+        className
+      )}
+      {...props} />
+  );
+}
+
 function CardHeader({
   className,
   ...props
@@ -92,6 +107,7 @@ function CardFooter({
 
 export {
   Card,
+  CustomCard,
   CardHeader,
   CardFooter,
   CardTitle,

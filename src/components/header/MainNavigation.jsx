@@ -2,14 +2,31 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Home,
+  MessageSquare,
+  Building,
+  Package,
+  MoreHorizontal,
+  User,
+  FileText,
+  ExternalLink,
+  LogOut,
+  ChevronDown,
+  CreditCard,
+  Eye,
+  HelpCircle,
+} from "lucide-react";
 import LoadingOverlay from "../shared/LoadingOverlay";
 
-const Mainnavigation = ({ toggleSidebar }) => {
+const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
   const [isLoadingEffect, setIsLoadingEffect] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const isActive = (path) => pathname === path;
-  const [open, setOpen] = useState(false);
 
   const handleLogout = () => {
     setIsLoadingEffect(true);
@@ -22,113 +39,207 @@ const Mainnavigation = ({ toggleSidebar }) => {
     }, 2000);
   };
 
-  // Handle mouse enter for "More" link and dropdown
-  const handleMouseEnter = () => {
-    setOpen(true);
-  };
+  const navigationItems = [
+    { href: "/", label: "Dashboard", icon: Home },
+    { href: "/enquiry", label: "Enquiries", icon: MessageSquare,  },
+    { href: "/listings", label: "Listings", icon: Building,  },
+    { href: "/packages", label: "Packages", icon: Package },
+  ];
 
-  // Handle mouse leave for the entire dropdown container
-  const handleMouseLeave = () => {
-    setOpen(false);
-  };
+  const accountItems = [
+    { href: "/profile", label: "My Profile", icon: User },
+    { href: "/invoice", label: "Invoice", icon: FileText, },
+  ];
 
-  // Handle click for mobile/touch devices to toggle dropdown
-  const handleToggleDropdown = (e) => {
-    if (window.innerWidth < 768) {
-      // Only toggle on mobile (md breakpoint)
-      e.preventDefault();
-      setOpen((prev) => !prev);
-    }
-  };
+  const moreMenuItems = [
+    { href: "/profile", label: "My Profile", icon: User },
+    { href: "/invoice", label: "Invoice", icon: FileText },
+    { href: "https://meetowner.in/", label: "Go to MeetOwner.in", icon: ExternalLink, external: true },
+  ];
+
+  if (isMobile) {
+    return (
+      <div className="flex flex-col h-full bg-white">
+       
+
+        {/* Scrollable Content */}
+        <div className="flex-1  py-4 px-2">
+          {/* Main Navigation */}
+          <div className="space-y-1 mb-6">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={toggleSidebar}
+                  className="block rounded-lg transition-all duration-200"
+                >
+                  <div
+                    className={`flex items-center px-4 py-3 rounded-lg ${
+                      isActive(item.href)
+                        ? "bg-blue-50 text-blue-700 border-l-4 border-blue-500"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Icon
+                      className={`w-5 h-5 ${
+                        isActive(item.href) ? "text-blue-600" : "text-gray-500"
+                      }`}
+                    />
+                    <span className="font-medium ml-3">{item.label}</span>
+                    {isActive(item.href) && (
+                      <Badge className="ml-auto bg-blue-100 text-blue-800 hover:bg-blue-100">
+                        Active
+                      </Badge>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Account Section */}
+          <div className="space-y-1">
+            <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 mb-2">
+              Account
+            </h2>
+            {accountItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={toggleSidebar}
+                  className="block rounded-lg transition-all duration-200"
+                >
+                  <div
+                    className={`flex items-center px-4 py-3 rounded-lg ${
+                      isActive(item.href)
+                        ? "bg-blue-50 text-blue-700 border-l-4 border-blue-500"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Icon
+                      className={`w-5 h-5 ${
+                        isActive(item.href) ? "text-blue-600" : "text-gray-500"
+                      }`}
+                    />
+                    <span className="font-medium ml-3">{item.label}</span>
+                  </div>
+                </Link>
+              );
+            })}
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="font-medium ml-3">Logout</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Footer */}
+       
+
+        <LoadingOverlay isLoading={isLoadingEffect} />
+      </div>
+    );
+  }
 
   return (
     <>
-      <div className="flex flex-col md:flex-row md:items-center justify-between px-5 md:px-0 gap-5 md:gap-10">
-        <Link
-          href="/"
-          className={`font-semibold w-fit text-sm 2xl:text-[18px] 3xl:text-[20px] 4xl:text-[22px] text-[#1D3A76] ${
-            isActive("/") ? "border-b-2 border-[#1D3A76]" : ""
-          }`}
-          prefetch={true}
-          onClick={toggleSidebar}
-        >
-          Dashboard
-        </Link>
-        <Link
-          href="/enquiry"
-          className={`font-semibold w-fit text-sm 2xl:text-[18px] 3xl:text-[20px] 4xl:text-[22px] text-[#1D3A76] ${
-            isActive("/enquiry") ? "border-b-2 border-[#1D3A76]" : ""
-          }`}
-          onClick={toggleSidebar}
-        >
-          Enquires
-        </Link>
-        <Link
-          href="/listings"
-          className={`font-semibold w-fit text-sm 2xl:text-[18px] 3xl:text-[20px] 4xl:text-[22px] text-[#1D3A76] ${
-            isActive("/listings") ? "border-b-2 border-[#1D3A76]" : ""
-          }`}
-          prefetch={true}
-          onClick={toggleSidebar}
-        >
-          Listings
-        </Link>
-        <Link
-          href="/packages"
-          className={`font-semibold w-fit text-sm 2xl:text-[18px] 3xl:text-[20px] 4xl:text-[22px] text-[#1D3A76] ${
-            isActive("/packages") ? "border-b-2 border-[#1D3A76]" : ""
-          }`}
-          prefetch={true}
-          onClick={toggleSidebar}
-        >
-          Packages
-        </Link>
-        <div
-          className="relative"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
-          <Link
-            href="#"
-            className="font-semibold text-sm 2xl:text-[18px] 3xl:text-[20px] 4xl:text-[22px] text-[#1D3A76] w-fit px-5"
-            onClick={handleToggleDropdown}
+      <nav className="flex items-center space-x-1">
+        {/* Desktop Navigation Items */}
+        {navigationItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link key={item.href} href={item.href} className="relative group">
+              <Button
+                variant={isActive(item.href) ? "default" : "ghost"}
+                className={`flex items-center space-x-2 transition-all duration-200 ${
+                  isActive(item.href)
+                    ? "bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] text-white shadow-lg hover:from-[#1D3A76] hover:to-[#1D3A76]"
+                    : "text-gray-700 hover:text-[#1D3A76] hover:bg-blue-50"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="font-medium">{item.label}</span>
+                {item.count && (
+                  <Badge className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">
+                    {item.count}
+                  </Badge>
+                )}
+              </Button>
+              {isActive(item.href) && (
+                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-[#1D3A76] rounded-lg"></div>
+              )}
+            </Link>
+          );
+        })}
+
+        {/* Desktop More Menu */}
+        <div className="relative">
+          <Button
+            variant="ghost"
+            className="flex items-center space-x-1 text-gray-700 hover:text-[#1D3A76] hover:bg-blue-50 transition-all duration-200"
+            onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
           >
-            More
-          </Link>
-          {open && (
-            <div
-              className="absolute top-full left-0 mt-2 w-[170px] bg-[#F2F2F2] p-4 flex flex-col gap-3 rounded-md shadow-lg z-50"
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-            >
-              <Link href="/profile" onClick={toggleSidebar}>
-                <p className="text-[12px] 2xl:text-[16px] 3xl:text-[18px] 4xl:text-[20px] text-[#909090] font-semibold hover:text-[#1D3A76]">
-                  My Profile
-                </p>
-              </Link>
-              <Link href="/invoice" onClick={toggleSidebar}>
-                <p className="text-[12px] 2xl:text-[16px] 3xl:text-[18px] 4xl:text-[20px] text-[#909090] font-semibold hover:text-[#1D3A76]">
-                  Invoice
-                </p>
-              </Link>
-              <Link href="https://meetowner.in/" target="_blank" onClick={toggleSidebar}>
-                <p className="text-[12px] 2xl:text-[16px] 3xl:text-[18px] 4xl:text-[20px] text-[#909090] font-semibold hover:text-[#1D3A76]">
-                  Go to MeetOwner.in
-                </p>
-              </Link>
-              <div>
-                <div className="border-t-[1px] border-gray-300 my-2"></div>
-                <div onClick={handleLogout} className="cursor-pointer">
-                  <p className="text-[12px] 2xl:text-[16px] 3xl:text-[18px] 4xl:text-[20px] text-[#D23F4F] font-semibold text-center hover:text-[#B0303F]">
-                    Logout
-                  </p>
-                </div>
+            <span className="font-medium">More</span>
+            <ChevronDown
+              className={`w-3 h-3 opacity-60 transition-transform ${isMoreMenuOpen ? "rotate-180" : ""}`}
+            />
+          </Button>
+
+          {/* Custom More Menu Dropdown */}
+          {isMoreMenuOpen && (
+            <div className="absolute top-full right-0 mt-2 w-56 bg-white/98 backdrop-blur-md border border-gray-200/50 shadow-xl z-50 rounded-lg overflow-hidden">
+              <div className="p-2">
+                {moreMenuItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                      className="flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-blue-50 transition-colors cursor-pointer"
+                      onClick={() => {
+                        setIsMoreMenuOpen(false);
+                        if (toggleSidebar) toggleSidebar();
+                      }}
+                    >
+                      <Icon className="w-4 h-4 text-gray-500" />
+                      <span className="font-medium text-gray-700">{item.label}</span>
+                      {item.external && <ExternalLink className="w-3 h-3 ml-auto text-gray-400" />}
+                    </Link>
+                  );
+                })}
+                <div className="border-t border-gray-200 my-2"></div>
+                <button
+                  onClick={() => {
+                    setIsMoreMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-md text-red-600 hover:bg-red-50 cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="font-medium">Logout</span>
+                </button>
               </div>
             </div>
           )}
         </div>
-      </div>
-      <LoadingOverlay isLoading={isLoadingEffect} />
+      </nav>
+
+      {/* Click outside to close more menu */}
+      {isMoreMenuOpen && (
+        <div className="fixed inset-0 z-40" onClick={() => setIsMoreMenuOpen(false)} />
+      )}
+
+      
     </>
   );
 };

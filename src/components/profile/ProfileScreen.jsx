@@ -30,14 +30,14 @@ const ProfileScreen = () => {
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                <h1 className="text-3xl lg:text-4xl font-bold bg-[#1D3A76] bg-clip-text text-transparent">
                   Profile Management
                 </h1>
                 <p className="text-gray-600 mt-2">Manage your account information and settings</p>
               </div>
               <Button 
                 onClick={() => setIsEditOpen(true)}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg"
+                className="bg-gradient-to-r bg-[#1D3A76] text-white shadow-lg"
               >
                 <Edit3 className="w-4 h-4 mr-2" />
                 Update Profile
@@ -49,7 +49,7 @@ const ProfileScreen = () => {
             {/* Profile Card */}
             <div className="lg:col-span-1">
               <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center p-8">
+                <CardHeader className="bg-[#1D3A76] text-white text-center p-8">
                   <div className="relative inline-block">
                     <div className="w-24 h-24 sm:w-32 sm:h-32 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border-4 border-white/30">
                       <User className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
@@ -62,7 +62,7 @@ const ProfileScreen = () => {
                     </Button>
                   </div>
                   <CardTitle className="text-xl font-semibold text-white">{profileData.name}</CardTitle>
-                  <Badge className="bg-blue-800 text-blue-100 mt-2">
+                  <Badge className="bg-white text-black mt-2">
                     <Award className="w-3 h-3 mr-1" />
                     Channel Partner
                   </Badge>
@@ -70,7 +70,7 @@ const ProfileScreen = () => {
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-                      <Phone className="w-5 h-5 text-blue-600" />
+                      <Phone className="w-5 h-5 text-[#1D3A76]" />
                       <span className="text-sm font-medium text-gray-700">{profileData.phoneNumber}</span>
                     </div>
                     <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
@@ -78,7 +78,7 @@ const ProfileScreen = () => {
                       <span className="text-sm font-medium text-gray-700 truncate">{profileData.email}</span>
                     </div>
                     <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
-                      <MapPin className="w-5 h-5 text-purple-600" />
+                      <MapPin className="w-5 h-5 text-[#1D3A76]" />
                       <span className="text-sm font-medium text-gray-700">{profileData.city}, {profileData.state}</span>
                     </div>
                   </div>
@@ -99,15 +99,15 @@ const ProfileScreen = () => {
                 <CardContent className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
-                      <label className="text-sm font-medium text-blue-600">Name</label>
+                      <label className="text-sm font-medium text-[#1D3A76]">Name</label>
                       <p className="text-lg font-semibold text-gray-900">{profileData.name}</p>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-sm font-medium text-blue-600">Phone Number</label>
+                      <label className="text-sm font-medium text-[#1D3A76]">Phone Number</label>
                       <p className="text-lg font-semibold text-gray-900">{profileData.phoneNumber}</p>
                     </div>
                     <div className="space-y-1 md:col-span-2">
-                      <label className="text-sm font-medium text-blue-600">Email Address</label>
+                      <label className="text-sm font-medium text-[#1D3A76]">Email Address</label>
                       <p className="text-lg font-semibold text-gray-900">{profileData.email}</p>
                     </div>
                   </div>
