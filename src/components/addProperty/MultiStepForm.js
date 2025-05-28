@@ -4,8 +4,13 @@ import { useState } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Phone } from "lucide-react";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 import BasicDetails from "./BasicDetails";
-import PropertyDetails from "./PropertyDetails";
+import PropertyDetails from "./propertyDetails/PropertyDetails";
 import Address from "./Address";
 import Photos from "./Photos";
 import Review from "./Review";
@@ -21,24 +26,39 @@ export default function MultiStepForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const onNext = () => setCurrentStep((prev) => prev + 1);
   const onBack = () => setCurrentStep((prev) => prev - 1);
-  const onSubmit = (data) => {
-    console.log("Final Submit:", data);
-  };
+  const onSubmit = (data) => console.log("Final Submit:", data);
   const CurrentComponent = steps[currentStep].component;
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-4 w-full">
       <FormProvider {...methods}>
         <form
           onSubmit={methods.handleSubmit(onSubmit)}
-          className="max-w-7xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden "
+          className="w-full bg-white rounded-lg shadow-lg overflow-hidden"
         >
-          <div className="flex min-h-[600px]">
-            <div className="w-1/3 max-w-sm bg-gray-50 p-6 border-r h-screen sticky top-0 overflow-y-auto">
+          <div className="px-6 py-4 border-b md:hidden">
+            <Progress
+              value={progressPercentage}
+              className="h-2 bg-blue-100 [&>div]:bg-[#1D3A76]"
+            />
+            <p className="text-sm text-[#1D3A76] mt-2 text-right">
+              {Math.round(progressPercentage)}%
+            </p>
+          </div>
+          <ResizablePanelGroup
+            direction="horizontal"
+            className="min-h-[600px] w-full flex"
+          >
+            <ResizablePanel
+              defaultSize={15}
+              minSize={5}
+              maxSize={30}
+              className="hidden md:flex flex-col h-full bg-gray-50 p-6 border-r overflow-y-auto"
+            >
               <Button
                 variant="ghost"
                 className="mb-6 text-gray-600 hover:text-gray-800"
-                onClick={() => console.log("Back to dashboard")}
+                href="/"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to dashboard
@@ -51,18 +71,15 @@ export default function MultiStepForm() {
                   sell or rent your property
                 </p>
               </div>
-
-              <div className="mb-8 ">
+              <div className="mb-8">
                 <Progress
                   value={progressPercentage}
-                  className="h-2 bg-blue-100 [&>div]:bg-blue-600"
+                  className="h-2 bg-blue-100 [&>div]:bg-[#1D3A76]"
                 />
-
                 <p className="text-sm text-[#1D3A76] mt-2">
                   {Math.round(progressPercentage)}%
                 </p>
               </div>
-
               <ul className="space-y-6">
                 {steps.map((step, index) => (
                   <li key={index} className="flex items-center space-x-3">
@@ -100,7 +117,6 @@ export default function MultiStepForm() {
                   </li>
                 ))}
               </ul>
-
               <div className="mt-12 p-4 bg-blue-50 rounded-lg">
                 <p className="text-sm font-medium text-gray-700 mb-2">
                   Require Assistance?
@@ -110,48 +126,57 @@ export default function MultiStepForm() {
                   +91 9553919919
                 </div>
               </div>
-            </div>
+            </ResizablePanel>
 
-            <div className="w-2/3 max-h-screen overflow-y-auto p-8">
-              <h2 className="text-2xl font-bold text-[#1D3A76] mb-8 uppercase tracking-wide">
-                {steps[currentStep].label}
-              </h2>
-              <div className="mb-8">
-                <CurrentComponent />
-              </div>
-              <div className="flex justify-between pt-6 border-t">
-                {currentStep > 0 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onBack}
-                    className="px-6"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back
-                  </Button>
-                )}
-                <div className="ml-auto">
-                  {currentStep < steps.length - 1 ? (
+            <ResizableHandle className="hidden md:block" />
+
+            <ResizablePanel
+              defaultSize={90}
+              // minSize={80}
+              maxSize={95}
+              className="w-full max-w-full"
+            >
+              <div className="h-full max-h-screen overflow-y-auto p-8">
+                <h2 className="text-2xl font-bold text-[#1D3A76] mb-8 uppercase tracking-wide">
+                  {steps[currentStep].label}
+                </h2>
+                <div className="mb-8">
+                  <CurrentComponent />
+                </div>
+                <div className="flex justify-between pt-6 border-t">
+                  {currentStep > 0 && (
                     <Button
                       type="button"
-                      onClick={onNext}
-                      className="px-8 bg-[#1D3A76] hover:bg-blue-800"
+                      variant="outline"
+                      onClick={onBack}
+                      className="px-6"
                     >
-                      Next: Add {steps[currentStep + 1].label}
-                    </Button>
-                  ) : (
-                    <Button
-                      type="submit"
-                      className="px-8 bg-green-600 hover:bg-green-700"
-                    >
-                      Submit Property
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back
                     </Button>
                   )}
+                  <div className="ml-auto">
+                    {currentStep < steps.length - 1 ? (
+                      <Button
+                        type="button"
+                        onClick={onNext}
+                        className="px-8 bg-[#1D3A76] hover:bg-blue-800"
+                      >
+                        Next: Add {steps[currentStep + 1].label}
+                      </Button>
+                    ) : (
+                      <Button
+                        type="submit"
+                        className="px-8 bg-green-600 hover:bg-green-700"
+                      >
+                        Submit Property
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </form>
       </FormProvider>
     </div>
