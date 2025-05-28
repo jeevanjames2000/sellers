@@ -9,7 +9,7 @@ const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount }) =
       {/* Navigation Card */}
       <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">
+          <CardTitle className="text-md font-bold text-gray-800 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-[#1D3A76]" />
             Enquiries Overview
           </CardTitle>
@@ -41,11 +41,7 @@ const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount }) =
                 {enquiryCount}
               </Badge>
             </div>
-            {activeTab === 'my-enquiries' && (
-              <p className="text-white/80 text-sm mt-2">
-                Active property enquiries from potential tenants
-              </p>
-            )}
+           
           </button>
           
           <button
@@ -74,11 +70,7 @@ const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount }) =
                 {tenantCount}
               </Badge>
             </div>
-            {activeTab === 'matching-tenants' && (
-              <p className="text-white/80 text-sm mt-2">
-                Tenants that match your property criteria
-              </p>
-            )}
+           
           </button>
         
         </CardContent>

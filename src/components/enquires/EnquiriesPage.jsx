@@ -20,7 +20,7 @@ const EnquiriesPage = () => {
     <div className="w-full">
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
         {/* Sidebar */}
-        <div className="lg:w-80 xl:w-96">
+        <div className="lg:w-50 xl:w-66">
           <EnquirySidebar
             activeTab={activeTab}
             onTabChange={setActiveTab}
