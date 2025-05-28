@@ -115,7 +115,7 @@ export default function PropertyDetails() {
     "None",
   ];
   const facingOptions = ["East", "West", "South", "North"];
-  const parkingOptions = ["0", "1", "2", "3", "4+"];
+  const parkingOptions = ["0", "1", "2", "3", "4", "4+"];
   const bhkOptions = ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "4+ BHK"];
   const bathroomOptions = ["1", "2", "3", "4", "4+"];
   const balconyOptions = ["1", "2", "3", "4", "4+"];
@@ -131,7 +131,8 @@ export default function PropertyDetails() {
   const shouldShowBHK = isApartment || isIndependentHouse || isIndependentVilla;
   const shouldShowBathroom =
     isApartment || isIndependentHouse || isIndependentVilla;
-  const shouldShowBalcony = isApartment;
+  const shouldShowBalcony =
+    isApartment || isIndependentHouse || isIndependentVilla;
   const shouldShowFurnish =
     isApartment || isIndependentHouse || isIndependentVilla;
   const shouldShowAge =
@@ -153,7 +154,6 @@ export default function PropertyDetails() {
   };
   return (
     <div className="space-y-8">
-      {}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Label className="text-base font-medium">Property Sub Type</Label>
@@ -237,14 +237,14 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
-      {}
+
       {shouldShowBHK && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Label className="text-base font-medium">BHK</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
             {bhkOptions.map((option) => (
               <Button
                 key={option}
@@ -257,16 +257,24 @@ export default function PropertyDetails() {
               </Button>
             ))}
           </div>
+          {bhk === "4+ BHK" && (
+            <input
+              type="number"
+              placeholder="Enter BHK"
+              className="border p-2 rounded w-full"
+              onChange={(e) => setValue("customBHK", e.target.value)}
+            />
+          )}
         </div>
       )}
-      {}
+
       {shouldShowBathroom && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Label className="text-base font-medium">Bathroom</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
             {bathroomOptions.map((option) => (
               <Button
                 key={option}
@@ -279,16 +287,24 @@ export default function PropertyDetails() {
               </Button>
             ))}
           </div>
+          {bathroom === "4+" && (
+            <input
+              type="number"
+              placeholder="Enter Bathrooms"
+              className="border p-2 rounded w-full"
+              onChange={(e) => setValue("customBathroom", e.target.value)}
+            />
+          )}
         </div>
       )}
-      {}
+
       {shouldShowBalcony && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Label className="text-base font-medium">Balcony</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-4 flex-wrap">
             {balconyOptions.map((option) => (
               <Button
                 key={option}
@@ -301,9 +317,17 @@ export default function PropertyDetails() {
               </Button>
             ))}
           </div>
+          {balcony === "4+" && (
+            <input
+              type="number"
+              placeholder="Enter Balconies"
+              className="border p-2 rounded w-full"
+              onChange={(e) => setValue("customBalcony", e.target.value)}
+            />
+          )}
         </div>
       )}
-      {}
+
       {shouldShowFurnish && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -325,11 +349,14 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
-      {}
+
       {shouldShowAge && (
         <div className="space-y-2">
           <Label>Age of Property</Label>
-          <Select onValueChange={(value) => setValue("ageOfProperty", value)}>
+          <Select
+            onValueChange={(value) => setValue("ageOfProperty", value)}
+            className="bg-white"
+          >
             <SelectTrigger>
               <SelectValue placeholder="0-5" />
             </SelectTrigger>
@@ -342,7 +369,7 @@ export default function PropertyDetails() {
           </Select>
         </div>
       )}
-      {}
+
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label>Area units</Label>
@@ -436,7 +463,7 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
-      {}
+
       {shouldShowPossession && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -463,7 +490,7 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
-      {}
+
       {shouldShowInvestor && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -490,7 +517,7 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
-      {}
+
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Label className="text-base font-medium">Loan Facility</Label>
@@ -515,10 +542,10 @@ export default function PropertyDetails() {
           </Button>
         </div>
       </div>
-      {}
+
       <div className="space-y-6">
         <h3 className="text-lg font-medium">Add Additional Details</h3>
-        {}
+
         <div className="space-y-4">
           <Label className="text-base font-medium">Facing</Label>
           <div className="grid grid-cols-4 gap-4">
@@ -535,11 +562,11 @@ export default function PropertyDetails() {
             ))}
           </div>
         </div>
-        {}
+
         {!isPlot && !isLand && (
           <div className="space-y-4">
             <Label className="text-base font-medium">Car Parking</Label>
-            <div className="flex gap-4">
+            <div className="flex gap-4 flex-wrap">
               {parkingOptions.map((option) => (
                 <Button
                   key={option}
@@ -552,13 +579,21 @@ export default function PropertyDetails() {
                 </Button>
               ))}
             </div>
+            {carParking === "4+" && (
+              <input
+                type="number"
+                placeholder="Enter Car Parking"
+                className="border p-2 rounded w-full"
+                onChange={(e) => setValue("customCarParking", e.target.value)}
+              />
+            )}
           </div>
         )}
-        {}
+
         {!isPlot && !isLand && (
           <div className="space-y-4">
             <Label className="text-base font-medium">Bike Parking</Label>
-            <div className="flex gap-4">
+            <div className="flex gap-4 flex-wrap">
               {parkingOptions.map((option) => (
                 <Button
                   key={option}
@@ -571,13 +606,21 @@ export default function PropertyDetails() {
                 </Button>
               ))}
             </div>
+            {bikeParking === "4+" && (
+              <input
+                type="number"
+                placeholder="Enter Bike Parking"
+                className="border p-2 rounded w-full"
+                onChange={(e) => setValue("customBikeParking", e.target.value)}
+              />
+            )}
           </div>
         )}
-        {}
+
         {!isPlot && !isLand && (
           <div className="space-y-4">
             <Label className="text-base font-medium">Open Parking</Label>
-            <div className="flex gap-4">
+            <div className="flex gap-4 flex-wrap">
               {parkingOptions.map((option) => (
                 <Button
                   key={option}
@@ -590,9 +633,17 @@ export default function PropertyDetails() {
                 </Button>
               ))}
             </div>
+            {openParking === "4+" && (
+              <input
+                type="number"
+                placeholder="Enter Open Parking"
+                className="border p-2 rounded w-full"
+                onChange={(e) => setValue("customOpenParking", e.target.value)}
+              />
+            )}
           </div>
         )}
-        {}
+
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Label className="text-base font-medium">
@@ -619,7 +670,7 @@ export default function PropertyDetails() {
             </div>
           </div>
         </div>
-        {}
+
         {shouldShowServant && (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -646,7 +697,7 @@ export default function PropertyDetails() {
             </div>
           </div>
         )}
-        {}
+
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Label>Property Description</Label>
