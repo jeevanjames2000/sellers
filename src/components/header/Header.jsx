@@ -1,25 +1,18 @@
 "use client";
-import Image from "next/image";
-import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import logo from "../../../public/assets/logo.svg";
-import addproperty from "../../../public/assets/addproperty.svg";
-import downloadapp_svg from "../../../public/assets/downloadapp_svg.svg";
-import login from "../../../public/assets/login.svg";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Backdrop from "../shared/Backdrop";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import Mainnavigation from "./MainNavigation";
-import { IoHomeOutline, IoMenuOutline, IoCloseOutline } from "react-icons/io5";
+import { Home, Menu, X, Plus } from "lucide-react";
+import logo from "../../../public/assets/logo.svg";
+import Image from "next/image";
 
 function Header() {
   const pathname = usePathname();
-  const isActive = (path) => pathname === path;
   const [scrollY, setScrollY] = useState(0);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,13 +24,38 @@ function Header() {
     };
   }, []);
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMobileMenuOpen && !event.target.closest('#mobile-sidebar') && !event.target.closest('#mobile-menu-trigger')) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    if (isMobileMenuOpen) {
+      document.addEventListener('click', handleClickOutside);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
+
   return (
     <header
-      className={`h-[65px] 3xl:h-[120px] bg-[#F2F2F2] w-full py-2 transition-all duration-1000 shadow-xl flex flex-row justify-between items-center px-4 md:px-[4vw] lg:px-[6vw] sticky top-0 z-50 ${
-        scrollY > 120 ? "shadow-lg" : ""
+      className={`h-16 lg:h-20 bg-white/95 backdrop-blur-md w-full transition-all duration-300 border-b border-gray-200/50 flex items-center justify-between px-4 lg:px-8 xl:px-12 sticky top-0 z-50 ${
+        scrollY > 50 ? "shadow-lg bg-white/98" : "shadow-sm"
       }`}
     >
-      {/* Logo */}
+      {/* Logo Section */}
       <Link href="/">
         <Image
           src={logo}
@@ -49,122 +67,82 @@ function Header() {
       </Link>
 
       {/* Desktop Navigation */}
-      <div className="hidden md:flex items-center gap-4">
+      <div className="hidden lg:flex items-center space-x-8">
         <Mainnavigation />
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex items-center space-x-3">
+        {/* Add Property Button */}
         {pathname !== "/addProperty" && (
-          <Link
-            href="/addProperty"
-            className="bg-[#1D3A76] flex flex-row items-center gap-2 p-2 rounded-md"
-          >
-            <IoHomeOutline size={25} color="white" />
-            <button className="text-white text-[12px] md:text-sm 2xl:text-[18px] 3xl:text-[20px] 4xl:text-[22px] font-[700]">
-              Add Property
-            </button>
+          <Link href="/addProperty">
+            <Button 
+              className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
+              size="sm"
+            >
+              <Plus className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+              <span className="hidden sm:inline font-semibold">Add Property</span>
+              <span className="sm:hidden font-semibold">Add</span>
+            </Button>
           </Link>
         )}
+
+        {/* Mobile Menu Trigger */}
+        <div className="lg:hidden">
+          <Button 
+            id="mobile-menu-trigger"
+            variant="outline" 
+            size="sm"
+            className="w-10 h-10 p-0 border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+            onClick={toggleMobileMenu}
+          >
+            <Menu className="w-5 h-5 text-[#1D3A76]" />
+          </Button>
+        </div>
       </div>
 
-      {/* Mobile Actions */}
-      <div className="flex md:hidden items-center gap-2">
-        {pathname !== "/addProperty" && (
-          <>
-            <Link
-              href="/addProperty"
-              className="bg-[#1D3A76] flex flex-row items-center gap-2 p-2 rounded-md"
-            >
-              <IoHomeOutline size={25} color="white" />
-              <button className="text-white text-[12px] font-[700] hidden xs:flex">
-                Add Property
-              </button>
-            </Link>
-          </>
-        )}
-        <button
-          onClick={toggleSidebar}
-          className="flex items-center justify-center w-10 h-10 rounded-md bg-[#1D3A76] text-white"
-          aria-label={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
-        >
-          {isSidebarOpen ? (
-            <IoCloseOutline size={25} />
-          ) : (
-            <IoMenuOutline size={25} />
-          )}
-        </button>
-      </div>
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden" />
+      )}
 
-      {/* Mobile Sidebar */}
+      {/* Custom Mobile Sidebar */}
       <div
-        id="sidebar"
-        className={`fixed top-0 right-0 h-full w-[70%] z-[99999] bg-[#F2F2F2] md:hidden flex flex-col gap-4 transition-transform duration-300 ease-linear ${
-          isSidebarOpen ? "translate-x-0" : "translate-x-full"
+        id="mobile-sidebar"
+        className={`fixed top-0 right-0 h-full w-80 sm:w-96 bg-white/98 backdrop-blur-md border-l border-gray-200/50 z-50 lg:hidden transform transition-transform duration-300 ease-in-out ${
+          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex flex-row justify-between items-center p-4">
-          <Link href="/" onClick={toggleSidebar}>
-            <Image
-              src={logo}
-              alt="Meetowner Logo"
-              height={60}
-              width={90}
-              className="object-cover"
-            />
+        {/* Mobile Menu Header */}
+        <div className="flex items-center justify-between p-3 border-b border-gray-100">
+          <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] rounded-xl flex items-center justify-center shadow-lg">
+                <Home className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold bg-gradient-to-r from-blue-700 to-blue-600 bg-clip-text text-transparent">
+                  MEET OWNER
+                </h1>
+              </div>
+            </div>
           </Link>
           <button
-            onClick={toggleSidebar}
-            className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-md hover:bg-gray-100"
-            aria-label="Close Sidebar"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="w-8 h-8 p-0 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors"
           >
-            <IoCloseOutline size={25} color="#1D3A76" />
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
-        <div className="px-5">
-          <Mainnavigation toggleSidebar={toggleSidebar} />
+
+        {/* Mobile Navigation */}
+        <div className="flex-1 ">
+          <Mainnavigation toggleSidebar={() => setIsMobileMenuOpen(false)} isMobile={true} />
         </div>
+
+        {/* Mobile Menu Footer */}
+      
       </div>
-
-      {/* Backdrop for Mobile Sidebar */}
-      <Backdrop isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-
-      {/* Guest User Links */}
-      {false && (
-        <div className="flex flex-row justify-start items-center gap-4">
-          <Link
-            href="/downloadapp"
-            className="flex flex-row items-center justify-start gap-2 3xl:gap-4"
-          >
-            <Image
-              src={downloadapp_svg}
-              alt="Download App"
-              className="h-[16px] w-fit 3xl:h-9 3xl:w-fit object-cover"
-            />
-            <button className="text-[#1D3A76] hidden sm:flex text-[12px] md:text-[12px] lg:text-sm 2xl:text-[16px] 3xl:text-[32px] font-medium font-sans">
-              Download App
-            </button>
-          </Link>
-          <Link
-            href="/addProperty"
-            className="flex flex-row items-center justify-center gap-2 3xl:gap-4 p-2 rounded-md"
-          >
-            <IoHomeOutline size={25} color="#1D3A76" />
-            <button className="text-[#1D3A76] hidden sm:flex text-[12px] md:text-[12px] lg:text-sm 2xl:text-[16px] 3xl:text-[32px] font-medium font-sans">
-              Add Property
-            </button>
-          </Link>
-          <Link
-            href={pathname === "/signup" ? "/login" : "/signup"}
-            className="bg-[#1D3A76] flex flex-row items-center py-1 md:py-2 lg:py-2 3xl:py-6 px-2 md:px-4 lg:px-4 3xl:px-8 rounded-md 3xl:rounded gap-2 3xl:gap-2"
-          >
-            <Image
-              src={login}
-              alt={pathname === "/signup" ? "Login" : "Signup"}
-              className="h-[16px] w-fit 3xl:h-9 3xl:w-fit object-cover"
-            />
-            <button className="text-white text-[12px] md:text-[12px] lg:text-sm 2xl:text-[16px] 3xl:text-[32px] font-medium font-sans">
-              {pathname === "/signup" ? "Login" : "Signup"}
-            </button>
-          </Link>
-        </div>
-      )}
     </header>
   );
 }

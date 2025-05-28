@@ -6,13 +6,7 @@ import ServiceCard from '../ui/servicesCard';
 
 const ServicesGrid = () => {
   const services = [
-    {
-      title: "Instant Online Rent Agreement",
-      description: "Completely legal with lowest price guarantee",
-      buttonText: "Create agreement",
-      icon: <FileText className="w-8 h-8 text-white" />,
-      gradient: "bg-gradient-to-br from-purple-500 to-pink-500"
-    },
+   
     {
       title: "Upload Property",
       description: "100% complete listing with specific details about the rooms gets you more leads",
@@ -20,13 +14,7 @@ const ServicesGrid = () => {
       icon: <Upload className="w-8 h-8 text-white" />,
       gradient: "bg-gradient-to-br from-blue-500 to-cyan-500"
     },
-    {
-      title: "Property Value Calculator",
-      description: "Calculate the right value of your property",
-      buttonText: "Add property",
-      icon: <Calculator className="w-8 h-8 text-white" />,
-      gradient: "bg-gradient-to-br from-orange-500 to-red-500"
-    },
+   
     {
       title: "Verify Your Identity",
       description: "Complete verification with Aadhar eKYC!",

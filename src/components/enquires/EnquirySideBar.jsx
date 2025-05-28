@@ -9,7 +9,7 @@ const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount }) =
       {/* Navigation Card */}
       <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="text-md font-bold text-gray-800 flex items-center gap-2">
+          <CardTitle className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-[#1D3A76]" />
             Enquiries Overview
           </CardTitle>
@@ -28,7 +28,7 @@ const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount }) =
                 <MessageSquare className={`w-5 h-5 ${
                   activeTab === 'my-enquiries' ? 'text-white' : 'text-blue-500'
                 }`} />
-                <span className="font-semibold">My Enquiries</span>
+                <span className="font-semibold text-sm">My Enquiries</span>
               </div>
               <Badge 
                 variant="secondary" 
@@ -57,7 +57,7 @@ const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount }) =
                 <Users className={`w-5 h-5 ${
                   activeTab === 'matching-tenants' ? 'text-white' : 'text-green-500'
                 }`} />
-                <span className="font-semibold">Matching Tenants</span>
+                <span className="font-semibold text-sm">Matching Tenants</span>
               </div>
               <Badge 
                 variant="secondary" 

@@ -68,7 +68,7 @@ const InvoiceScreen = () => {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl lg:text-4xl font-bold bg-[#1D3A76] bg-clip-text text-transparent">
                 Invoice Management
               </h1>
               <p className="text-gray-600 mt-2">Track and manage your subscription invoices</p>
@@ -141,7 +141,7 @@ const InvoiceScreen = () => {
 
         {/* Invoice Table */}
         <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-6">
+          <CardHeader className="bg-[#1D3A76]  text-white p-6">
             <CardTitle className="text-xl font-semibold flex items-center">
               <FileText className="w-5 h-5 mr-2" />
               Invoices
@@ -167,7 +167,7 @@ const InvoiceScreen = () => {
                     <TableRow key={invoice.id} className="hover:bg-blue-50/50 transition-colors">
                       <TableCell className="p-4 font-medium text-gray-900">{invoice.id}</TableCell>
                       <TableCell className="p-4">
-                        <span className="font-mono text-blue-600 font-medium">{invoice.invoiceNo}</span>
+                        <span className="font-mono text-[#1D3A76] font-medium">{invoice.invoiceNo}</span>
                       </TableCell>
                       <TableCell className="p-4">
                         <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -185,7 +185,7 @@ const InvoiceScreen = () => {
                       <TableCell className="p-4 text-center">
                         <Button 
                           size="sm" 
-                          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-sm"
+                          className="bg-[#1D3A76] hover:to-blue-800 text-white shadow-sm"
                         >
                           <Eye className="w-3 h-3 mr-1" />
                           View Invoice
@@ -200,13 +200,7 @@ const InvoiceScreen = () => {
         </Card>
 
         {/* Pagination */}
-        <div className="flex justify-center mt-8">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" className="border-gray-300 hover:bg-gray-50">Previous</Button>
-            <Button className="bg-blue-600 text-white">1</Button>
-            <Button variant="outline" className="border-gray-300 hover:bg-gray-50">Next</Button>
-          </div>
-        </div>
+      
       </div>
     </div>
   );
