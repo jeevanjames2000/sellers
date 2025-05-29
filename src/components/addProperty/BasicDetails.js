@@ -15,46 +15,20 @@ import {
   setPropertyType,
   setTransactionType,
 } from "@/store/slices/addPropertySlice/basicDetailsSlice";
-
 export default function BasicDetails() {
   const { register, watch, setValue } = useFormContext();
-  const dispatch = useDispatch();
-  const data = useSelector((state) => state.basicDetails);
   const formData = watch();
   console.log("formData: ", formData);
-
   const propertyType = watch("propertyType");
   const lookingTo = watch("lookingTo");
   const transactionType = watch("transactionType");
-
-  useEffect(() => {
-    register("propertyType");
-    register("lookingTo");
-    register("transactionType");
-  }, []);
-
-  const handleSetPropertyType = (value) => {
-    setValue("propertyType", value, { shouldValidate: true });
-    dispatch(setPropertyType(value));
-  };
-
-  const handleSetLookingTo = (value) => {
-    setValue("lookingTo", value, { shouldValidate: true });
-    dispatch(setLookingTo(value));
-    if (value !== "sell") {
-      setValue("transactionType", "", { shouldValidate: true });
-      dispatch(setTransactionType(""));
-    }
-  };
+  console.log("propertyType: ", propertyType, lookingTo, transactionType);
 
   const handleSetTransactionType = (value) => {
     setValue("transactionType", value, { shouldValidate: true });
-    dispatch(setTransactionType(value));
   };
-
   return (
     <div className="space-y-8">
-      {/* Property Type */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Label className="text-lg font-medium">Property Type</Label>
@@ -63,32 +37,29 @@ export default function BasicDetails() {
         <div className="flex gap-4">
           <Button
             type="button"
-            variant={propertyType === "residential" ? "default" : "outline"}
-            onClick={() => handleSetPropertyType("residential")}
-            className={
+            onClick={() => setValue("propertyType", "residential")}
+            className={`px-8 py-6 text-base ${
               propertyType === "residential"
-                ? "px-8 py-6 text-base bg-[#1D3A76]"
-                : "px-8 py-6 text-base bg-white "
-            }
+                ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+                : "bg-white text-black hover:bg-gray-100 border"
+            }`}
           >
             Residential
           </Button>
           <Button
             type="button"
-            variant={propertyType === "commercial" ? "default" : "outline"}
-            onClick={() => handleSetPropertyType("commercial")}
-            className={
+            onClick={() => setValue("propertyType", "commercial")}
+            className={`px-8 py-6 text-base ${
               propertyType === "commercial"
-                ? "px-8 py-6 text-base bg-[#1D3A76] "
-                : "px-8 py-6 text-base bg-white "
-            }
+                ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+                : "bg-white text-black hover:bg-gray-100 border"
+            }`}
           >
             Commercial
           </Button>
         </div>
       </div>
 
-      {/* Looking To */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Label className="text-lg font-medium">Looking To</Label>
@@ -99,9 +70,12 @@ export default function BasicDetails() {
             <Button
               key={option}
               type="button"
-              variant={lookingTo === option ? "default" : "outline"}
-              onClick={() => handleSetLookingTo(option)}
-              className="px-8 py-6 text-base capitalize"
+              onClick={() => setValue("lookingTo", option)}
+              className={`px-8 py-6 text-base capitalize ${
+                lookingTo === option
+                  ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+                  : "bg-white text-black hover:bg-gray-100 border"
+              }`}
             >
               {option.replace("-", " ")}
             </Button>
@@ -109,7 +83,6 @@ export default function BasicDetails() {
         </div>
       </div>
 
-      {/* Transaction Type */}
       {lookingTo === "sell" && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
