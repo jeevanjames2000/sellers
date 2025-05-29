@@ -8,25 +8,23 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import InputOTPForm from "@/app/otpscreen/page";
 
-
 export function LoginWithOtp({ className, ...props }) {
   const router = useRouter();
-  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [isOtpModalOpen, setIsOtp] =useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setIsOtpModalOpen(true); 
+    setIsOtpModalOpen(true);
   };
 
   const handleOtpSubmit = () => {
-    setIsOtpModalOpen(false); 
-     localStorage.setItem("userToken", "some-token");
-    router.push("/dashboard"); 
+    setIsOtpModalOpen(false);
+    localStorage.setItem("userToken", "some-token");
+    router.push("/dashboard");
   };
 
   return (
     <>
-  
       <div
         className={cn("flex flex-col gap-6 transition-all duration-300", className, {
           "blur-sm": isOtpModalOpen,
@@ -80,14 +78,15 @@ export function LoginWithOtp({ className, ...props }) {
       {/* OTP Modal */}
       {isOtpModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-        
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsOtpModalOpen(false)} 
+            onClick={() => setIsOtpModalOpen(false)}
           />
-         
           <div className="relative z-50 w-80 rounded-lg bg-background p-6 shadow-lg">
-            <InputOTPForm onOtpSubmit={handleOtpSubmit} />
+            <InputOTPForm
+              onOtpSubmit={handleOtpSubmit}
+              onClose={() => setIsOtpModalOpen(false)} 
+            />
           </div>
         </div>
       )}

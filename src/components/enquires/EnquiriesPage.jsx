@@ -38,6 +38,7 @@ const EnquiriesPage = ({ activeTab }) => {
                   </div>
                 ))}
               </div>
+              
             </>
           ) : (
             <div className="text-center py-16 sm:py-20 lg:py-24">
