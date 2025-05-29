@@ -14,6 +14,8 @@ import PropertyDetails from "./propertyDetails/PropertyDetails";
 import Address from "./Address";
 import Photos from "./Photos";
 import Review from "./Review";
+import { useRouter } from "next/navigation";
+
 const steps = [
   { label: "Basic Details", component: BasicDetails },
   { label: "Property Details", component: PropertyDetails },
@@ -22,6 +24,7 @@ const steps = [
   { label: "Review", component: Review },
 ];
 export default function MultiStepForm() {
+  const router = useRouter();
   const methods = useForm({ mode: "onChange" });
   const [currentStep, setCurrentStep] = useState(0);
   const onNext = () => setCurrentStep((prev) => prev + 1);
@@ -29,6 +32,9 @@ export default function MultiStepForm() {
   const onSubmit = (data) => console.log("Final Submit:", data);
   const CurrentComponent = steps[currentStep].component;
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
+  const handleRoute = () => {
+    router.push("/dashboard");
+  };
   return (
     <div className="min-h-screen bg-gray-50 p-2 w-full">
       <FormProvider {...methods}>
@@ -57,8 +63,8 @@ export default function MultiStepForm() {
             >
               <Button
                 variant="ghost"
-                className="mb-6 text-gray-600 hover:text-gray-800"
-                href="/"
+                className="mb-6 text-gray-600 hover:text-gray-800 cursor-pointer"
+                onClick={handleRoute}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to dashboard
@@ -138,15 +144,17 @@ export default function MultiStepForm() {
             >
               <div className="h-full max-h-screen overflow-y-auto items-center p-4">
                 <div className="flex gap-3 items-center mb-8">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (currentStep > 0) onBack();
-                      else window.location.href = "/"; // Or use router.push("/")
-                    }}
-                  >
-                    <ArrowLeft className="text-[#1D3A76] w-6 h-6" />
-                  </button>
+                  {steps[currentStep].label != "Basic Details" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (currentStep > 0) onBack();
+                        else window.location.href = "/";
+                      }}
+                    >
+                      <ArrowLeft className="text-[#1D3A76] w-6 h-6 cursor-pointer" />
+                    </button>
+                  )}
                   <h2 className="text-2xl font-bold text-[#1D3A76] uppercase tracking-wide">
                     {steps[currentStep].label}
                   </h2>

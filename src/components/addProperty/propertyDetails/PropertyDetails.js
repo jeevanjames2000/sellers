@@ -35,9 +35,11 @@ import {
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
+import { formatCurrencyInWords } from "@/components/shared/formatCurrencyInWords";
 export default function PropertyDetails() {
   const { register, watch, setValue, getValues } = useFormContext();
   const formValues = watch();
+  console.log("formValues: ", formValues);
   const propertySubtype = watch("propertySubtype");
   const commercialSubType = watch("commercialSubType");
   const isRent = formValues?.lookingTo === "rent";
@@ -46,6 +48,7 @@ export default function PropertyDetails() {
   const lockinPeriod = watch("lockinPeriod");
   const landSubType = watch("landSubType");
   const brokerage = watch("brokerage");
+  const propertyCost = watch("propertyCost");
   const preferredTenantType = watch("preferredTenantType");
   const constructionStatus = watch("constructionStatus");
   const pentHouse = watch("pentHouse");
@@ -782,6 +785,11 @@ export default function PropertyDetails() {
               </SelectContent>
             </Select>
           </div>
+          {propertyCost && !isNaN(propertyCost) && (
+            <p className="text-sm text-gray-500 italic mt-1">
+              {formatCurrencyInWords(propertyCost)}
+            </p>
+          )}
         </div>
         <div className="space-y-4">
           <div className="flex items-center gap-2">
