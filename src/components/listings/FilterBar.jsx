@@ -1,184 +1,331 @@
-"use client"
+"use client";
 import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, X, ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { Search, Filter, X, MapPin, Home, Bed, Shield, ChevronDown } from 'lucide-react';
 
-const FilterBar = ({ filters, onFilterChange }) => {
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
+const FilterBar = ({ filters = {
+  searchLocation: '',
+  propertyFor: 'all',
+  propertyType: 'all',
+  bhk: 'all',
+  verificationStatus: 'all'
+}, onFilterChange = () => {} }) => {
+  const [showBottomSheet, setShowBottomSheet] = useState(false);
 
   const clearFilters = () => {
     Object.keys(filters).forEach(key => {
-      onFilterChange(key, key === 'propertyFor' || key === 'propertyType' || key === 'bhk' || key === 'verificationStatus' ? 'all' : '');
+      onFilterChange(
+        key,
+        ['propertyFor', 'propertyType', 'bhk', 'verificationStatus'].includes(key) ? 'all' : ''
+      );
     });
   };
 
+  const hasActiveFilters = () => {
+    return filters.searchLocation || 
+           filters.propertyFor !== 'all' || 
+           filters.propertyType !== 'all' || 
+           filters.bhk !== 'all' || 
+           filters.verificationStatus !== 'all';
+  };
+
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (filters.searchLocation) count++;
+    if (filters.propertyFor !== 'all') count++;
+    if (filters.propertyType !== 'all') count++;
+    if (filters.bhk !== 'all') count++;
+    if (filters.verificationStatus !== 'all') count++;
+    return count;
+  };
+
+  const CustomSelect = ({ value, onChange, placeholder, options, icon: Icon, className = "" }) => (
+    <div className={`relative group ${className}`}>
+      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-hover:text-blue-600 transition-colors z-10">
+        <Icon size={16} color='#1D37A6' />
+      </div>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full h-12 pl-10 pr-8 bg-white border-2 border-gray-200 rounded-xl text-gray-800 font-medium
+                   hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 
+                   transition-all duration-200 shadow-sm hover:shadow-md
+                   appearance-none cursor-pointer text-sm
+                   bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xIDFMNiA2TDExIDEiIHN0cm9rZT0iIzZCNzI4MCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==')] bg-no-repeat bg-[length:10px_6px] bg-[position:calc(100%-12px)_center]"
+      >
+        <option value="all">{placeholder}</option>
+        {options.map(option => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const filterOptions = {
+    propertyFor: [
+      { value: 'sell', label: 'For Sale' },
+      { value: 'rent', label: 'For Rent' },
+      { value: 'pg', label: 'PG/Co-living' }
+    ],
+    propertyType: [
+      { value: 'apartment', label: '🏢 Apartment' },
+      { value: 'villa', label: '🏡 Villa' },
+      { value: 'plot', label: '📐 Plot' },
+      { value: 'commercial', label: '🏬 Commercial' }
+    ],
+    bhk: [
+      { value: '1', label: '1 BHK' },
+      { value: '2', label: '2 BHK' },
+      { value: '3', label: '3 BHK' },
+      { value: '4', label: '4 BHK' },
+      { value: '5+', label: '5+ BHK' }
+    ],
+    verificationStatus: [
+      { value: 'verified', label: '✅ Verified' },
+      { value: 'pending', label: '⏳ Pending' },
+      { value: 'rejected', label: '❌ Rejected' }
+    ]
+  };
+
   return (
-    <div className="space-y-4">
-      
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="bg-white/20 p-2 rounded-lg">
-                <SlidersHorizontal className="w-5 h-5 text-white" />
+    <>
+      {/* Desktop Single Row Layout (lg, xl, 2xl, 3xl) */}
+      <div className="hidden lg:block">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="p-4">
+            <div className="flex items-center gap-3">
+              
+              {/* Search Location - Flexible width */}
+              <div className="relative group flex-1 min-w-0 lg:max-w-xs xl:max-w-sm 2xl:max-w-md">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-blue-600 transition-colors z-10">
+                  <Search size={16} color='#1D37A6'/>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search location..."
+                  value={filters.searchLocation}
+                  onChange={(e) => onFilterChange('searchLocation', e.target.value)}
+                  className="w-full h-12 pl-10 pr-4 bg-white border-2 border-gray-200 rounded-xl text-gray-800 font-medium
+                           placeholder:text-gray-500 placeholder:font-normal
+                           hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 
+                           transition-all duration-200 shadow-sm hover:shadow-md text-sm"
+                />
               </div>
-              <div>
-                <h3 className="text-white font-semibold text-lg">Smart Property Filters</h3>
-                <p className="text-blue-100 text-sm">Find your perfect property match</p>
-              </div>
+
+              {/* Property For */}
+              <CustomSelect
+                value={filters.propertyFor}
+                onChange={(value) => onFilterChange('propertyFor', value)}
+                placeholder="All Properties"
+                icon={MapPin}
+                options={filterOptions.propertyFor}
+                className="w-40 flex-shrink-0"
+              />
+
+              {/* Property Type */}
+              <CustomSelect
+                value={filters.propertyType}
+                onChange={(value) => onFilterChange('propertyType', value)}
+                placeholder="All Types"
+                icon={Home}
+                options={filterOptions.propertyType}
+                className="w-44 flex-shrink-0"
+              />
+
+              {/* BHK Configuration */}
+              <CustomSelect
+                value={filters.bhk}
+                onChange={(value) => onFilterChange('bhk', value)}
+                placeholder="All BHK"
+                icon={Bed}
+                options={filterOptions.bhk}
+                className="w-32 flex-shrink-0"
+              />
+
+              {/* Verification Status */}
+              <CustomSelect
+                value={filters.verificationStatus}
+                onChange={(value) => onFilterChange('verificationStatus', value)}
+                placeholder="All Status"
+                icon={Shield}
+                options={filterOptions.verificationStatus}
+                className="w-36 flex-shrink-0"
+              />
+
+              {/* Clear Filters Button */}
+             
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowMoreFilters(!showMoreFilters)}
-              className="text-white hover:bg-white/10 border border-white/30"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              {showMoreFilters ? 'Less Filters' : 'More Filters'}
-              <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${showMoreFilters ? 'rotate-180' : ''}`} />
-            </Button>
+
+            <div className='flex justify-end'>
+                 {hasActiveFilters() && (
+                <button
+                  onClick={clearFilters}
+                  className="flex items-center px-4 py-3 mt-2 bg-[#1D37A6] hover:bg-[#1D37A6] text-white font-medium rounded-xl 
+                           transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0 text-sm"
+                >
+                  <X size={16} className="mr-1" />
+                  Clear
+                </button>
+              )}
+            </div>
+            
           </div>
         </div>
+      </div>
 
-       
-        <div className="p-6 bg-gradient-to-br from-gray-50 to-white">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            {/* Search Location */}
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-blue-500 transition-colors" />
-              <Input
-                placeholder="Search Location..."
+      {/* Mobile & Tablet Layout (sm, md) */}
+      <div className="lg:hidden">
+        {/* Top Filter Button */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-4">
+          <div className="p-4">
+            {/* Search Bar */}
+            <div className="relative group mb-3">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-[#1D37A6] transition-colors">
+                <Search size={18} />
+              </div>
+              <input
+                type="text"
+                placeholder="Search location and name..."
                 value={filters.searchLocation}
                 onChange={(e) => onFilterChange('searchLocation', e.target.value)}
-                className="pl-11 h-12 bg-white border-2 border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
+                className="w-full h-12 pl-11 pr-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-800
+                         placeholder:text-gray-500 focus:border-[#1D37A6] focus:ring-2 focus:ring-blue-100 
+                         transition-all duration-200"
               />
             </div>
 
-          
-            <Select value={filters.propertyFor} onValueChange={(value) => onFilterChange('propertyFor', value)}>
-              <SelectTrigger className="h-12 bg-white border-2 border-gray-200 rounded-xl text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm">
-                <SelectValue placeholder="Property For" />
-              </SelectTrigger>
-              <SelectContent className="bg-white rounded-xl border-0 shadow-2xl">
-                <SelectItem value="all">All Properties</SelectItem>
-                <SelectItem value="sell">For Sale</SelectItem>
-                <SelectItem value="rent">For Rent</SelectItem>
-                <SelectItem value="pg">PG/Co-living</SelectItem>
-              </SelectContent>
-            </Select>
-
-          
-            <Select value={filters.propertyType} onValueChange={(value) => onFilterChange('propertyType', value)}>
-              <SelectTrigger className="h-12 bg-white border-2 border-gray-200 rounded-xl text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm">
-                <SelectValue placeholder="Property Type" />
-              </SelectTrigger>
-              <SelectContent className="bg-white rounded-xl border-0 shadow-2xl">
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="apartment">🏢 Apartment</SelectItem>
-                <SelectItem value="villa">🏡 Villa</SelectItem>
-                <SelectItem value="plot">📐 Plot</SelectItem>
-                <SelectItem value="commercial">🏬 Commercial</SelectItem>
-              </SelectContent>
-            </Select>
-
-            
-            <Select value={filters.bhk} onValueChange={(value) => onFilterChange('bhk', value)}>
-              <SelectTrigger className="h-12 bg-white border-2 border-gray-200 rounded-xl text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm">
-                <SelectValue placeholder="BHK Configuration" />
-              </SelectTrigger>
-              <SelectContent className="bg-white rounded-xl border-0 shadow-2xl">
-                <SelectItem value="all">All BHK</SelectItem>
-                <SelectItem value="1">1 BHK</SelectItem>
-                <SelectItem value="2">2 BHK</SelectItem>
-                <SelectItem value="3">3 BHK</SelectItem>
-                <SelectItem value="4">4 BHK</SelectItem>
-                <SelectItem value="5+">5+ BHK</SelectItem>
-              </SelectContent>
-            </Select>
-
-          
-            <Select value={filters.verificationStatus} onValueChange={(value) => onFilterChange('verificationStatus', value)}>
-              <SelectTrigger className="h-12 bg-white border-2 border-gray-200 rounded-xl text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm">
-                <SelectValue placeholder="Verification" />
-              </SelectTrigger>
-              <SelectContent className="bg-white rounded-xl border-0 shadow-2xl">
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="verified">✅ Verified</SelectItem>
-                <SelectItem value="pending">⏳ Pending</SelectItem>
-                <SelectItem value="rejected">❌ Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Filter Toggle Button */}
+            <button
+              onClick={() => setShowBottomSheet(true)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#1D37A6] to-[#1D37A6] 
+                       hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl 
+                       transition-all duration-200 shadow-md"
+            >
+              <div className="flex items-center">
+                <Filter size={18} className="mr-2" />
+                <span>Filters</span>
+                {getActiveFiltersCount() > 0 && (
+                  <span className="ml-2 px-2 py-1 bg-white/20 rounded-full text-xs">
+                    {getActiveFiltersCount()}
+                  </span>
+                )}
+              </div>
+              <ChevronDown size={18} />
+            </button>
           </div>
-
-         
-          {showMoreFilters && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                {/* Property ID */}
-                <Input
-                  placeholder="Property ID"
-                  value={filters.propertyId}
-                  onChange={(e) => onFilterChange('propertyId', e.target.value)}
-                  className="h-12 bg-white border-2 border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
-                />
-
-                {/* Price Range */}
-                <Select>
-                  <SelectTrigger className="h-12 bg-white border-2 border-gray-200 rounded-xl text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm">
-                    <SelectValue placeholder="💰 Price Range" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white rounded-xl border-0 shadow-2xl">
-                    <SelectItem value="0-1L">Under ₹1 Lakh</SelectItem>
-                    <SelectItem value="1-5L">₹1-5 Lakh</SelectItem>
-                    <SelectItem value="5-10L">₹5-10 Lakh</SelectItem>
-                    <SelectItem value="10L+">Above ₹10 Lakh</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Area */}
-                <Select>
-                  <SelectTrigger className="h-12 bg-white border-2 border-gray-200 rounded-xl text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm">
-                    <SelectValue placeholder="📐 Area" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white rounded-xl border-0 shadow-2xl">
-                    <SelectItem value="0-500">Under 500 sq ft</SelectItem>
-                    <SelectItem value="500-1000">500-1000 sq ft</SelectItem>
-                    <SelectItem value="1000-2000">1000-2000 sq ft</SelectItem>
-                    <SelectItem value="2000+">Above 2000 sq ft</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Furnishing */}
-                <Select>
-                  <SelectTrigger className="h-12 bg-white border-2 border-gray-200 rounded-xl text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm">
-                    <SelectValue placeholder="🪑 Furnishing" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white rounded-xl border-0 shadow-2xl">
-                    <SelectItem value="furnished">Fully Furnished</SelectItem>
-                    <SelectItem value="semi-furnished">Semi Furnished</SelectItem>
-                    <SelectItem value="unfurnished">Unfurnished</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex justify-end">
-                <Button
-                  variant="ghost"
-                  onClick={clearFilters}
-                  className="text-gray-600 hover:text-red-600 hover:bg-red-50 border-2 border-transparent hover:border-red-200 rounded-xl transition-all"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Clear All Filters
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
-    </div>
+
+      {/* Bottom Sheet Overlay */}
+      {showBottomSheet && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+            onClick={() => setShowBottomSheet(false)}
+          />
+          
+          {/* Bottom Sheet */}
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-[80vh] overflow-hidden animate-in slide-in-from-bottom duration-300">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <div className="flex items-center">
+                <Filter size={20} className="mr-2 text-[#1D37A6]" />
+                <h3 className="text-lg font-semibold text-gray-800">Filter Properties</h3>
+                {getActiveFiltersCount() > 0 && (
+                  <span className="ml-2 px-2 py-1 bg-blue-100 text-[#1D37A6] rounded-full text-xs font-medium">
+                    {getActiveFiltersCount()} active
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setShowBottomSheet(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+
+            {/* Filter Content */}
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(80vh-140px)]">
+              
+              {/* Property For */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Property For</label>
+                <CustomSelect
+                  value={filters.propertyFor}
+                  onChange={(value) => onFilterChange('propertyFor', value)}
+                  placeholder="All Properties"
+                  icon={MapPin}
+                  options={filterOptions.propertyFor}
+                />
+              </div>
+
+              {/* Property Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
+                <CustomSelect
+                  value={filters.propertyType}
+                  onChange={(value) => onFilterChange('propertyType', value)}
+                  placeholder="All Types"
+                  icon={Home}
+                  options={filterOptions.propertyType}
+                />
+              </div>
+
+              {/* BHK and Verification in a row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">BHK</label>
+                  <CustomSelect
+                    value={filters.bhk}
+                    onChange={(value) => onFilterChange('bhk', value)}
+                    placeholder="All BHK"
+                    icon={Bed}
+                    options={filterOptions.bhk}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <CustomSelect
+                    value={filters.verificationStatus}
+                    onChange={(value) => onFilterChange('verificationStatus', value)}
+                    placeholder="All Status"
+                    icon={Shield}
+                    options={filterOptions.verificationStatus}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Actions */}
+            <div className="p-6 border-t border-gray-100 bg-gray-50">
+              <div className="flex gap-3">
+                {hasActiveFilters() && (
+                  <button
+                    onClick={clearFilters}
+                    className="flex-1 flex items-center justify-center px-4 py-3 bg-[#1D37A6] hover:bg-[#1D37A6] 
+                             text-white font-semibold rounded-xl transition-all duration-200 shadow-md"
+                  >
+                    <X size={16} className="mr-2" />
+                    Clear All
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowBottomSheet(false)}
+                  className="flex-1 flex items-center justify-center px-4 py-3 bg-[#1D37A6] hover:bg-[#1D37A6]
+                           text-white font-semibold rounded-xl transition-all duration-200 shadow-md"
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

@@ -7,7 +7,7 @@ const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount }) =
   return (
     <div className="space-y-6">
      
-      <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+      <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm py-6">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold text-gray-800 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-[#1D3A76]" />
@@ -93,7 +93,7 @@ const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount }) =
       </Card>
 
     
-      <Card className="shadow-lg border-0 bg-white/90">
+      <Card className="shadow-lg border-0 bg-white/90 py-6">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-bold text-gray-800">Quick Actions</CardTitle>
         </CardHeader>
@@ -113,3 +113,85 @@ const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount }) =
 };
 
 export default EnquirySidebar;
+
+
+
+export const MobileFilterContent = ({ activeTab, onTabChange, enquiryCount, tenantCount, onClose }) => {
+  const handleTabChange = (tab) => {
+    onTabChange(tab);
+    onClose();
+  };
+
+  return (
+    <div className="p-4 space-y-4">
+      {/* Total Enquiries Display */}
+      <div className="text-center py-4">
+        <div className="w-16 h-16 bg-gradient-to-br from-[#1D3A76] to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+          <MessageSquare className="w-8 h-8 text-white" />
+        </div>
+        <h3 className="text-xl font-bold text-gray-800 mb-1">Total Enquiries</h3>
+        <p className="text-3xl font-bold text-[#1D3A76]">{enquiryCount}</p>
+      </div>
+
+      {/* Filter Options */}
+      <div className="space-y-3">
+        <button
+          onClick={() => handleTabChange('my-enquiries')}
+          className={`w-full text-left p-4 rounded-xl transition-all duration-200 ${
+            activeTab === 'my-enquiries'
+              ? 'bg-gradient-to-r from-[#1D3A76] to-blue-600 text-white shadow-lg'
+              : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <MessageSquare className={`w-5 h-5 ${
+                activeTab === 'my-enquiries' ? 'text-white' : 'text-blue-500'
+              }`} />
+              <span className="font-semibold">My Enquiries</span>
+            </div>
+            <Badge 
+              className={`${
+                activeTab === 'my-enquiries' 
+                  ? 'bg-white/20 text-white border-white/30' 
+                  : 'bg-blue-100 text-blue-800'
+              } font-bold px-3 py-1`}
+            >
+              {enquiryCount}
+            </Badge>
+          </div>
+        </button>
+        
+        <button
+          onClick={() => handleTabChange('matching-tenants')}
+          className={`w-full text-left p-4 rounded-xl transition-all duration-200 ${
+            activeTab === 'matching-tenants'
+              ? 'bg-gradient-to-r from-[#1D3A76] to-blue-600 text-white shadow-lg'
+              : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Users className={`w-5 h-5 ${
+                activeTab === 'matching-tenants' ? 'text-white' : 'text-green-500'
+              }`} />
+              <span className="font-semibold">Matching Tenants</span>
+            </div>
+            <Badge 
+              className={`${
+                activeTab === 'matching-tenants' 
+                  ? 'bg-white/20 text-white border-white/30' 
+                  : 'bg-gray-100 text-gray-600'
+              } font-bold px-3 py-1`}
+            >
+              {tenantCount}
+            </Badge>
+          </div>
+        </button>
+      </div>
+
+      {/* Quick Actions */}
+      
+    </div>
+  );
+};

@@ -5,7 +5,7 @@ import ListingsSidebar from './ListingsSidebar';
 
 function ListingsWrapper() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#FBFBFB] via-[#FBFBFB] to-[#FBFBFB]">
       <div className="w-full max-w-[1920px] mx-auto  p-3 sm:p-4 md:p-6 lg:p-4 xl:p-10">
         {/* Header Section */}
        

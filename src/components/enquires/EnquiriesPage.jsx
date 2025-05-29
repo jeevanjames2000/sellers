@@ -1,16 +1,33 @@
 'use client';
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+
 
 import EnquiryCard from './EnquiryCard';
 import { enquiriesData, matchingTenantsData } from './EnquiresData';
+import {  PaginationWrapper, } from './PaginationWrapper';
+
 
 const EnquiriesPage = ({ activeTab }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+
   const currentData = activeTab === 'my-enquiries' ? enquiriesData : matchingTenantsData;
   const totalCount = activeTab === 'my-enquiries' ? 37 : 0;
+    const itemsPerPage = 5; 
+  const totalPages = 15; 
+    const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedData = currentData.slice(startIndex, endIndex);
+
+  
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
 
   return (
     <div className="w-full">
@@ -28,7 +45,7 @@ const EnquiriesPage = ({ activeTab }) => {
               </div>
 
               <div className="space-y-3">
-                {currentData.map((enquiry, index) => (
+                {paginatedData.map((enquiry, index) => (
                   <div
                     key={enquiry.id}
                     className="animate-in slide-in-from-bottom-4 duration-500"
@@ -38,7 +55,14 @@ const EnquiriesPage = ({ activeTab }) => {
                   </div>
                 ))}
               </div>
-              
+
+              <div className="mt-6 flex justify-center">
+              <PaginationWrapper
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+
             </>
           ) : (
             <div className="text-center py-16 sm:py-20 lg:py-24">
