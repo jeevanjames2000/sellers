@@ -54,14 +54,13 @@ const renderSection = (title, keys, formData) => {
   if (entries.length === 0) return null;
 
   return (
-    <Card>
+    <Card className="p-2">
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {entries.map(([key, value]) => {
           let displayValue;
-
           if (Array.isArray(value)) {
             displayValue = value.length ? value.join(", ") : "Not specified";
           } else if (typeof value === "boolean") {
