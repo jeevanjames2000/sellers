@@ -106,7 +106,7 @@ const EnquiryCard = ({
             </div>
           </div>
           
-          {/* Action Buttons */}
+          
           <div className="mt-2 pt-4 mb-1 ">
             <div className="flex flex-col md:flex-row md:flex-start gap-3 sm:gap-4 ">
               <Button

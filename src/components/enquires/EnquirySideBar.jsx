@@ -6,7 +6,7 @@ import { MessageSquare, Users, TrendingUp } from 'lucide-react';
 const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount }) => {
   return (
     <div className="space-y-6">
-      {/* Navigation Card */}
+     
       <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-bold text-gray-800 flex items-center gap-2">
@@ -76,7 +76,7 @@ const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount }) =
         </CardContent>
       </Card>
 
-      {/* Stats Card */}
+     
       <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-100">
         <CardContent className="p-6">
           <div className="text-center">
@@ -92,7 +92,7 @@ const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount }) =
         </CardContent>
       </Card>
 
-      {/* Quick Actions Card */}
+    
       <Card className="shadow-lg border-0 bg-white/90">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-bold text-gray-800">Quick Actions</CardTitle>
