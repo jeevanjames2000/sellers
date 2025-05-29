@@ -10,7 +10,7 @@ import InputOTPForm from "@/app/otpscreen/page";
 
 export function LoginWithOtp({ className, ...props }) {
   const router = useRouter();
-  const [isOtpModalOpen, setIsOtp] =useState(false);
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -26,9 +26,13 @@ export function LoginWithOtp({ className, ...props }) {
   return (
     <>
       <div
-        className={cn("flex flex-col gap-6 transition-all duration-300", className, {
-          "blur-sm": isOtpModalOpen,
-        })}
+        className={cn(
+          "flex flex-col gap-6 transition-all duration-300",
+          className,
+          {
+            "blur-sm": isOtpModalOpen,
+          }
+        )}
         {...props}
       >
         <form onSubmit={handleSubmit}>
@@ -59,19 +63,25 @@ export function LoginWithOtp({ className, ...props }) {
             </div>
             <div className="text-center text-sm">
               Don't have an account?{" "}
-              <a href="/" className="underline underline-offset-4 hover:text-primary">
+              <a
+                href="/"
+                className="underline underline-offset-4 hover:text-primary"
+              >
                 Sign up
               </a>{" "}
               /{" "}
-              <a href="/login" className="underline underline-offset-4 hover:text-primary">
+              <a
+                href="/login"
+                className="underline underline-offset-4 hover:text-primary"
+              >
                 Admin login
               </a>
             </div>
           </div>
         </form>
         <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
-          By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-          and <a href="#">Privacy Policy</a>.
+          By clicking continue, you agree to our{" "}
+          <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
         </div>
       </div>
 
@@ -85,7 +95,7 @@ export function LoginWithOtp({ className, ...props }) {
           <div className="relative z-50 w-80 rounded-lg bg-background p-6 shadow-lg">
             <InputOTPForm
               onOtpSubmit={handleOtpSubmit}
-              onClose={() => setIsOtpModalOpen(false)} 
+              onClose={() => setIsOtpModalOpen(false)}
             />
           </div>
         </div>

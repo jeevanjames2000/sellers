@@ -201,15 +201,18 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
 
           {/* Portal-like Dropdown Menu - Completely Detached from Layout */}
           {isMoreMenuOpen && (
-            <div className="fixed inset-4 z-[9999]" onClick={() => setIsMoreMenuOpen(false)}>
+            <div
+              className="fixed inset-4 z-[9999]"
+              onClick={() => setIsMoreMenuOpen(false)}
+            >
               <div
                 className="absolute top-full right-0 mt-2 w-56
                  bg-white/98 backdrop-blur-md border border-gray-200/50 shadow-xl rounded-lg overflow-hidden 
                  animate-in slide-in-from-top-2 fade-in-0 duration-200"
                 style={{
-                  top: 'calc(100% + 8px)',
-                  right: '0px',
-                  position: 'absolute'
+                  top: "calc(100% + 8px)",
+                  right: "0px",
+                  position: "absolute",
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -248,7 +251,9 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
                     className="w-full flex items-center space-x-3 px-3 py-2 rounded-md text-red-600 hover:bg-red-50 cursor-pointer transition-colors group"
                   >
                     <LogOut className="w-4 h-4 flex-shrink-0 group-hover:text-red-700" />
-                    <span className="font-medium group-hover:text-red-700">Logout</span>
+                    <span className="font-medium group-hover:text-red-700">
+                      Logout
+                    </span>
                   </button>
                 </div>
               </div>
@@ -256,8 +261,6 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
           )}
         </div>
       </nav>
-
-
     </>
   );
 };
