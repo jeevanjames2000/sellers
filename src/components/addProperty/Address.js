@@ -24,7 +24,6 @@ import {
   setLocality,
   setState,
 } from "@/store/slices/addPropertySlice/addressSlice";
-
 export default function Address() {
   const {
     register,
@@ -32,28 +31,22 @@ export default function Address() {
     setValue,
     formState: { errors },
   } = useFormContext();
-
   const dispatch = useDispatch();
   const {
     state: selectedState,
     city: selectedCity,
     locality: selectedLocality,
   } = useSelector((store) => store.address);
-
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [localityInput, setLocalityInput] = useState("");
   const [localitySuggestions, setLocalitySuggestions] = useState([]);
-
   const [openState, setOpenState] = useState(false);
   const [openCity, setOpenCity] = useState(false);
   const [openLocality, setOpenLocality] = useState(false);
-
-  // Fetch states on mount
   useEffect(() => {
     fetchStates();
   }, []);
-
   const fetchStates = async () => {
     try {
       const res = await fetch("https://api.meetowner.in/api/v1/getAllStates");
@@ -63,7 +56,6 @@ export default function Address() {
       console.error("Error fetching states:", error);
     }
   };
-
   const fetchCities = async (state) => {
     try {
       const res = await fetch(
@@ -75,7 +67,6 @@ export default function Address() {
       console.error("Error fetching cities:", error);
     }
   };
-
   const fetchLocalities = async (city, query) => {
     try {
       const res = await fetch(
@@ -87,14 +78,12 @@ export default function Address() {
       console.error("Error fetching localities:", error);
     }
   };
-
   useEffect(() => {
     if (selectedState) {
       fetchCities(selectedState);
       setValue("state", selectedState);
     }
   }, [selectedState]);
-
   useEffect(() => {
     if (selectedCity && localityInput.length >= 2) {
       fetchLocalities(selectedCity, localityInput);
@@ -103,14 +92,11 @@ export default function Address() {
     }
     setValue("city", selectedCity);
   }, [localityInput, selectedCity]);
-
   useEffect(() => {
     setValue("locality", selectedLocality);
   }, [selectedLocality]);
-
   return (
     <div className="space-y-6">
-      {/* STATE */}
       <div className="space-y-2">
         <Label>State</Label>
         <Popover open={openState} onOpenChange={setOpenState}>
@@ -156,7 +142,6 @@ export default function Address() {
         </Popover>
       </div>
 
-      {/* CITY */}
       <div className="space-y-2">
         <Label>City</Label>
         <Popover open={openCity} onOpenChange={setOpenCity}>
@@ -200,7 +185,6 @@ export default function Address() {
         </Popover>
       </div>
 
-      {/* LOCALITY */}
       <div className="space-y-2">
         <Label>Locality</Label>
         <Popover open={openLocality} onOpenChange={setOpenLocality}>
@@ -250,7 +234,6 @@ export default function Address() {
         </Popover>
       </div>
 
-      {/* PROPERTY NAME */}
       <div className="space-y-2">
         <Label>
           Property/Project Name <span className="text-red-500">*</span>
@@ -266,7 +249,6 @@ export default function Address() {
         )}
       </div>
 
-      {/* FLAT & FLOOR */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>
@@ -303,7 +285,6 @@ export default function Address() {
         </div>
       </div>
 
-      {/* TOTAL FLOORS */}
       <div className="space-y-2">
         <Label>
           Total Floors <span className="text-red-500">*</span>

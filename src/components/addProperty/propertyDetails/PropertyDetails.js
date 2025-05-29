@@ -31,18 +31,17 @@ import {
   Trees,
   Trash,
   CalendarIcon,
+  MapPinHouse,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 export default function PropertyDetails() {
   const { register, watch, setValue, getValues } = useFormContext();
-
   const formValues = watch();
-  console.log("formValues: ", formValues);
-
   const propertySubtype = watch("propertySubtype");
+  const commercialSubType = watch("commercialSubType");
   const isRent = formValues?.lookingTo === "rent";
-  console.log("isRent: ", isRent);
+  const isSell = formValues?.lookingTo === "sell";
   const securityDeposit = watch("securityDeposit");
   const lockinPeriod = watch("lockinPeriod");
   const landSubType = watch("landSubType");
@@ -66,6 +65,8 @@ export default function PropertyDetails() {
   const areaUnit = watch("areaUnit");
   const nearbyPlace = watch("nearbyPlace");
   const distanceFromProperty = watch("distanceFromProperty");
+  const reraApproved = watch("reraApproved");
+  const ownership = watch("ownership");
   const [places, setPlaces] = useState([]);
   const [unit, setUnit] = useState("M");
   function formatDistance(meters) {
@@ -95,6 +96,14 @@ export default function PropertyDetails() {
     { id: "independent-villa", label: "Independent Villa", icon: Building2 },
     { id: "plot", label: "Plot", icon: MapPin },
     { id: "land", label: "Land", icon: Landmark },
+  ];
+  const commercialSubTypes = [
+    { id: "office", label: "Office", icon: Building },
+    { id: "retail_shop", label: "Retail Shop", icon: Home },
+    { id: "showroom", label: "Showroom", icon: Building2 },
+    { id: "plot", label: "Plot", icon: MapPin },
+    { id: "warehouse", label: "Warehouse", icon: Landmark },
+    { id: "others", label: "Others", icon: MapPinHouse },
   ];
   const landSubtypes = [
     { id: "villa_development", label: "Villa Development", icon: House },
@@ -151,8 +160,11 @@ export default function PropertyDetails() {
   const isApartment = propertySubtype === "apartment";
   const isIndependentHouse = propertySubtype === "independent-house";
   const isIndependentVilla = propertySubtype === "independent-villa";
+  const isCommercial = formValues.propertyType === "commercial";
+  const shouldShowCommercialSubTypes = isCommercial;
   const isPlot = propertySubtype === "plot";
   const isLand = propertySubtype === "land";
+  const isCommercialSell = isCommercial && isSell;
   const shouldShowConstruction =
     isApartment || isIndependentHouse || isIndependentVilla;
   const shouldShowLandSubtypes = isLand;
@@ -171,8 +183,17 @@ export default function PropertyDetails() {
     isApartment || isIndependentHouse || isIndependentVilla || isPlot;
   const shouldShowInvestor = isApartment || isIndependentVilla || isPlot;
   const shouldShowPossession = isPlot || isLand;
+  const shouldShowRentPossession = isRent;
   const shouldShowServant =
     isApartment || isIndependentHouse || isIndependentVilla;
+  const shouldShowPlotNo =
+    commercialSubType === "plot" ||
+    commercialSubType === "warehouse" ||
+    commercialSubType === "others";
+  const shouldShowLifts =
+    commercialSubType === "office" ||
+    commercialSubType === "retail_shop" ||
+    commercialSubType === "showroom";
   const handleFacilityChange = (facility, checked) => {
     const currentFacilities = getValues("facilities") || [];
     if (checked) {
@@ -200,57 +221,30 @@ export default function PropertyDetails() {
     setValue("areaUnit", defaultUnit);
   }, [propertySubtype, setValue]);
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Label className="text-base font-medium">Property Sub Type</Label>
-          <span className="text-red-500">*</span>
-        </div>
-        <div className="grid grid-cols-5 gap-4">
-          {propertySubtypes.map((type) => {
-            const IconComponent = type.icon;
-            const isSelected = propertySubtype === type.id;
-            return (
-              <Button
-                key={type.id}
-                type="button"
-                onClick={() => setValue("propertySubtype", type.id)}
-                className={`h-20 flex flex-col items-center justify-center space-y-2 text-xs ${
-                  isSelected
-                    ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
-                    : "bg-white text-black hover:bg-gray-100 border"
-                }`}
-              >
-                <IconComponent className="w-6 h-6" />
-                <span>{type.label}</span>
-              </Button>
-            );
-          })}
-        </div>
-      </div>
-      {shouldShowLandSubtypes && (
-        <div className="space-y-4">
+    <div className="space-y-8 sm:space-y-2 gap-4">
+      {!shouldShowCommercialSubTypes && (
+        <div className="space-y-4 mb-4">
           <div className="flex items-center gap-2">
-            <Label className="text-base font-medium">Land Sub Type</Label>
+            <Label>Property Sub Type</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="grid grid-cols-5 gap-4">
-            {landSubtypes.map((type) => {
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+            {propertySubtypes.map((type) => {
               const IconComponent = type.icon;
-              const isSelected = landSubType === type.id;
+              const isSelected = propertySubtype === type.id;
               return (
                 <Button
                   key={type.id}
                   type="button"
-                  onClick={() => setValue("landSubType", type.id)}
-                  className={`h-20 p-1 w-auto flex flex-col items-center justify-center space-y-1 text-xs text-center break-words ${
+                  onClick={() => setValue("propertySubtype", type.id)}
+                  className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
                     isSelected
                       ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
                       : "bg-white text-black hover:bg-gray-100 border"
                   }`}
                 >
-                  <IconComponent className="w-6 h-6" />
-                  <span className="w-full truncate text-center">
+                  <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span className="text-center leading-tight">
                     {type.label}
                   </span>
                 </Button>
@@ -259,19 +253,108 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
+      {shouldShowCommercialSubTypes && (
+        <div className="space-y-4 mb-4">
+          <div className="flex items-center gap-2 ">
+            <Label>Commercial Sub Type</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+            {commercialSubTypes.map((type) => {
+              const IconComponent = type.icon;
+              const isSelected = commercialSubType === type.id;
+              return (
+                <Button
+                  key={type.id}
+                  type="button"
+                  onClick={() => setValue("commercialSubType", type.id)}
+                  className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
+                    isSelected
+                      ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+                      : "bg-white text-black hover:bg-gray-100 border"
+                  }`}
+                >
+                  <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span className="text-center leading-tight">
+                    {type.label}
+                  </span>
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {shouldShowLandSubtypes && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Label>Land Sub Type</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+            {landSubtypes.map((type) => {
+              const IconComponent = type.icon;
+              const isSelected = landSubType === type.id;
+              return (
+                <Button
+                  key={type.id}
+                  type="button"
+                  onClick={() => setValue("landSubType", type.id)}
+                  className={`h-16 sm:h-20 p-1 w-auto flex flex-col items-center justify-center space-y-1 text-xs text-center break-words ${
+                    isSelected
+                      ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+                      : "bg-white text-black hover:bg-gray-100 border"
+                  }`}
+                >
+                  <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span className="w-full truncate text-center leading-tight">
+                    {type.label}
+                  </span>
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {isSell && (
+        <div className="w-full sm:w-3/4 md:w-1/2 space-y-2">
+          <Label>
+            <div className="flex items-center gap-1">
+              <span>Rera Approved</span>
+              <span className="text-red-500">*</span>
+            </div>
+          </Label>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+            {["yes", "no"].map((val) => (
+              <Button
+                key={val}
+                type="button"
+                variant="outline"
+                onClick={() => setValue("reraApproved", val)}
+                className={`px-6 sm:px-8 py-3 capitalize ${
+                  reraApproved === val
+                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                    : "bg-white text-black hover:bg-gray-100 border"
+                }`}
+              >
+                {val}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
       {shouldShowConstruction && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Label className="text-base font-medium">Construction Status</Label>
+            <Label>Construction Status</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             {["Ready-to-move", "Under-construction"].map((status) => (
               <Button
                 key={status}
                 type="button"
                 onClick={() => setValue("constructionStatus", status)}
-                className={`px-6 py-3 ${
+                className={`px-4 sm:px-6 py-3 ${
                   constructionStatus === status
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
                     : "bg-white text-black hover:bg-gray-100 border"
@@ -286,16 +369,16 @@ export default function PropertyDetails() {
       {shouldShowBHK && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Label className="text-base font-medium">BHK</Label>
+            <Label>BHK</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="flex gap-4 flex-wrap">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
             {bhkOptions.map((option) => (
               <Button
                 key={option}
                 type="button"
                 onClick={() => setValue("bhk", option)}
-                className={`px-4 py-3 ${
+                className={`px-3 sm:px-4 py-3 text-sm ${
                   bhk === option
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
                     : "bg-white text-black hover:bg-gray-100 border"
@@ -306,10 +389,10 @@ export default function PropertyDetails() {
             ))}
           </div>
           {bhk === "4+ BHK" && (
-            <input
+            <Input
               type="number"
               placeholder="Custom BHK"
-              className="border p-2 rounded w-full"
+              className="w-full sm:w-1/2"
               onChange={(e) => setValue("customBHK", e.target.value)}
             />
           )}
@@ -318,16 +401,16 @@ export default function PropertyDetails() {
       {shouldShowBathroom && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Label className="text-base font-medium">Bathroom</Label>
+            <Label>Bathroom</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="flex gap-4 flex-wrap">
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
             {bathroomOptions.map((option) => (
               <Button
                 key={option}
                 type="button"
                 onClick={() => setValue("bathroom", option)}
-                className={`w-16 h-12 ${
+                className={`w-12 sm:w-16 h-10 sm:h-12 text-sm ${
                   bathroom === option
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
                     : "bg-white text-black hover:bg-gray-100 border"
@@ -338,10 +421,10 @@ export default function PropertyDetails() {
             ))}
           </div>
           {bathroom === "4+" && (
-            <input
+            <Input
               type="number"
               placeholder="Custom Bathrooms"
-              className="border p-2 rounded w-full"
+              className="w-full sm:w-1/2"
               onChange={(e) => setValue("customBathroom", e.target.value)}
             />
           )}
@@ -350,16 +433,16 @@ export default function PropertyDetails() {
       {shouldShowBalcony && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Label className="text-base font-medium">Balcony</Label>
+            <Label>Balcony</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="flex gap-4 flex-wrap">
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
             {balconyOptions.map((option) => (
               <Button
                 key={option}
                 type="button"
                 onClick={() => setValue("balcony", option)}
-                className={`w-16 h-12 ${
+                className={`w-12 sm:w-16 h-10 sm:h-12 text-sm ${
                   balcony === option
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
                     : "bg-white text-black hover:bg-gray-100 border"
@@ -370,10 +453,10 @@ export default function PropertyDetails() {
             ))}
           </div>
           {balcony === "4+" && (
-            <input
+            <Input
               type="number"
               placeholder="Custom Balcony"
-              className="border p-2 rounded w-full"
+              className="w-full sm:w-1/2"
               onChange={(e) => setValue("customBalcony", e.target.value)}
             />
           )}
@@ -382,16 +465,16 @@ export default function PropertyDetails() {
       {shouldShowFurnish && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Label className="text-base font-medium">Furnish Type</Label>
+            <Label>Furnish Type</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="flex gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
             {furnishOptions.map((option) => (
               <Button
                 key={option}
                 type="button"
                 onClick={() => setValue("furnishType", option)}
-                className={`px-6 py-3 ${
+                className={`px-4 sm:px-6 py-3 ${
                   furnishType === option
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
                     : "bg-white text-black hover:bg-gray-100 border"
@@ -404,13 +487,13 @@ export default function PropertyDetails() {
         </div>
       )}
       {shouldShowAge && (
-        <div className="space-y-2">
+        <div className="space-y-2 ">
           <Label>Age of Property</Label>
           <Select
             onValueChange={(value) => setValue("ageOfProperty", value)}
             className="bg-white"
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full sm:w-1/2 mb-2  bg-white">
               <SelectValue placeholder="0-5" />
             </SelectTrigger>
             <SelectContent>
@@ -424,8 +507,56 @@ export default function PropertyDetails() {
       )}
       {isRent && (
         <>
-          <div className="flex gap-4">
-            <div className="w-1/2 space-y-2">
+          {shouldShowLifts && (
+            <>
+              <Label className="text-base sm:text-lg font-medium mt-10">
+                Lifts & Stair Cases
+              </Label>
+              <div className="grid grid-cols-1 lg:grid-cols-3 mb-4  gap-4 sm:gap-6">
+                <div className="space-y-2">
+                  <Label>
+                    Passenger Lifts
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    {...register("passengerLifts", {
+                      required: "Passenger lifts is required",
+                    })}
+                    placeholder="Enter Passenger lifts"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>
+                    Service Lifts
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    {...register("serviceLifts", {
+                      required: "Service lifts is required",
+                    })}
+                    placeholder="Enter Service lifts"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>
+                    Stair Cases
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    {...register("stairCases", {
+                      required: "Stair Cases is required",
+                    })}
+                    placeholder="Enter Stair cases"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4   sm:gap-6">
+            <div className="space-y-2">
               <Label>
                 Available from <span className="text-red-500">*</span>
               </Label>
@@ -451,7 +582,7 @@ export default function PropertyDetails() {
                 </PopoverContent>
               </Popover>
             </div>
-            <div className="w-1/2 space-y-2">
+            <div className="space-y-2 mb-2 ">
               <Label>
                 Monthly Rent <span className="text-red-500">*</span>
               </Label>
@@ -459,13 +590,13 @@ export default function PropertyDetails() {
                 {...register("monthlyRent", {
                   required: "Monthly rent is required",
                 })}
-                placeholder="Flat No."
+                placeholder="Monthly Rent"
+                className="w-full"
               />
             </div>
           </div>
-
-          <div className="flex gap-4">
-            <div className="w-1/2 space-y-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-2 sm:gap-6">
+            <div className="space-y-2">
               <Label>
                 Maintenance Charge (per Month){" "}
                 <span className="text-red-500">*</span>
@@ -474,26 +605,25 @@ export default function PropertyDetails() {
                 {...register("maintenanceCharge", {
                   required: "Maintenance charge is required",
                 })}
-                placeholder="Flat No."
+                placeholder="Maintenance Charge"
+                className="w-full"
               />
             </div>
-
-            {/* Loan Facility */}
-            <div className="w-1/2 space-y-2">
+            <div className="space-y-2">
               <Label>
                 <div className="flex items-center gap-1">
-                  <span className="text-base font-medium">Loan Facility</span>
+                  <span>Loan Facility</span>
                   <span className="text-red-500">*</span>
                 </div>
               </Label>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                 {["yes", "no"].map((val) => (
                   <Button
                     key={val}
                     type="button"
                     variant="outline"
                     onClick={() => setValue("loanFacility", val)}
-                    className={`px-8 py-3 capitalize ${
+                    className={`px-6 sm:px-8 py-3 capitalize ${
                       loanFacility === val
                         ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
                         : "bg-white text-black hover:bg-gray-100 border"
@@ -507,15 +637,14 @@ export default function PropertyDetails() {
           </div>
         </>
       )}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-5 sm:gap-6">
         <div className="space-y-2">
           <Label>Area units</Label>
           <Select
             value={areaUnit}
             onValueChange={(value) => setValue("areaUnit", value)}
-            className="w-10"
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full bg-white">
               <SelectValue placeholder="Select unit" />
             </SelectTrigger>
             <SelectContent>
@@ -526,11 +655,15 @@ export default function PropertyDetails() {
           </Select>
         </div>
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Label>Built-up Area (Sq.ft)</Label>
             <span className="text-red-500">*</span>
           </div>
-          <Input {...register("builtupArea")} placeholder="Built-up Area" />
+          <Input
+            {...register("builtupArea")}
+            placeholder="Built-up Area"
+            className="w-full"
+          />
         </div>
         {shouldShowCarpetArea && (
           <div className="space-y-2">
@@ -538,25 +671,37 @@ export default function PropertyDetails() {
             <Input
               {...register("carpetArea")}
               placeholder="Carpet Area"
-              className="bg-white placeholder-white"
+              className="bg-white w-full"
             />
           </div>
         )}
         {shouldShowPlotArea && (
           <div className="space-y-2">
             <Label>Plot Area (Sq.yd)</Label>
-            <Input {...register("plotArea")} placeholder="Plot Area" />
+            <Input
+              {...register("plotArea")}
+              placeholder="Plot Area"
+              className="w-full"
+            />
           </div>
         )}
         {shouldShowLenthAreas && (
           <>
             <div className="space-y-2">
               <Label>Length Area (Sq.ft)</Label>
-              <Input {...register("lengthArea")} placeholder="Length Area" />
+              <Input
+                {...register("lengthArea")}
+                placeholder="Length Area"
+                className="w-full"
+              />
             </div>
             <div className="space-y-2">
               <Label>Width Area (Sq.ft)</Label>
-              <Input {...register("widthArea")} placeholder="Width Area" />
+              <Input
+                {...register("widthArea")}
+                placeholder="Width Area"
+                className="w-full"
+              />
             </div>
           </>
         )}
@@ -574,7 +719,7 @@ export default function PropertyDetails() {
             <Select
               onValueChange={(value) => setValue("totalProjectAreaUnit", value)}
             >
-              <SelectTrigger className="border-l px-3 h-full">
+              <SelectTrigger className="border-l px-3 h-full w-24">
                 <SelectValue placeholder="Acres" />
               </SelectTrigger>
               <SelectContent className="bg-white">
@@ -602,7 +747,7 @@ export default function PropertyDetails() {
               />
             </div>
             <Select onValueChange={(value) => setValue("unitCostType", value)}>
-              <SelectTrigger className="border-l px-3 h-full">
+              <SelectTrigger className="border-l px-3 h-full w-28">
                 <SelectValue placeholder="Onwards" />
               </SelectTrigger>
               <SelectContent className="bg-white">
@@ -611,29 +756,6 @@ export default function PropertyDetails() {
                 <SelectItem value="on-request">On Request</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        </div>
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Label>Pent House</Label>
-            <span className="text-red-500">*</span>
-          </div>
-          <div className="flex gap-4">
-            {["yes", "no"].map((val) => (
-              <Button
-                key={val}
-                type="button"
-                variant="outline"
-                onClick={() => setValue("pentHouse", val)}
-                className={`px-8 py-3 capitalize ${
-                  pentHouse === val
-                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
-                    : "bg-white text-black hover:bg-gray-100 border"
-                }`}
-              >
-                {val}
-              </Button>
-            ))}
           </div>
         </div>
         <div className="space-y-2">
@@ -650,7 +772,7 @@ export default function PropertyDetails() {
             <Select
               onValueChange={(value) => setValue("propertyCostType", value)}
             >
-              <SelectTrigger className="border-l px-3 h-full">
+              <SelectTrigger className="border-l px-3 h-full w-28">
                 <SelectValue placeholder="Onwards" />
               </SelectTrigger>
               <SelectContent className="bg-white">
@@ -661,22 +783,45 @@ export default function PropertyDetails() {
             </Select>
           </div>
         </div>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Label>Pent House</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+            {["yes", "no"].map((val) => (
+              <Button
+                key={val}
+                type="button"
+                variant="outline"
+                onClick={() => setValue("pentHouse", val)}
+                className={`px-6 sm:px-8 py-3 capitalize ${
+                  pentHouse === val
+                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                    : "bg-white text-black hover:bg-gray-100 border"
+                }`}
+              >
+                {val}
+              </Button>
+            ))}
+          </div>
+        </div>
       </div>
       {isRent && (
         <>
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Label className="text-base font-medium">Security Deposit</Label>
+              <Label>Security Deposit</Label>
               <span className="text-red-500">*</span>
             </div>
-            <div className="flex gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
               {["1 Month", "2 Months", "3 Months"].map((item) => (
                 <Button
                   key={item}
                   type="button"
                   variant="outline"
                   onClick={() => setValue("securityDeposit", item)}
-                  className={`px-6 py-3 capitalize ${
+                  className={`px-4 sm:px-6 py-3 capitalize ${
                     securityDeposit === item
                       ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
                       : "bg-white text-black hover:bg-gray-100 border"
@@ -689,17 +834,17 @@ export default function PropertyDetails() {
           </div>
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Label className="text-base font-medium">Lock in period</Label>
+              <Label>Lock in period</Label>
               <span className="text-red-500">*</span>
             </div>
-            <div className="flex gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
               {["1 Month", "2 Months", "3 Months"].map((item) => (
                 <Button
                   key={item}
                   type="button"
                   variant="outline"
                   onClick={() => setValue("lockinPeriod", item)}
-                  className={`px-6 py-3 capitalize ${
+                  className={`px-4 sm:px-6 py-3 capitalize ${
                     lockinPeriod === item
                       ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
                       : "bg-white text-black hover:bg-gray-100 border"
@@ -712,19 +857,17 @@ export default function PropertyDetails() {
           </div>
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Label className="text-base font-medium">
-                Do you charge Brokerage
-              </Label>
+              <Label>Do you charge Brokerage</Label>
               <span className="text-red-500">*</span>
             </div>
-            <div className="flex gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
               {["None", "15 Days", "30 Days"].map((item) => (
                 <Button
                   key={item}
                   type="button"
                   variant="outline"
                   onClick={() => setValue("brokerage", item)}
-                  className={`px-6 py-3 capitalize ${
+                  className={`px-4 sm:px-6 py-3 capitalize ${
                     brokerage === item
                       ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
                       : "bg-white text-black hover:bg-gray-100 border"
@@ -737,12 +880,10 @@ export default function PropertyDetails() {
           </div>
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Label className="text-base font-medium">
-                Prefered Tenant Type
-              </Label>
+              <Label>Preferred Tenant Type</Label>
               <span className="text-red-500">*</span>
             </div>
-            <div className="flex gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-4">
               {[
                 "Anyone",
                 "Family",
@@ -755,7 +896,7 @@ export default function PropertyDetails() {
                   type="button"
                   variant="outline"
                   onClick={() => setValue("preferredTenantType", item)}
-                  className={`px-6 py-3 capitalize ${
+                  className={`px-3 sm:px-6 py-3 text-xs sm:text-sm capitalize ${
                     preferredTenantType === item
                       ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
                       : "bg-white text-black hover:bg-gray-100 border"
@@ -768,13 +909,43 @@ export default function PropertyDetails() {
           </div>
         </>
       )}
-      {!isPlot && !isLand && (
+      {isCommercialSell && (
         <div className="space-y-4">
-          <Label className="text-lg font-medium">Facilities</Label>
-          <p className="text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <Label>Ownership</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+            {[
+              "Freehold",
+              "Leasehold",
+              "Cooperative society",
+              "Power of attorney",
+            ].map((item) => (
+              <Button
+                key={item}
+                type="button"
+                variant="outline"
+                onClick={() => setValue("ownership", item)}
+                className={`px-3 sm:px-6 py-3 text-xs sm:text-sm capitalize ${
+                  ownership === item
+                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                    : "bg-white text-black hover:bg-gray-100 border"
+                }`}
+              >
+                {item}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+      {!isPlot && !isLand && (
+        <div className="space-y-4 mb-10">
+          <Label className="text-base sm:text-lg font-medium">Facilities</Label>
+          <p className="text-xs sm:text-sm text-gray-600">
             Available facilities in the property
           </p>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {facilitiesOptions.map((facility) => (
               <div key={facility} className="flex items-center space-x-2">
                 <Checkbox
@@ -787,7 +958,7 @@ export default function PropertyDetails() {
                 />
                 <label
                   htmlFor={facility}
-                  className="text-sm  font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  className="text-xs sm:text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
                   {facility}
                 </label>
@@ -799,17 +970,42 @@ export default function PropertyDetails() {
       {shouldShowPossession && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Label className="text-base font-medium">Possession Status</Label>
+            <Label>Possession Status</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             {["immediate", "future"].map((status) => (
               <Button
                 key={status}
                 type="button"
                 variant="outline"
                 onClick={() => setValue("possessionStatus", status)}
-                className={`px-6 py-3 capitalize ${
+                className={`px-4 sm:px-6 py-3 capitalize ${
+                  possessionStatus === status
+                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                    : "bg-white text-black hover:bg-gray-100 border"
+                }`}
+              >
+                {status}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+      {shouldShowRentPossession && (
+        <div className="space-y-4 mb-4">
+          <div className="flex items-center gap-2">
+            <Label>Possession Status</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+            {["Ready To Move In", "Available From"].map((status) => (
+              <Button
+                key={status}
+                type="button"
+                variant="outline"
+                onClick={() => setValue("possessionStatus", status)}
+                className={`px-4 sm:px-6 py-3 capitalize ${
                   possessionStatus === status
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
                     : "bg-white text-black hover:bg-gray-100 border"
@@ -824,17 +1020,17 @@ export default function PropertyDetails() {
       {shouldShowInvestor && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Label className="text-base font-medium">Investor Property</Label>
+            <Label>Investor Property</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             {["yes", "no"].map((val) => (
               <Button
                 key={val}
                 type="button"
                 variant="outline"
                 onClick={() => setValue("investorProperty", val)}
-                className={`px-8 py-3 capitalize ${
+                className={`px-6 sm:px-8 py-3 capitalize ${
                   investorProperty === val
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
                     : "bg-white text-black hover:bg-gray-100 border"
@@ -848,17 +1044,17 @@ export default function PropertyDetails() {
       )}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <Label className="text-base font-medium">Loan Facility</Label>
+          <Label>Loan Facility</Label>
           <span className="text-red-500">*</span>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
           {["yes", "no"].map((val) => (
             <Button
               key={val}
               type="button"
               variant="outline"
               onClick={() => setValue("loanFacility", val)}
-              className={`px-8 py-3 capitalize ${
+              className={`px-6 sm:px-8 py-3 capitalize ${
                 loanFacility === val
                   ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
                   : "bg-white text-black hover:bg-gray-100 border"
@@ -869,18 +1065,20 @@ export default function PropertyDetails() {
           ))}
         </div>
       </div>
-      <div className="space-y-6">
-        <h3 className="text-lg font-medium">Add Additional Details</h3>
+      <div className="space-y-4 sm:space-y-6">
+        <h3 className="text-base sm:text-lg font-medium">
+          Add Additional Details
+        </h3>
         <div className="space-y-4">
-          <Label className="text-base font-medium">Facing</Label>
-          <div className="grid grid-cols-4 gap-4">
+          <Label>Facing</Label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-4">
             {facingOptions.map((option) => (
               <Button
                 key={option}
                 type="button"
                 variant={facing === option ? "default" : "outline"}
                 onClick={() => setValue("facing", option)}
-                className={`px-8 py-3 capitalize ${
+                className={`px-3 sm:px-8 py-3 text-xs sm:text-sm capitalize ${
                   facing === option
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
                     : "bg-white text-black hover:bg-gray-100 border"
@@ -891,107 +1089,181 @@ export default function PropertyDetails() {
             ))}
           </div>
         </div>
-        {!isPlot && !isLand && (
-          <div className="space-y-4">
-            <Label className="text-base font-medium">Car Parking</Label>
-            <div className="flex gap-4 flex-wrap">
-              {parkingOptions.map((option) => (
-                <Button
-                  key={option}
-                  type="button"
-                  variant={carParking === option ? "default" : "outline"}
-                  onClick={() => setValue("carParking", option)}
-                  className={`w-16 h-12 capitalize ${
-                    carParking === option
-                      ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
-                      : "bg-white text-black hover:bg-gray-100 border"
-                  }`}
-                >
-                  {option}
-                </Button>
-              ))}
+        {shouldShowPossession || shouldShowPlotNo ? (
+          <div className="space-y-2">
+            <Label>
+              Plot No
+              <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              type="number"
+              {...register("plotNo", {
+                required: "Plot Number is required",
+              })}
+              placeholder="Plot No"
+              className="w-1/2"
+            />
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Label>
+              Flat No
+              <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              type="number"
+              {...register("flatNo", {
+                required: "Flat Number is required",
+              })}
+              placeholder="Flat No"
+              className="w-1/2"
+            />
+          </div>
+        )}
+        {isCommercial && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <div className="space-y-2">
+              <Label>Zone Type</Label>
+              <Select onValueChange={(value) => setValue("zoneType", value)}>
+                <SelectTrigger className="w-full bg-white">
+                  <SelectValue placeholder="Select zone" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="industrial">Industrial</SelectItem>
+                  <SelectItem value="commercial">Commercial</SelectItem>
+                  <SelectItem value="special economic zone">
+                    Special Economic Zone
+                  </SelectItem>
+                  <SelectItem value="open spaces">Open Spaces</SelectItem>
+                  <SelectItem value="agriculture zone">
+                    Agriculture Zone
+                  </SelectItem>
+                  <SelectItem value="others">Others</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            {carParking === "4+" && (
-              <input
-                type="number"
-                placeholder="Custom Car Parking"
-                className="border p-2 rounded w-full"
-                onChange={(e) => setValue("customCarParking", e.target.value)}
-              />
-            )}
+            <div className="space-y-2">
+              <Label>Suitable</Label>
+              <Select onValueChange={(value) => setValue("suitable", value)}>
+                <SelectTrigger className="w-full bg-white">
+                  <SelectValue placeholder="Select Suitable" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="jewellery">Jewellery</SelectItem>
+                  <SelectItem value="gym">Gym</SelectItem>
+                  <SelectItem value="grocery">Grocery</SelectItem>
+                  <SelectItem value="clinic">Clinic</SelectItem>
+                  <SelectItem value="footwear">Footwear</SelectItem>
+                  <SelectItem value="electronics">Electronics</SelectItem>
+                  <SelectItem value="clothing">Clothing</SelectItem>
+                  <SelectItem value="others">Others</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )}
         {!isPlot && !isLand && (
-          <div className="space-y-4">
-            <Label className="text-base font-medium">Bike Parking</Label>
-            <div className="flex gap-4 flex-wrap">
-              {parkingOptions.map((option) => (
-                <Button
-                  key={option}
-                  type="button"
-                  variant={bikeParking === option ? "default" : "outline"}
-                  onClick={() => setValue("bikeParking", option)}
-                  className={`w-16 h-12 capitalize ${
-                    bikeParking === option
-                      ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
-                      : "bg-white text-black hover:bg-gray-100 border"
-                  }`}
-                >
-                  {option}
-                </Button>
-              ))}
+          <>
+            <div className="space-y-4">
+              <Label>Car Parking</Label>
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
+                {parkingOptions.map((option) => (
+                  <Button
+                    key={option}
+                    type="button"
+                    variant={carParking === option ? "default" : "outline"}
+                    onClick={() => setValue("carParking", option)}
+                    className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
+                      carParking === option
+                        ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+                        : "bg-white text-black hover:bg-gray-100 border"
+                    }`}
+                  >
+                    {option}
+                  </Button>
+                ))}
+              </div>
+              {carParking === "4+" && (
+                <Input
+                  type="number"
+                  placeholder="Custom Car Parking"
+                  className="w-full sm:w-1/2"
+                  onChange={(e) => setValue("customCarParking", e.target.value)}
+                />
+              )}
             </div>
-            {bikeParking === "4+" && (
-              <input
-                type="number"
-                placeholder="Custom Bike Parking"
-                className="border p-2 rounded w-full"
-                onChange={(e) => setValue("customBikeParking", e.target.value)}
-              />
-            )}
-          </div>
-        )}
-        {!isPlot && !isLand && (
-          <div className="space-y-4">
-            <Label className="text-base font-medium">Open Parking</Label>
-            <div className="flex gap-4 flex-wrap">
-              {parkingOptions.map((option) => (
-                <Button
-                  key={option}
-                  type="button"
-                  variant={openParking === option ? "default" : "outline"}
-                  onClick={() => setValue("openParking", option)}
-                  className={`w-16 h-12 capitalize ${
-                    openParking === option
-                      ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
-                      : "bg-white text-black hover:bg-gray-100 border"
-                  }`}
-                >
-                  {option}
-                </Button>
-              ))}
+            <div className="space-y-4">
+              <Label>Bike Parking</Label>
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
+                {parkingOptions.map((option) => (
+                  <Button
+                    key={option}
+                    type="button"
+                    variant={bikeParking === option ? "default" : "outline"}
+                    onClick={() => setValue("bikeParking", option)}
+                    className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
+                      bikeParking === option
+                        ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+                        : "bg-white text-black hover:bg-gray-100 border"
+                    }`}
+                  >
+                    {option}
+                  </Button>
+                ))}
+              </div>
+              {bikeParking === "4+" && (
+                <Input
+                  type="number"
+                  placeholder="Custom Bike Parking"
+                  className="w-full sm:w-1/2"
+                  onChange={(e) =>
+                    setValue("customBikeParking", e.target.value)
+                  }
+                />
+              )}
             </div>
-            {openParking === "4+" && (
-              <input
-                type="number"
-                placeholder="Custom Open Parking"
-                className="border p-2 rounded w-full"
-                onChange={(e) => setValue("customOpenParking", e.target.value)}
-              />
-            )}
-          </div>
+            <div className="space-y-4">
+              <Label>Open Parking</Label>
+              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
+                {parkingOptions.map((option) => (
+                  <Button
+                    key={option}
+                    type="button"
+                    variant={openParking === option ? "default" : "outline"}
+                    onClick={() => setValue("openParking", option)}
+                    className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
+                      openParking === option
+                        ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+                        : "bg-white text-black hover:bg-gray-100 border"
+                    }`}
+                  >
+                    {option}
+                  </Button>
+                ))}
+              </div>
+              {openParking === "4+" && (
+                <Input
+                  type="number"
+                  placeholder="Custom Open Parking"
+                  className="w-full sm:w-1/2"
+                  onChange={(e) =>
+                    setValue("customOpenParking", e.target.value)
+                  }
+                />
+              )}
+            </div>
+          </>
         )}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Label className="text-base font-medium">
-              Around This Property
-            </Label>
+            <Label>Around This Property</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Input
               {...register("nearbyPlace")}
               placeholder="Place around Property"
+              className="w-full"
             />
             <div className="flex gap-2">
               <Input
@@ -999,9 +1271,10 @@ export default function PropertyDetails() {
                 placeholder="Distance from property"
                 type="number"
                 min={0}
+                className="flex-1"
               />
               <Select value={unit} onValueChange={setUnit}>
-                <SelectTrigger className="w-[80px]">
+                <SelectTrigger className="w-16 sm:w-20">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1013,7 +1286,7 @@ export default function PropertyDetails() {
               </Select>
               <Button
                 type="button"
-                className="px-6 bg-[#1D3A76] hover:bg-blue-800"
+                className="px-3 sm:px-6 bg-[#1D3A76] hover:bg-blue-800 text-xs sm:text-sm"
                 onClick={handleAdd}
               >
                 + Add
@@ -1024,15 +1297,17 @@ export default function PropertyDetails() {
             {places.map(({ place, distance }, index) => (
               <div
                 key={index}
-                className="flex justify-between items-center border p-2 rounded"
+                className="flex flex-col sm:flex-row justify-between items-start sm:items-center border p-3 rounded gap-2"
               >
-                <span className="font-semibold">{place}</span>
-                <div className="flex items-center gap-5">
-                  <span className="bg-blue-900 rounded-lg p-2 text-white">
+                <span className="font-semibold text-sm sm:text-base">
+                  {place}
+                </span>
+                <div className="flex items-center gap-3 sm:gap-5">
+                  <span className="bg-blue-900 rounded-lg p-2 text-white text-xs sm:text-sm">
                     {formatDistance(distance)}
                   </span>
                   <Trash
-                    className="cursor-pointer text-red-500 hover:text-red-700"
+                    className="cursor-pointer text-red-500 hover:text-red-700 w-4 h-4 sm:w-5 sm:h-5"
                     onClick={() => handleDelete(index)}
                   />
                 </div>
@@ -1043,15 +1318,15 @@ export default function PropertyDetails() {
         {shouldShowServant && (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Label className="text-base font-medium">Servant Room?</Label>
+              <Label>Servant Room?</Label>
               <span className="text-red-500">*</span>
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <Button
                 type="button"
                 variant={servantRoom === "yes" ? "default" : "outline"}
                 onClick={() => setValue("servantRoom", "yes")}
-                className="px-8 py-3"
+                className="px-6 sm:px-8 py-3"
               >
                 Yes
               </Button>
@@ -1059,7 +1334,7 @@ export default function PropertyDetails() {
                 type="button"
                 variant={servantRoom === "no" ? "default" : "outline"}
                 onClick={() => setValue("servantRoom", "no")}
-                className="px-8 py-3"
+                className="px-6 sm:px-8 py-3"
               >
                 No
               </Button>
@@ -1075,6 +1350,7 @@ export default function PropertyDetails() {
             {...register("propertyDescription")}
             placeholder="Property Description"
             rows={4}
+            className="w-full resize-y"
           />
         </div>
       </div>
