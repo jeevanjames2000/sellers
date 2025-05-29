@@ -7,7 +7,7 @@ import { HelpCircle, Phone, Mail } from 'lucide-react';
 const SupportSection = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card className="shadow-sm hover:shadow-md transition-shadow duration-300">
+      <Card className="shadow-sm hover:shadow-md transition-shadow duration-300 py-6">
         <CardHeader className="text-center pb-4">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <HelpCircle className="w-8 h-8 text-blue-600" />
@@ -24,7 +24,7 @@ const SupportSection = () => {
         </CardContent>
       </Card>
 
-      <Card className="shadow-sm hover:shadow-md transition-shadow duration-300">
+      <Card className="shadow-sm hover:shadow-md transition-shadow duration-300 py-6">
         <CardHeader className="text-center pb-4">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Phone className="w-8 h-8 text-green-600" />

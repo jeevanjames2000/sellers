@@ -27,7 +27,7 @@ const EditProfilePopup = ({ isOpen, onClose, profileData }) => {
     setTimeout(() => {
       setIsLoading(false);
       onClose();
-      // Here you would typically update the parent component's state or make an API call
+
     }, 1500);
   };
 
@@ -42,7 +42,7 @@ const EditProfilePopup = ({ isOpen, onClose, profileData }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
-        <DialogHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 -m-6 mb-6 rounded-t-lg">
+        <DialogHeader className="bg-gradient-to-r from-[#1D37A6] to-blue-700 text-white p-6 -m-6 mb-6 rounded-t-lg">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl font-semibold flex items-center">
               <User className="w-5 h-5 mr-2" />
@@ -222,7 +222,7 @@ const EditProfilePopup = ({ isOpen, onClose, profileData }) => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-3"
+              className="flex-1 bg-[#1D37A6]  text-white font-medium py-3"
             >
               {isLoading ? (
                 <div className="flex items-center">

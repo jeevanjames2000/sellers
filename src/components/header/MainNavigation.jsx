@@ -183,71 +183,81 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
           );
         })}
 
-        <div className="relative">
+        {/* Fixed More Menu Container */}
+        {/* Fixed More Menu Container - Prevents Layout Shift */}
+        <div className="relative inline-block">
           <Button
             variant="ghost"
-            className="flex items-center space-x-1 text-gray-700 cursor-pointer hover:text-[#1D3A76] hover:bg-blue-50 transition-all duration-200"
+            className="flex items-center space-x-1 text-gray-700 cursor-pointer hover:text-[#1D3A76] hover:bg-blue-50 transition-all duration-200 min-w-[70px]"
             onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
           >
             <span className="font-medium">More</span>
             <ChevronDown
-              className={`w-3 h-3 opacity-60 transition-transform ${
-                isMoreMenuOpen ? "rotate-180" : ""
+              className={`w-3 h-3 opacity-60 transition-transform duration-200 ease-in-out ${
+                isMoreMenuOpen ? "rotate-180" : "rotate-0"
               }`}
             />
           </Button>
 
+          {/* Portal-like Dropdown Menu - Completely Detached from Layout */}
           {isMoreMenuOpen && (
-            <div className="absolute top-full right-0 mt-2 w-56  bg-white/98 backdrop-blur-md border border-gray-200/50 shadow-xl z-50 rounded-lg overflow-hidden">
-              <div className="p-2">
-                {moreMenuItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      {...(item.external
-                        ? { target: "_blank", rel: "noopener noreferrer" }
-                        : {})}
-                      className="flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-blue-50 transition-colors cursor-pointer"
-                      onClick={() => {
-                        setIsMoreMenuOpen(false);
-                        if (toggleSidebar) toggleSidebar();
-                      }}
-                    >
-                      <Icon className="w-4 h-4 text-gray-500" />
-                      <span className="font-medium text-gray-700">
-                        {item.label}
-                      </span>
-                      {item.external && (
-                        <ExternalLink className="w-3 h-3 ml-auto text-gray-400" />
-                      )}
-                    </Link>
-                  );
-                })}
-                <div className="border-t border-gray-200 my-2"></div>
-                <button
-                  onClick={() => {
-                    setIsMoreMenuOpen(false);
-                    handleLogout();
-                  }}
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-md text-red-600 hover:bg-red-50 cursor-pointer"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span className="font-medium">Logout</span>
-                </button>
+            <div className="fixed inset-4 z-[9999]" onClick={() => setIsMoreMenuOpen(false)}>
+              <div
+                className="absolute top-full right-0 mt-2 w-56
+                 bg-white/98 backdrop-blur-md border border-gray-200/50 shadow-xl rounded-lg overflow-hidden 
+                 animate-in slide-in-from-top-2 fade-in-0 duration-200"
+                style={{
+                  top: 'calc(100% + 8px)',
+                  right: '0px',
+                  position: 'absolute'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="p-2">
+                  {moreMenuItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        {...(item.external
+                          ? { target: "_blank", rel: "noopener noreferrer" }
+                          : {})}
+                        className="flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-blue-50 transition-colors cursor-pointer group"
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          if (toggleSidebar) toggleSidebar();
+                        }}
+                      >
+                        <Icon className="w-4 h-4 text-gray-500 flex-shrink-0 group-hover:text-blue-600 transition-colors" />
+                        <span className="font-medium text-gray-700 group-hover:text-gray-900">
+                          {item.label}
+                        </span>
+                        {item.external && (
+                          <ExternalLink className="w-3 h-3 ml-auto text-gray-400 flex-shrink-0 group-hover:text-blue-500" />
+                        )}
+                      </Link>
+                    );
+                  })}
+                  <div className="border-t border-gray-200 my-2"></div>
+                  <button
+                    onClick={() => {
+                      setIsMoreMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center space-x-3 px-3 py-2 rounded-md text-red-600 hover:bg-red-50 cursor-pointer transition-colors group"
+                  >
+                    <LogOut className="w-4 h-4 flex-shrink-0 group-hover:text-red-700" />
+                    <span className="font-medium group-hover:text-red-700">Logout</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}
         </div>
       </nav>
 
-      {isMoreMenuOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsMoreMenuOpen(false)}
-        />
-      )}
+
     </>
   );
 };
