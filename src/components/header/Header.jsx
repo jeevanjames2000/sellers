@@ -1,10 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import Mainnavigation from "./MainNavigation";
-import { Home, Menu, X, Plus, Download, Signal, LogIn } from "lucide-react";
+import { Home, Menu, X, Download, LogIn } from "lucide-react";
 import logo from "../../../public/assets/logo.svg";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -17,6 +16,10 @@ function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
+    router.prefetch("/addProperty");
+    router.prefetch("/listings");
+    router.prefetch("/enquiry");
+
     const userToken = localStorage.getItem("userToken");
     setIsLoggedIn(!!userToken);
   }, []);
@@ -50,7 +53,6 @@ function Header() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -76,10 +78,11 @@ function Header() {
   }, [isMobileMenuOpen]);
 
   return (
-    <header className={`h-16 lg:h-20 bg-white/95 backdrop-blur-md w-full transition-all duration-300 border-b border-gray-200/50 flex items-center justify-between px-4 lg:px-8 xl:px-12 sticky top-0 z-50 ${
-      scrollY > 50 ? "shadow-lg bg-white/98" : "shadow-sm"
-    }`}>
-      
+    <header
+      className={`h-16 lg:h-20 bg-white/95 backdrop-blur-md w-full transition-all duration-300 border-b border-gray-200/50 flex items-center justify-between px-4 lg:px-8 xl:px-12 sticky top-0 z-50 ${
+        scrollY > 50 ? "shadow-lg bg-white/98" : "shadow-sm"
+      }`}
+    >
       <Link href="/">
         <Image
           src={logo}
@@ -93,82 +96,80 @@ function Header() {
       <div className="flex items-center space-x-3">
         {isLoggedIn ? (
           <>
-            <div className="hidden lg:flex items-center space-x-8">
+            <div className="hidden lg:flex items-center space-x-8 ">
               <Mainnavigation isLoggedIn={isLoggedIn} />
             </div>
-            
-                    <Button
-                            onClick={handleAddProperty}
-                            className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
-                            size="sm"
-                          >
-                            <Home className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                            <span className="hidden sm:inline font-semibold">Add Property</span>
-                            <span className="sm:hidden font-semibold">Add</span>
-                          </Button>
-            
-                      <div className="lg:hidden">
-                        <Button
-                          id="mobile-menu-trigger"
-                          variant="outline"
-                          size="sm"
-                          className="w-10 h-10 p-0 border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-colors"
-                          onClick={toggleMobileMenu}
-                        >
-                          <Menu className="w-5 h-5 text-[#1D3A76]" />
-                        </Button>
-                      </div>
-              </>
-            ) : (
-            
 
-            <div className="flex items-center space-x-3">
-             
+            <Button
+              onClick={handleAddProperty}
+              className="bg-gradient-to-r from-[#1D3A76] cursor-pointer  to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
+              size="sm"
+            >
+              <Home className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+              <span className="hidden sm:inline font-semibold">
+                Add Property
+              </span>
+              <span className="sm:hidden font-semibold">Add</span>
+            </Button>
+
+            <div className="lg:hidden">
               <Button
+                id="mobile-menu-trigger"
                 variant="outline"
                 size="sm"
-                className="text-gray-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                className="w-10 h-10 p-0 border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                onClick={toggleMobileMenu}
               >
-                <Download className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                Download App
+                <Menu className="w-5 h-5 text-[#1D3A76]" />
               </Button>
-
-           
-              <div className="hidden md:block">
-                {pathname !== "/addProperty" && (
-                  <Button
-                    onClick={handleAddProperty}
-                    className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
-                    size="sm"
-                  >
-                    <Home className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                    <span className="hidden sm:inline font-semibold">Add Property</span>
-                    <span className="sm:hidden font-semibold">Add</span>
-                  </Button>
-                )}
-              </div>
-
-            
-              <div className="hidden md:block">
-                <Link href="/">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-gray-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
-                  >
-                    <LogIn className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                    Sign Up
-                  </Button>
-                </Link>
-              </div>
-
             </div>
+          </>
+        ) : (
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-gray-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+            >
+              <Download className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+              Download App
+            </Button>
+
+            <div className="hidden md:block">
+              {pathname !== "/addProperty" && (
+                <Button
+                  onClick={handleAddProperty}
+                  className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
+                  size="sm"
+                >
+                  <Home className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                  <span className="hidden sm:inline font-semibold">
+                    Add Property
+                  </span>
+                  <span className="sm:hidden font-semibold">Add</span>
+                </Button>
+              )}
+            </div>
+
+            <div className="hidden md:block">
+              <Link href="/">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-gray-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                >
+                  <LogIn className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                  Sign Up
+                </Button>
+              </Link>
+            </div>
+          </div>
         )}
-        </div>
+      </div>
       {isLoggedIn && isMobileMenuOpen && (
         <>
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden" />
-          
+
           <div
             id="mobile-sidebar"
             className="fixed top-0 right-0 h-full w-80 sm:w-96 bg-white/98 backdrop-blur-md border-l border-gray-200/50 z-50 lg:hidden"
@@ -206,7 +207,6 @@ function Header() {
           </div>
         </>
       )}
-      
     </header>
   );
 }

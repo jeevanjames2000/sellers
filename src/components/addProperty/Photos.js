@@ -68,7 +68,7 @@ export default function Photos() {
 
   return (
     <div>
-      <div className="space-y-10 max-w-4xl mx-auto">
+      <div className="space-y-10 max-w-5xl mx-auto">
         <div className="space-y-6">
           <div className="space-y-2">
             <Label className="text-lg font-medium">Property Photos</Label>

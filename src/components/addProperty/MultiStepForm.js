@@ -136,10 +136,22 @@ export default function MultiStepForm() {
               maxSize={95}
               className="w-full max-w-full"
             >
-              <div className="h-full max-h-screen overflow-y-auto p-4">
-                <h2 className="text-2xl font-bold text-[#1D3A76] mb-8 uppercase tracking-wide">
-                  {steps[currentStep].label}
-                </h2>
+              <div className="h-full max-h-screen overflow-y-auto items-center p-4">
+                <div className="flex gap-3 items-center mb-8">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (currentStep > 0) onBack();
+                      else window.location.href = "/"; // Or use router.push("/")
+                    }}
+                  >
+                    <ArrowLeft className="text-[#1D3A76] w-6 h-6" />
+                  </button>
+                  <h2 className="text-2xl font-bold text-[#1D3A76] uppercase tracking-wide">
+                    {steps[currentStep].label}
+                  </h2>
+                </div>
+
                 <div className="mb-8">
                   <CurrentComponent />
                 </div>
