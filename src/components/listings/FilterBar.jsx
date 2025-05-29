@@ -17,7 +17,7 @@ const FilterBar = ({ filters, onFilterChange }) => {
 
   return (
     <div className="space-y-4">
-      {/* Modern Filter Header */}
+      
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -43,7 +43,7 @@ const FilterBar = ({ filters, onFilterChange }) => {
           </div>
         </div>
 
-        {/* Main Filters */}
+       
         <div className="p-6 bg-gradient-to-br from-gray-50 to-white">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {/* Search Location */}
@@ -57,7 +57,7 @@ const FilterBar = ({ filters, onFilterChange }) => {
               />
             </div>
 
-            {/* Property For */}
+          
             <Select value={filters.propertyFor} onValueChange={(value) => onFilterChange('propertyFor', value)}>
               <SelectTrigger className="h-12 bg-white border-2 border-gray-200 rounded-xl text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm">
                 <SelectValue placeholder="Property For" />
@@ -70,7 +70,7 @@ const FilterBar = ({ filters, onFilterChange }) => {
               </SelectContent>
             </Select>
 
-            {/* Property Type */}
+          
             <Select value={filters.propertyType} onValueChange={(value) => onFilterChange('propertyType', value)}>
               <SelectTrigger className="h-12 bg-white border-2 border-gray-200 rounded-xl text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm">
                 <SelectValue placeholder="Property Type" />
@@ -84,7 +84,7 @@ const FilterBar = ({ filters, onFilterChange }) => {
               </SelectContent>
             </Select>
 
-            {/* BHK */}
+            
             <Select value={filters.bhk} onValueChange={(value) => onFilterChange('bhk', value)}>
               <SelectTrigger className="h-12 bg-white border-2 border-gray-200 rounded-xl text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm">
                 <SelectValue placeholder="BHK Configuration" />
@@ -99,7 +99,7 @@ const FilterBar = ({ filters, onFilterChange }) => {
               </SelectContent>
             </Select>
 
-            {/* Verification Status */}
+          
             <Select value={filters.verificationStatus} onValueChange={(value) => onFilterChange('verificationStatus', value)}>
               <SelectTrigger className="h-12 bg-white border-2 border-gray-200 rounded-xl text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm">
                 <SelectValue placeholder="Verification" />
@@ -113,7 +113,7 @@ const FilterBar = ({ filters, onFilterChange }) => {
             </Select>
           </div>
 
-          {/* Advanced Filters */}
+         
           {showMoreFilters && (
             <div className="mt-6 pt-6 border-t border-gray-200">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">

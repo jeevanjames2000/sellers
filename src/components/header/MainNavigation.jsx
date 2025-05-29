@@ -41,9 +41,9 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
   };
 
   const navigationItems = [
-    { href: "/", label: "Dashboard", icon: Home },
-    { href: "/enquiry", label: "Enquiries", icon: MessageSquare },
-    { href: "/listings", label: "Listings", icon: Building },
+    { href: "/dashboard", label: "Dashboard", icon: Home },
+    { href: "/enquiry", label: "Enquiries", icon: MessageSquare,  },
+    { href: "/listings", label: "Listings", icon: Building,  },
     { href: "/packages", label: "Packages", icon: Package },
   ];
 
@@ -103,7 +103,7 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
             })}
           </div>
 
-          {/* Account Section */}
+         
           <div className="space-y-1">
             <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 mb-2">
               Account
@@ -135,7 +135,7 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
               );
             })}
 
-            {/* Logout Button */}
+           
             <button
               onClick={handleLogout}
               className="w-full flex items-center px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200"
@@ -146,7 +146,8 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
           </div>
         </div>
 
-        {/* Footer */}
+       
+       
 
         <LoadingOverlay isLoading={isLoadingEffect} />
       </div>
@@ -156,7 +157,7 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
   return (
     <>
       <nav className="flex items-center space-x-1">
-        {/* Desktop Navigation Items */}
+     
         {navigationItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -184,7 +185,7 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
           );
         })}
 
-        {/* Desktop More Menu */}
+      
         <div className="relative">
           <Button
             variant="ghost"
@@ -199,7 +200,7 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
             />
           </Button>
 
-          {/* Custom More Menu Dropdown */}
+    
           {isMoreMenuOpen && (
             <div className="absolute top-full right-0 mt-2 w-56 bg-white/98 backdrop-blur-md border border-gray-200/50 shadow-xl z-50 rounded-lg overflow-hidden">
               <div className="p-2">
@@ -245,7 +246,7 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
         </div>
       </nav>
 
-      {/* Click outside to close more menu */}
+    
       {isMoreMenuOpen && (
         <div
           className="fixed inset-0 z-40"

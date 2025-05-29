@@ -136,10 +136,7 @@ const InvoiceScreen = () => {
           </div>
         </div>
 
-        {/* Filters Section */}
-      
-
-        {/* Invoice Table */}
+       
         <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm overflow-hidden">
           <CardHeader className="bg-[#1D3A76]  text-white p-6">
             <CardTitle className="text-xl font-semibold flex items-center">
@@ -199,7 +196,7 @@ const InvoiceScreen = () => {
           </CardContent>
         </Card>
 
-        {/* Pagination */}
+     
       
       </div>
     </div>

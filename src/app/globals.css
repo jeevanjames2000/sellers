@@ -43,6 +43,13 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+ .no-spinners::-webkit-inner-spin-button,
+.no-spinners::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
 :root {
   --radius: 0.625rem;
   --card: oklch(1 0 0);
@@ -76,6 +83,7 @@
   --sidebar-ring: oklch(0.708 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
+ 
 }
 
 .dark {
