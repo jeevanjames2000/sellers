@@ -16,7 +16,7 @@ function EnquiriesWrapper() {
   const tenantCount = 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F5F5] via-[#F5F5F5] to-[#F5F5F5]">
+    <div className="min-h-screen bg-gradient-to-br from-[#FBFBFB] via-[#FBFBFB] to-[#FBFBFB]">
       <div className="w-full max-w-[1920px] mx-auto p-3 sm:p-4 md:p-6 lg:p-4 xl:p-10">
         {/* Mobile Header with Filter Button */}
         <div className="md:hidden mb-4 flex items-center justify-between">
