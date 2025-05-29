@@ -30,7 +30,7 @@ export default function MultiStepForm() {
   const CurrentComponent = steps[currentStep].component;
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
   return (
-    <div className="min-h-screen bg-gray-50 p-4 w-full">
+    <div className="min-h-screen bg-gray-50 p-2 w-full">
       <FormProvider {...methods}>
         <form
           onSubmit={methods.handleSubmit(onSubmit)}
@@ -136,7 +136,7 @@ export default function MultiStepForm() {
               maxSize={95}
               className="w-full max-w-full"
             >
-              <div className="h-full max-h-screen overflow-y-auto p-8">
+              <div className="h-full max-h-screen overflow-y-auto p-4">
                 <h2 className="text-2xl font-bold text-[#1D3A76] mb-8 uppercase tracking-wide">
                   {steps[currentStep].label}
                 </h2>

@@ -24,6 +24,7 @@ import LoadingOverlay from "../shared/LoadingOverlay";
 const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
   const [isLoadingEffect, setIsLoadingEffect] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+
   const router = useRouter();
   const pathname = usePathname();
   const isActive = (path) => pathname === path;
@@ -41,27 +42,30 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
 
   const navigationItems = [
     { href: "/", label: "Dashboard", icon: Home },
-    { href: "/enquiry", label: "Enquiries", icon: MessageSquare,  },
-    { href: "/listings", label: "Listings", icon: Building,  },
+    { href: "/enquiry", label: "Enquiries", icon: MessageSquare },
+    { href: "/listings", label: "Listings", icon: Building },
     { href: "/packages", label: "Packages", icon: Package },
   ];
 
   const accountItems = [
     { href: "/profile", label: "My Profile", icon: User },
-    { href: "/invoice", label: "Invoice", icon: FileText, },
+    { href: "/invoice", label: "Invoice", icon: FileText },
   ];
 
   const moreMenuItems = [
     { href: "/profile", label: "My Profile", icon: User },
     { href: "/invoice", label: "Invoice", icon: FileText },
-    { href: "https://meetowner.in/", label: "Go to MeetOwner.in", icon: ExternalLink, external: true },
+    {
+      href: "https://meetowner.in/",
+      label: "Go to MeetOwner.in",
+      icon: ExternalLink,
+      external: true,
+    },
   ];
 
   if (isMobile) {
     return (
       <div className="flex flex-col h-full bg-white">
-       
-
         {/* Scrollable Content */}
         <div className="flex-1  py-4 px-2">
           {/* Main Navigation */}
@@ -143,7 +147,6 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
         </div>
 
         {/* Footer */}
-       
 
         <LoadingOverlay isLoading={isLoadingEffect} />
       </div>
@@ -190,7 +193,9 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
           >
             <span className="font-medium">More</span>
             <ChevronDown
-              className={`w-3 h-3 opacity-60 transition-transform ${isMoreMenuOpen ? "rotate-180" : ""}`}
+              className={`w-3 h-3 opacity-60 transition-transform ${
+                isMoreMenuOpen ? "rotate-180" : ""
+              }`}
             />
           </Button>
 
@@ -204,7 +209,9 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
                     <Link
                       key={item.href}
                       href={item.href}
-                      {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                      {...(item.external
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
                       className="flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-blue-50 transition-colors cursor-pointer"
                       onClick={() => {
                         setIsMoreMenuOpen(false);
@@ -212,8 +219,12 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
                       }}
                     >
                       <Icon className="w-4 h-4 text-gray-500" />
-                      <span className="font-medium text-gray-700">{item.label}</span>
-                      {item.external && <ExternalLink className="w-3 h-3 ml-auto text-gray-400" />}
+                      <span className="font-medium text-gray-700">
+                        {item.label}
+                      </span>
+                      {item.external && (
+                        <ExternalLink className="w-3 h-3 ml-auto text-gray-400" />
+                      )}
                     </Link>
                   );
                 })}
@@ -236,10 +247,11 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
 
       {/* Click outside to close more menu */}
       {isMoreMenuOpen && (
-        <div className="fixed inset-0 z-40" onClick={() => setIsMoreMenuOpen(false)} />
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setIsMoreMenuOpen(false)}
+        />
       )}
-
-      
     </>
   );
 };
