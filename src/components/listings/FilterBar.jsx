@@ -1,47 +1,84 @@
-"use client";
-import React, { useState } from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, X, MapPin, Home, Bed, Shield, ChevronDown } from 'lucide-react';
 
-const FilterBar = ({ filters = {
-  searchLocation: '',
-  propertyFor: 'all',
-  propertyType: 'all',
-  bhk: 'all',
-  verificationStatus: 'all'
-}, onFilterChange = () => {} }) => {
+const FilterBar = ({
+  filters = {
+    searchLocation: '',
+    propertyFor: 'Sell',
+    propertyType: 'Residential',
+    propertySubType: '',
+    bhk: '',
+    verificationStatus: '1',
+  },
+  onFilterChange = () => {},
+}) => {
   const [showBottomSheet, setShowBottomSheet] = useState(false);
 
+  // Define default filter values
+  const defaultFilters = {
+    searchLocation: '',
+    propertyFor: 'Sell',
+    propertyType: '',
+    propertySubType: '',
+    bhk: '',
+    verificationStatus: '1',
+  };
+
+  // Reset dependent filters when propertyType or propertySubType changes
+  useEffect(() => {
+    // Reset propertySubType and bhk when propertyType changes
+    if (filters.propertyType !== 'Residential' && filters.propertyType !== 'Commercial') {
+      onFilterChange('propertySubType', '');
+      onFilterChange('bhk', '');
+    } else if (filters.propertyType === 'Commercial') {
+      onFilterChange('bhk', ''); // Always reset bhk for Commercial
+    }
+
+    // Reset bhk when propertySubType is not Apartment, Independent House, or Independent Villa
+    if (
+      filters.propertyType === 'Residential' &&
+      !['Apartment', 'Independent House', 'Independent Villa'].includes(filters.propertySubType)
+    ) {
+      onFilterChange('bhk', '');
+    }
+  }, [filters.propertyType, filters.propertySubType]);
+
   const clearFilters = () => {
-    Object.keys(filters).forEach(key => {
-      onFilterChange(
-        key,
-        ['propertyFor', 'propertyType', 'bhk', 'verificationStatus'].includes(key) ? 'all' : ''
-      );
+    // Reset each filter to its default value
+    Object.entries(defaultFilters).forEach(([key, value]) => {
+      onFilterChange(key, value);
     });
   };
 
   const hasActiveFilters = () => {
-    return filters.searchLocation || 
-           filters.propertyFor !== 'all' || 
-           filters.propertyType !== 'all' || 
-           filters.bhk !== 'all' || 
-           filters.verificationStatus !== 'all';
+    // Check if any filter differs from its default value
+    return (
+      filters.searchLocation !== defaultFilters.searchLocation ||
+      filters.propertyFor !== defaultFilters.propertyFor ||
+      filters.propertyType !== defaultFilters.propertyType ||
+      filters.propertySubType !== defaultFilters.propertySubType ||
+      filters.bhk !== defaultFilters.bhk ||
+      filters.verificationStatus !== defaultFilters.verificationStatus
+    );
   };
 
   const getActiveFiltersCount = () => {
     let count = 0;
-    if (filters.searchLocation) count++;
-    if (filters.propertyFor !== 'all') count++;
-    if (filters.propertyType !== 'all') count++;
-    if (filters.bhk !== 'all') count++;
-    if (filters.verificationStatus !== 'all') count++;
+    if (filters.searchLocation !== defaultFilters.searchLocation) count++;
+    if (filters.propertyFor !== defaultFilters.propertyFor) count++;
+    if (filters.propertyType !== defaultFilters.propertyType) count++;
+    if (filters.propertySubType !== defaultFilters.propertySubType) count++;
+    if (filters.bhk !== defaultFilters.bhk) count++;
+    if (filters.verificationStatus !== defaultFilters.verificationStatus) count++;
     return count;
   };
 
-  const CustomSelect = ({ value, onChange, placeholder, options, icon: Icon, className = "" }) => (
+  const CustomSelect = ({ value, onChange, placeholder, options, icon: Icon, className = '' }) => (
     <div className={`relative group ${className}`}>
       <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-hover:text-blue-600 transition-colors z-10">
-        <Icon size={16} color='#1D37A6' />
+        <Icon size={16} color="#1D37A6" />
       </div>
       <select
         value={value}
@@ -52,8 +89,8 @@ const FilterBar = ({ filters = {
                    appearance-none cursor-pointer text-sm
                    bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xIDFMNiA2TDExIDEiIHN0cm9rZT0iIzZCNzI4MCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==')] bg-no-repeat bg-[length:10px_6px] bg-[position:calc(100%-12px)_center]"
       >
-        <option value="all">{placeholder}</option>
-        {options.map(option => (
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
           </option>
@@ -64,29 +101,56 @@ const FilterBar = ({ filters = {
 
   const filterOptions = {
     propertyFor: [
-      { value: 'sell', label: 'For Sale' },
-      { value: 'rent', label: 'For Rent' },
-      { value: 'pg', label: 'PG/Co-living' }
+      { value: 'Sell', label: 'For Sale' },
+      { value: 'Rent', label: 'For Rent' },
     ],
     propertyType: [
-      { value: 'apartment', label: '🏢 Apartment' },
-      { value: 'villa', label: '🏡 Villa' },
-      { value: 'plot', label: '📐 Plot' },
-      { value: 'commercial', label: '🏬 Commercial' }
+      { value: 'Residential', label: 'Residential' },
+      { value: 'Commercial', label: 'Commercial' },
     ],
+    propertySubType: {
+      Residential: [
+        { value: 'Apartment', label: 'Apartment' },
+        { value: 'Independent House', label: 'Independent House' },
+        { value: 'Independent Villa', label: 'Independent Villa' },
+        { value: 'Plot', label: 'Plot' },
+        { value: 'Land', label: 'Land' },
+        { value: 'Others', label: 'Others' },
+      ],
+      Commercial: [
+        { value: 'Office', label: 'Office' },
+        { value: 'Retail Shop', label: 'Retail Shop' },
+        { value: 'Show Room', label: 'Show Room' },
+        { value: 'Warehouse', label: 'Warehouse' },
+        { value: 'Plot', label: 'Plot' },
+        { value: 'Others', label: 'Others' },
+      ],
+    },
     bhk: [
       { value: '1', label: '1 BHK' },
       { value: '2', label: '2 BHK' },
       { value: '3', label: '3 BHK' },
       { value: '4', label: '4 BHK' },
-      { value: '5+', label: '5+ BHK' }
+      { value: '5+', label: '5+ BHK' },
     ],
     verificationStatus: [
-      { value: 'verified', label: '✅ Verified' },
-      { value: 'pending', label: '⏳ Pending' },
-      { value: 'rejected', label: '❌ Rejected' }
-    ]
+      { value: '1', label: '✅ Active' },
+      { value: '0', label: '❌ Inactive' },
+    ],
   };
+
+  // Determine subType options based on propertyType
+  const subTypeOptions =
+    filters.propertyType === 'Residential'
+      ? filterOptions.propertySubType.Residential
+      : filters.propertyType === 'Commercial'
+      ? filterOptions.propertySubType.Commercial
+      : [];
+
+  // Determine if BHK should be shown
+  const showBHK =
+    filters.propertyType === 'Residential' &&
+    ['Apartment', 'Independent House', 'Independent Villa'].includes(filters.propertySubType);
 
   return (
     <>
@@ -95,11 +159,10 @@ const FilterBar = ({ filters = {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="p-4">
             <div className="flex items-center gap-3">
-              
               {/* Search Location - Flexible width */}
               <div className="relative group flex-1 min-w-0 lg:max-w-xs xl:max-w-sm 2xl:max-w-md">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-blue-600 transition-colors z-10">
-                  <Search size={16} color='#1D37A6'/>
+                  <Search size={16} color="#1D37A6" />
                 </div>
                 <input
                   type="text"
@@ -117,7 +180,7 @@ const FilterBar = ({ filters = {
               <CustomSelect
                 value={filters.propertyFor}
                 onChange={(value) => onFilterChange('propertyFor', value)}
-                placeholder="All Properties"
+                placeholder="Property For"
                 icon={MapPin}
                 options={filterOptions.propertyFor}
                 className="w-40 flex-shrink-0"
@@ -127,41 +190,48 @@ const FilterBar = ({ filters = {
               <CustomSelect
                 value={filters.propertyType}
                 onChange={(value) => onFilterChange('propertyType', value)}
-                placeholder="All Types"
+                placeholder="Property Types"
                 icon={Home}
                 options={filterOptions.propertyType}
                 className="w-44 flex-shrink-0"
               />
 
-              {/* BHK Configuration */}
+              {/* Property SubType */}
               <CustomSelect
-                value={filters.bhk}
-                onChange={(value) => onFilterChange('bhk', value)}
-                placeholder="All BHK"
-                icon={Bed}
-                options={filterOptions.bhk}
-                className="w-32 flex-shrink-0"
+                value={filters.propertySubType}
+                onChange={(value) => onFilterChange('propertySubType', value)}
+                placeholder="Property SubTypes"
+                icon={Home}
+                options={subTypeOptions}
+                className="w-44 flex-shrink-0"
               />
+
+              {/* BHK Configuration - Conditionally Rendered */}
+              {showBHK && (
+                <CustomSelect
+                  value={filters.bhk}
+                  onChange={(value) => onFilterChange('bhk', value)}
+                  placeholder="BHK"
+                  icon={Bed}
+                  options={filterOptions.bhk}
+                  className="w-32 flex-shrink-0"
+                />
+              )}
 
               {/* Verification Status */}
               <CustomSelect
                 value={filters.verificationStatus}
                 onChange={(value) => onFilterChange('verificationStatus', value)}
-                placeholder="All Status"
+                placeholder="Status"
                 icon={Shield}
                 options={filterOptions.verificationStatus}
                 className="w-36 flex-shrink-0"
               />
 
-              {/* Clear Filters Button */}
-             
-            </div>
-
-            <div className='flex justify-end'>
-                 {hasActiveFilters() && (
+               {hasActiveFilters() && (
                 <button
                   onClick={clearFilters}
-                  className="flex items-center px-4 py-3 mt-2 bg-[#1D37A6] hover:bg-[#1D37A6] text-white font-medium rounded-xl 
+                  className="flex items-center px-4 py-3  bg-[#1D37A6] hover:bg-[#1D37A6] text-white font-medium rounded-xl 
                            transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0 text-sm"
                 >
                   <X size={16} className="mr-1" />
@@ -169,7 +239,8 @@ const FilterBar = ({ filters = {
                 </button>
               )}
             </div>
-            
+
+          
           </div>
         </div>
       </div>
@@ -221,11 +292,11 @@ const FilterBar = ({ filters = {
       {showBottomSheet && (
         <div className="lg:hidden fixed inset-0 z-50">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
             onClick={() => setShowBottomSheet(false)}
           />
-          
+
           {/* Bottom Sheet */}
           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-[80vh] overflow-hidden animate-in slide-in-from-bottom duration-300">
             {/* Header */}
@@ -241,7 +312,7 @@ const FilterBar = ({ filters = {
               </div>
               <button
                 onClick={() => setShowBottomSheet(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X size={20} className="text-gray-500" />
               </button>
@@ -249,7 +320,6 @@ const FilterBar = ({ filters = {
 
             {/* Filter Content */}
             <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(80vh-140px)]">
-              
               {/* Property For */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Property For</label>
@@ -274,19 +344,32 @@ const FilterBar = ({ filters = {
                 />
               </div>
 
+              {/* Property SubType */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Property SubType</label>
+                <CustomSelect
+                  value={filters.propertySubType}
+                  onChange={(value) => onFilterChange('propertySubType', value)}
+                  placeholder="All SubTypes"
+                  icon={Home}
+                  options={subTypeOptions}
+                />
+              </div>
+
               {/* BHK and Verification in a row */}
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">BHK</label>
-                  <CustomSelect
-                    value={filters.bhk}
-                    onChange={(value) => onFilterChange('bhk', value)}
-                    placeholder="All BHK"
-                    icon={Bed}
-                    options={filterOptions.bhk}
-                  />
-                </div>
-                
+                {showBHK && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">BHK</label>
+                    <CustomSelect
+                      value={filters.bhk}
+                      onChange={(value) => onFilterChange('bhk', value)}
+                      placeholder="All BHK"
+                      icon={Bed}
+                      options={filterOptions.bhk}
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                   <CustomSelect
