@@ -1,6 +1,6 @@
 "use client";
 import { useForm, FormProvider } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Phone } from "lucide-react";
@@ -15,6 +15,10 @@ import Address from "./Address";
 import Photos from "./Photos";
 import Review from "./Review";
 import { useRouter } from "next/navigation";
+import config from "../api/config";
+import { useSearchParams } from "next/navigation";
+import axios from "axios";
+import useFetchAndSetProperty from "../services/useFetchAndSetProperty";
 
 const steps = [
   { label: "Basic Details", component: BasicDetails },
@@ -35,6 +39,15 @@ export default function MultiStepForm() {
   const handleRoute = () => {
     router.push("/dashboard");
   };
+  const searchParams = useSearchParams();
+  // const unique_property_id = searchParams.get("unique_property_id");
+  const unique_property_id = "MO-320672";
+
+  const { property, setProperty } = useFetchAndSetProperty(
+    unique_property_id,
+    methods.reset
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 p-2 w-full">
       <FormProvider {...methods}>
@@ -161,7 +174,11 @@ export default function MultiStepForm() {
                 </div>
 
                 <div className="mb-8">
-                  <CurrentComponent />
+                  <CurrentComponent
+                    property={property}
+                    setProperty={setProperty}
+                    unique_property_id={unique_property_id}
+                  />
                 </div>
                 <div className="flex justify-between pt-6 border-t">
                   {currentStep > 0 && (

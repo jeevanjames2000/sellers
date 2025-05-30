@@ -36,40 +36,42 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 import { formatCurrencyInWords } from "@/components/shared/formatCurrencyInWords";
-export default function PropertyDetails() {
+import { useSelector } from "react-redux";
+export default function PropertyDetails({ property }) {
+  console.log("property: ", property.around_places);
   const { register, watch, setValue, getValues } = useFormContext();
   const formValues = watch();
-  console.log("formValues: ", formValues);
-  const propertySubtype = watch("propertySubtype");
-  const commercialSubType = watch("commercialSubType");
-  const isRent = formValues?.lookingTo === "rent";
-  const isSell = formValues?.lookingTo === "sell";
-  const securityDeposit = watch("securityDeposit");
-  const lockinPeriod = watch("lockinPeriod");
+  const propertySubtype = watch("sub_type");
+  const commercialSubType = watch("sub_type");
+  const isRent = formValues?.property_for === "Rent";
+  const isSell = formValues?.property_for === "Sell";
+  const securityDeposit = watch("security_deposit");
+  const lockinPeriod = watch("lock_in");
   const landSubType = watch("landSubType");
-  const brokerage = watch("brokerage");
-  const propertyCost = watch("propertyCost");
-  const preferredTenantType = watch("preferredTenantType");
-  const constructionStatus = watch("constructionStatus");
-  const pentHouse = watch("pentHouse");
-  const loanFacility = watch("loanFacility");
-  const investorProperty = watch("investorProperty");
-  const servantRoom = watch("servantRoom");
+  const brokerage = watch("brokerage_charge");
+  const propertyCost = watch("property_cost");
+  const preferredTenantType = watch("types");
+  const constructionStatus = watch("occupancy");
+  const pentHouse = watch("pent_house");
+  const loanFacility = watch("loan_facility");
+  const investorProperty = watch("investor_property");
+  console.log("investorProperty: ", investorProperty);
+  const servantRoom = watch("servant_room");
   const facing = watch("facing");
-  const carParking = watch("carParking");
-  const bikeParking = watch("bikeParking");
-  const openParking = watch("openParking");
-  const bhk = watch("bhk");
+  const carParking = watch("car_parking");
+  const bikeParking = watch("bike_parking");
+  const openParking = watch("open_parking");
+  const bhk = watch("bedrooms");
   const bathroom = watch("bathroom");
-  const balcony = watch("balcony");
-  const furnishType = watch("furnishType");
-  const possessionStatus = watch("possessionStatus");
+  const balcony = watch("balconies");
+  const furnishType = watch("furnished_status");
+  const possessionStatus = watch("possession_status");
   const facilities = watch("facilities") || [];
-  const areaUnit = watch("areaUnit");
+  const areaUnit = watch("area_units");
   const nearbyPlace = watch("nearbyPlace");
   const distanceFromProperty = watch("distanceFromProperty");
-  const reraApproved = watch("reraApproved");
-  const ownership = watch("ownership");
+  const reraApproved = watch("rera_approved");
+  const ownership = watch("ownership_type");
   const [places, setPlaces] = useState([]);
   const [unit, setUnit] = useState("M");
   function formatDistance(meters) {
@@ -94,34 +96,34 @@ export default function PropertyDetails() {
     setPlaces((prev) => prev.filter((_, i) => i !== index));
   };
   const propertySubtypes = [
-    { id: "apartment", label: "Apartment", icon: Building },
-    { id: "independent-house", label: "Independent House", icon: Home },
-    { id: "independent-villa", label: "Independent Villa", icon: Building2 },
-    { id: "plot", label: "Plot", icon: MapPin },
-    { id: "land", label: "Land", icon: Landmark },
+    { id: "Apartment", label: "Apartment", icon: Building },
+    { id: "Independent House", label: "Independent House", icon: Home },
+    { id: "Independent Villa", label: "Independent Villa", icon: Building2 },
+    { id: "Plot", label: "Plot", icon: MapPin },
+    { id: "Land", label: "Land", icon: Landmark },
   ];
   const commercialSubTypes = [
-    { id: "office", label: "Office", icon: Building },
-    { id: "retail_shop", label: "Retail Shop", icon: Home },
-    { id: "showroom", label: "Showroom", icon: Building2 },
-    { id: "plot", label: "Plot", icon: MapPin },
-    { id: "warehouse", label: "Warehouse", icon: Landmark },
-    { id: "others", label: "Others", icon: MapPinHouse },
+    { id: "Office", label: "Office", icon: Building },
+    { id: "Retail Shop", label: "Retail Shop", icon: Home },
+    { id: "Show Room", label: "Showroom", icon: Building2 },
+    { id: "Plot", label: "Plot", icon: MapPin },
+    { id: "Warehouse", label: "Warehouse", icon: Landmark },
+    { id: "Others", label: "Others", icon: MapPinHouse },
   ];
   const landSubtypes = [
-    { id: "villa_development", label: "Villa Development", icon: House },
+    { id: "Villa Development", label: "Villa Development", icon: House },
     {
-      id: "apartment_development",
+      id: "Apartment Development",
       label: "Apartment development",
       icon: Hotel,
     },
     {
-      id: "commercial_development",
+      id: "Commercial Development",
       label: "Commercial Development",
       icon: Store,
     },
-    { id: "out_rate_sale", label: "Out Rate Sale", icon: IndianRupee },
-    { id: "farm_land", label: "Farm Land", icon: Trees },
+    { id: "Out Rate Sale", label: "Out Rate Sale", icon: IndianRupee },
+    { id: "Farm Land", label: "Farm Land", icon: Trees },
   ];
   const facilitiesOptions = [
     "Lift",
@@ -141,7 +143,7 @@ export default function PropertyDetails() {
     "Outdoor Fitness Station",
     "Half Basket Ball Court",
     "Gazebo",
-    "Badminton Court",
+    "Badmenton Court",
     "Children Play area",
     "Ample Greenery",
     "Water Harvesting Pit",
@@ -160,13 +162,13 @@ export default function PropertyDetails() {
   const bathroomOptions = ["1", "2", "3", "4", "4+"];
   const balconyOptions = ["1", "2", "3", "4", "4+"];
   const furnishOptions = ["Fully", "Semi", "Unfurnished"];
-  const isApartment = propertySubtype === "apartment";
-  const isIndependentHouse = propertySubtype === "independent-house";
-  const isIndependentVilla = propertySubtype === "independent-villa";
-  const isCommercial = formValues.propertyType === "commercial";
+  const isApartment = propertySubtype === "Apartment";
+  const isIndependentHouse = propertySubtype === "Independent House";
+  const isIndependentVilla = propertySubtype === "Independent Villa";
+  const isCommercial = formValues.property_in === "Commercial";
   const shouldShowCommercialSubTypes = isCommercial;
-  const isPlot = propertySubtype === "plot";
-  const isLand = propertySubtype === "land";
+  const isPlot = propertySubtype === "Plot";
+  const isLand = propertySubtype === "Land";
   const isCommercialSell = isCommercial && isSell;
   const shouldShowConstruction =
     isApartment || isIndependentHouse || isIndependentVilla;
@@ -190,13 +192,13 @@ export default function PropertyDetails() {
   const shouldShowServant =
     isApartment || isIndependentHouse || isIndependentVilla;
   const shouldShowPlotNo =
-    commercialSubType === "plot" ||
-    commercialSubType === "warehouse" ||
-    commercialSubType === "others";
+    commercialSubType === "Plot" ||
+    commercialSubType === "Warehouse" ||
+    commercialSubType === "Others";
   const shouldShowLifts =
-    commercialSubType === "office" ||
-    commercialSubType === "retail_shop" ||
-    commercialSubType === "showroom";
+    commercialSubType === "Office" ||
+    commercialSubType === "Retail Shop" ||
+    commercialSubType === "Show Room";
   const handleFacilityChange = (facility, checked) => {
     const currentFacilities = getValues("facilities") || [];
     if (checked) {
@@ -208,21 +210,85 @@ export default function PropertyDetails() {
       );
     }
   };
+  const formatFieldValue = (key, value) => {
+    // Convert to integer safely (handles both "5" and 5)
+    const intVal = parseInt(value);
+
+    switch (key) {
+      case "brokerage_charge":
+        return intVal === 30 ? "30 Days" : intVal === 15 ? "15 Days" : "None";
+
+      case "security_deposit":
+      case "lock_in":
+        return isNaN(intVal)
+          ? "0 Months"
+          : `${intVal} Month${intVal > 1 ? "s" : ""}`;
+
+      case "rera_approved":
+        return value === 1 || value === "1" ? "Yes" : "No";
+
+      case "bedrooms":
+        return !isNaN(intVal)
+          ? intVal >= 4
+            ? "4+ BHK"
+            : `${intVal} BHK`
+          : "0 BHK";
+
+      case "bathroom":
+      case "balconies":
+      case "bike_parking":
+      case "car_parking":
+        return !isNaN(intVal) ? (intVal >= 4 ? "4+" : `${intVal}`) : "0";
+
+      // case "investor_property":
+      // case "pent_house":
+      // case "loan_facility":
+      // case "servant_room":
+      //   return value === null ||
+      //     value === "" ||
+      //     value === undefined ||
+      //     value === "0"
+      //     ? "No"
+      //     : "Yes";
+
+      default:
+        return value;
+    }
+  };
+
   useEffect(() => {
-    let defaultUnit = "sq.ft";
+    let defaultUnit = areaUnit?.toLowerCase();
+    console.log("propertySubtype: ", propertySubtype);
     if (
-      ["apartment", "independent-villa", "independent-house"].includes(
+      ["Apartment", "Independent Villa", "Independent House"].includes(
         propertySubtype
       )
     ) {
       defaultUnit = "sq.ft";
-    } else if (propertySubtype === "plot") {
+    } else if (propertySubtype === "Plot") {
       defaultUnit = "sq.yd";
-    } else if (propertySubtype === "land") {
-      defaultUnit = "acres";
+    } else if (propertySubtype === "Land") {
+      defaultUnit = "Acres";
     }
-    setValue("areaUnit", defaultUnit);
+    console.log("defaultUnit: ", defaultUnit);
+    setValue("area_units", defaultUnit);
   }, [propertySubtype, setValue]);
+  useEffect(() => {
+    if (property && property.id) {
+      Object.entries(property).forEach(([key, value]) => {
+        const formattedVal = formatFieldValue(key, value);
+        setValue(key, formattedVal ?? "");
+      });
+    }
+    if (property?.around_places?.length) {
+      const mappedPlaces = property.around_places.map((place) => ({
+        place: place.title.trim(),
+        distance: parseInt(place.distance),
+      }));
+      setPlaces(mappedPlaces);
+    }
+  }, [property, setValue]);
+
   return (
     <div className="space-y-8 sm:space-y-2 gap-4">
       {!shouldShowCommercialSubTypes && (
@@ -239,7 +305,7 @@ export default function PropertyDetails() {
                 <Button
                   key={type.id}
                   type="button"
-                  onClick={() => setValue("propertySubtype", type.id)}
+                  onClick={() => setValue("sub_type", type.id)}
                   className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
                     isSelected
                       ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -265,12 +331,12 @@ export default function PropertyDetails() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
             {commercialSubTypes.map((type) => {
               const IconComponent = type.icon;
-              const isSelected = commercialSubType === type.id;
+              const isSelected = propertySubtype === type.id;
               return (
                 <Button
                   key={type.id}
                   type="button"
-                  onClick={() => setValue("commercialSubType", type.id)}
+                  onClick={() => setValue("sub_type", type.id)}
                   className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
                     isSelected
                       ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -327,12 +393,12 @@ export default function PropertyDetails() {
             </div>
           </Label>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            {["yes", "no"].map((val) => (
+            {["Yes", "No"].map((val) => (
               <Button
                 key={val}
                 type="button"
                 variant="outline"
-                onClick={() => setValue("reraApproved", val)}
+                onClick={() => setValue("rera_approved", val)}
                 className={`px-6 sm:px-8 py-3 capitalize ${
                   reraApproved === val
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -352,11 +418,11 @@ export default function PropertyDetails() {
             <span className="text-red-500">*</span>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            {["Ready-to-move", "Under-construction"].map((status) => (
+            {["Ready to move", "Under Construction"].map((status) => (
               <Button
                 key={status}
                 type="button"
-                onClick={() => setValue("constructionStatus", status)}
+                onClick={() => setValue("occupancy", status)}
                 className={`px-4 sm:px-6 py-3 ${
                   constructionStatus === status
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -380,7 +446,7 @@ export default function PropertyDetails() {
               <Button
                 key={option}
                 type="button"
-                onClick={() => setValue("bhk", option)}
+                onClick={() => setValue("bedrooms", option)}
                 className={`px-3 sm:px-4 py-3 text-sm ${
                   bhk === option
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -396,7 +462,7 @@ export default function PropertyDetails() {
               type="number"
               placeholder="Custom BHK"
               className="w-full sm:w-1/2"
-              onChange={(e) => setValue("customBHK", e.target.value)}
+              onChange={(e) => setValue("bedrooms", e.target.value)}
             />
           )}
         </div>
@@ -444,7 +510,7 @@ export default function PropertyDetails() {
               <Button
                 key={option}
                 type="button"
-                onClick={() => setValue("balcony", option)}
+                onClick={() => setValue("balconies", option)}
                 className={`w-12 sm:w-16 h-10 sm:h-12 text-sm ${
                   balcony === option
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -460,7 +526,7 @@ export default function PropertyDetails() {
               type="number"
               placeholder="Custom Balcony"
               className="w-full sm:w-1/2"
-              onChange={(e) => setValue("customBalcony", e.target.value)}
+              onChange={(e) => setValue("balconies", e.target.value)}
             />
           )}
         </div>
@@ -476,7 +542,7 @@ export default function PropertyDetails() {
               <Button
                 key={option}
                 type="button"
-                onClick={() => setValue("furnishType", option)}
+                onClick={() => setValue("furnished_status", option)}
                 className={`px-4 sm:px-6 py-3 ${
                   furnishType === option
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -493,14 +559,14 @@ export default function PropertyDetails() {
         <div className="space-y-2 ">
           <Label>Age of Property</Label>
           <Select
-            onValueChange={(value) => setValue("ageOfProperty", value)}
+            onValueChange={(value) => setValue("property_age", value)}
             className="bg-white"
           >
             <SelectTrigger className="w-full sm:w-1/2 mb-2  bg-white">
               <SelectValue placeholder="0-5" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="0-5">0-5 years</SelectItem>
+              <SelectItem value="5">0-5 years</SelectItem>
               <SelectItem value="5-10">5-10 years</SelectItem>
               <SelectItem value="10-15">10-15 years</SelectItem>
               <SelectItem value="15+">15+ years</SelectItem>
@@ -522,7 +588,7 @@ export default function PropertyDetails() {
                     <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    {...register("passengerLifts", {
+                    {...register("passenger_lifts", {
                       required: "Passenger lifts is required",
                     })}
                     placeholder="Enter Passenger lifts"
@@ -535,7 +601,7 @@ export default function PropertyDetails() {
                     <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    {...register("serviceLifts", {
+                    {...register("service_lifts", {
                       required: "Service lifts is required",
                     })}
                     placeholder="Enter Service lifts"
@@ -548,7 +614,7 @@ export default function PropertyDetails() {
                     <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    {...register("stairCases", {
+                    {...register("stair_cases", {
                       required: "Stair Cases is required",
                     })}
                     placeholder="Enter Stair cases"
@@ -570,16 +636,16 @@ export default function PropertyDetails() {
                     className="w-full justify-start text-left font-normal"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {watch("availableFrom")
-                      ? format(watch("availableFrom"), "PPP")
+                    {watch("available_from")
+                      ? format(watch("available_from"), "PPP")
                       : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
-                    selected={watch("availableFrom")}
-                    onSelect={(date) => setValue("availableFrom", date)}
+                    selected={watch("available_from")}
+                    onSelect={(date) => setValue("available_from", date)}
                     initialFocus
                   />
                 </PopoverContent>
@@ -590,7 +656,7 @@ export default function PropertyDetails() {
                 Monthly Rent <span className="text-red-500">*</span>
               </Label>
               <Input
-                {...register("monthlyRent", {
+                {...register("monthly_rent", {
                   required: "Monthly rent is required",
                 })}
                 placeholder="Monthly Rent"
@@ -605,7 +671,7 @@ export default function PropertyDetails() {
                 <span className="text-red-500">*</span>
               </Label>
               <Input
-                {...register("maintenanceCharge", {
+                {...register("maintenance", {
                   required: "Maintenance charge is required",
                 })}
                 placeholder="Maintenance Charge"
@@ -620,12 +686,12 @@ export default function PropertyDetails() {
                 </div>
               </Label>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                {["yes", "no"].map((val) => (
+                {["Yes", "No"].map((val) => (
                   <Button
                     key={val}
                     type="button"
                     variant="outline"
-                    onClick={() => setValue("loanFacility", val)}
+                    onClick={() => setValue("loan_facility", val)}
                     className={`px-6 sm:px-8 py-3 capitalize ${
                       loanFacility === val
                         ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -645,7 +711,7 @@ export default function PropertyDetails() {
           <Label>Area units</Label>
           <Select
             value={areaUnit}
-            onValueChange={(value) => setValue("areaUnit", value)}
+            onValueChange={(value) => setValue("area_units", value)}
           >
             <SelectTrigger className="w-full bg-white">
               <SelectValue placeholder="Select unit" />
@@ -653,7 +719,7 @@ export default function PropertyDetails() {
             <SelectContent>
               <SelectItem value="sq.ft">Sq.ft</SelectItem>
               <SelectItem value="sq.yd">Sq.yd</SelectItem>
-              <SelectItem value="acres">Acres</SelectItem>
+              <SelectItem value="Acres">Acres</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -663,7 +729,7 @@ export default function PropertyDetails() {
             <span className="text-red-500">*</span>
           </div>
           <Input
-            {...register("builtupArea")}
+            {...register("builtup_area")}
             placeholder="Built-up Area"
             className="w-full"
           />
@@ -672,7 +738,7 @@ export default function PropertyDetails() {
           <div className="space-y-2">
             <Label>Carpet Area (Sq.ft)</Label>
             <Input
-              {...register("carpetArea")}
+              {...register("carpet_area")}
               placeholder="Carpet Area"
               className="bg-white w-full"
             />
@@ -682,7 +748,7 @@ export default function PropertyDetails() {
           <div className="space-y-2">
             <Label>Plot Area (Sq.yd)</Label>
             <Input
-              {...register("plotArea")}
+              {...register("plot_area")}
               placeholder="Plot Area"
               className="w-full"
             />
@@ -693,7 +759,7 @@ export default function PropertyDetails() {
             <div className="space-y-2">
               <Label>Length Area (Sq.ft)</Label>
               <Input
-                {...register("lengthArea")}
+                {...register("length_area")}
                 placeholder="Length Area"
                 className="w-full"
               />
@@ -701,7 +767,7 @@ export default function PropertyDetails() {
             <div className="space-y-2">
               <Label>Width Area (Sq.ft)</Label>
               <Input
-                {...register("widthArea")}
+                {...register("length_area")}
                 placeholder="Width Area"
                 className="w-full"
               />
@@ -715,12 +781,14 @@ export default function PropertyDetails() {
           </div>
           <div className="flex items-center border rounded-md overflow-hidden">
             <Input
-              {...register("totalProjectArea")}
+              {...register("total_project_area")}
               placeholder="Enter Total Project Area"
               className="flex-1 border-none focus:ring-0 focus:outline-none px-3"
             />
             <Select
-              onValueChange={(value) => setValue("totalProjectAreaUnit", value)}
+              onValueChange={(value) =>
+                setValue("total_project_area_unit", value)
+              }
             >
               <SelectTrigger className="border-l px-3 h-full w-24">
                 <SelectValue placeholder="Acres" />
@@ -744,12 +812,14 @@ export default function PropertyDetails() {
                 ₹
               </span>
               <Input
-                {...register("unitCost")}
+                {...register("builtup_unit")}
                 placeholder="Unit Cost"
                 className="pl-8 border-none focus:ring-0 focus:outline-none w-full"
               />
             </div>
-            <Select onValueChange={(value) => setValue("unitCostType", value)}>
+            <Select
+              onValueChange={(value) => setValue("unit_cost_type", value)}
+            >
               <SelectTrigger className="border-l px-3 h-full w-28">
                 <SelectValue placeholder="Onwards" />
               </SelectTrigger>
@@ -768,12 +838,12 @@ export default function PropertyDetails() {
           </div>
           <div className="flex items-center border rounded-md overflow-hidden">
             <Input
-              {...register("propertyCost")}
+              {...register("property_cost")}
               placeholder="Property Cost"
               className="flex-1 border-none focus:ring-0 focus:outline-none px-3"
             />
             <Select
-              onValueChange={(value) => setValue("propertyCostType", value)}
+              onValueChange={(value) => setValue("property_cost_type", value)}
             >
               <SelectTrigger className="border-l px-3 h-full w-28">
                 <SelectValue placeholder="Onwards" />
@@ -797,12 +867,12 @@ export default function PropertyDetails() {
             <span className="text-red-500">*</span>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            {["yes", "no"].map((val) => (
+            {["Yes", "No"].map((val) => (
               <Button
                 key={val}
                 type="button"
                 variant="outline"
-                onClick={() => setValue("pentHouse", val)}
+                onClick={() => setValue("pent_house", val)}
                 className={`px-6 sm:px-8 py-3 capitalize ${
                   pentHouse === val
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -851,7 +921,7 @@ export default function PropertyDetails() {
                   key={item}
                   type="button"
                   variant="outline"
-                  onClick={() => setValue("lockinPeriod", item)}
+                  onClick={() => setValue("locak_in", item)}
                   className={`px-4 sm:px-6 py-3 capitalize ${
                     lockinPeriod === item
                       ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -903,7 +973,7 @@ export default function PropertyDetails() {
                   key={item}
                   type="button"
                   variant="outline"
-                  onClick={() => setValue("preferredTenantType", item)}
+                  onClick={() => setValue("types", item)}
                   className={`px-3 sm:px-6 py-3 text-xs sm:text-sm capitalize ${
                     preferredTenantType === item
                       ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -934,7 +1004,7 @@ export default function PropertyDetails() {
                 key={item}
                 type="button"
                 variant="outline"
-                onClick={() => setValue("ownership", item)}
+                onClick={() => setValue("ownership_type", item)}
                 className={`px-3 sm:px-6 py-3 text-xs sm:text-sm capitalize ${
                   ownership === item
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -982,12 +1052,12 @@ export default function PropertyDetails() {
             <span className="text-red-500">*</span>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            {["immediate", "future"].map((status) => (
+            {["Immediate", "Future"].map((status) => (
               <Button
                 key={status}
                 type="button"
                 variant="outline"
-                onClick={() => setValue("possessionStatus", status)}
+                onClick={() => setValue("possession_status", status)}
                 className={`px-4 sm:px-6 py-3 capitalize ${
                   possessionStatus === status
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -1012,7 +1082,7 @@ export default function PropertyDetails() {
                 key={status}
                 type="button"
                 variant="outline"
-                onClick={() => setValue("possessionStatus", status)}
+                onClick={() => setValue("possession_status", status)}
                 className={`px-4 sm:px-6 py-3 capitalize ${
                   possessionStatus === status
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -1032,12 +1102,12 @@ export default function PropertyDetails() {
             <span className="text-red-500">*</span>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            {["yes", "no"].map((val) => (
+            {["Yes", "No"].map((val) => (
               <Button
                 key={val}
                 type="button"
                 variant="outline"
-                onClick={() => setValue("investorProperty", val)}
+                onClick={() => setValue("investor_property", val)}
                 className={`px-6 sm:px-8 py-3 capitalize ${
                   investorProperty === val
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -1056,7 +1126,7 @@ export default function PropertyDetails() {
           <span className="text-red-500">*</span>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-          {["yes", "no"].map((val) => (
+          {["Yes", "No"].map((val) => (
             <Button
               key={val}
               type="button"
@@ -1119,8 +1189,8 @@ export default function PropertyDetails() {
               <span className="text-red-500">*</span>
             </Label>
             <Input
-              type="number"
-              {...register("flatNo", {
+              type="text"
+              {...register("unit_flat_house_no", {
                 required: "Flat Number is required",
               })}
               placeholder="Flat No"
@@ -1137,16 +1207,16 @@ export default function PropertyDetails() {
                   <SelectValue placeholder="Select zone" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="industrial">Industrial</SelectItem>
-                  <SelectItem value="commercial">Commercial</SelectItem>
-                  <SelectItem value="special economic zone">
+                  <SelectItem value="Industrial">Industrial</SelectItem>
+                  <SelectItem value="Commercial">Commercial</SelectItem>
+                  <SelectItem value="Special Economic Zone">
                     Special Economic Zone
                   </SelectItem>
-                  <SelectItem value="open spaces">Open Spaces</SelectItem>
-                  <SelectItem value="agriculture zone">
+                  <SelectItem value="Open Spaces">Open Spaces</SelectItem>
+                  <SelectItem value="Agriculture Zone">
                     Agriculture Zone
                   </SelectItem>
-                  <SelectItem value="others">Others</SelectItem>
+                  <SelectItem value="Others">Others</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1157,14 +1227,14 @@ export default function PropertyDetails() {
                   <SelectValue placeholder="Select Suitable" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="jewellery">Jewellery</SelectItem>
-                  <SelectItem value="gym">Gym</SelectItem>
-                  <SelectItem value="grocery">Grocery</SelectItem>
-                  <SelectItem value="clinic">Clinic</SelectItem>
-                  <SelectItem value="footwear">Footwear</SelectItem>
-                  <SelectItem value="electronics">Electronics</SelectItem>
-                  <SelectItem value="clothing">Clothing</SelectItem>
-                  <SelectItem value="others">Others</SelectItem>
+                  <SelectItem value="Jewellery">Jewellery</SelectItem>
+                  <SelectItem value="Gym">Gym</SelectItem>
+                  <SelectItem value="Grocery">Grocery</SelectItem>
+                  <SelectItem value="Clinic">Clinic</SelectItem>
+                  <SelectItem value="Footwear">Footwear</SelectItem>
+                  <SelectItem value="Electronics">Electronics</SelectItem>
+                  <SelectItem value="Clothing">Clothing</SelectItem>
+                  <SelectItem value="Others">Others</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1208,7 +1278,7 @@ export default function PropertyDetails() {
                     key={option}
                     type="button"
                     variant={bikeParking === option ? "default" : "outline"}
-                    onClick={() => setValue("bikeParking", option)}
+                    onClick={() => setValue("bike_parking", option)}
                     className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
                       bikeParking === option
                         ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -1330,22 +1400,21 @@ export default function PropertyDetails() {
               <span className="text-red-500">*</span>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-              <Button
-                type="button"
-                variant={servantRoom === "yes" ? "default" : "outline"}
-                onClick={() => setValue("servantRoom", "yes")}
-                className="px-6 sm:px-8 py-3"
-              >
-                Yes
-              </Button>
-              <Button
-                type="button"
-                variant={servantRoom === "no" ? "default" : "outline"}
-                onClick={() => setValue("servantRoom", "no")}
-                className="px-6 sm:px-8 py-3"
-              >
-                No
-              </Button>
+              {["Yes", "No"].map((val) => (
+                <Button
+                  key={val}
+                  type="button"
+                  variant="outline"
+                  onClick={() => setValue("servantRoom", val)}
+                  className={`px-6 sm:px-8 py-3 capitalize ${
+                    servantRoom === val
+                      ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                      : "bg-white text-black hover:bg-gray-100 border"
+                  }`}
+                >
+                  {val}
+                </Button>
+              ))}
             </div>
           </div>
         )}
@@ -1355,7 +1424,7 @@ export default function PropertyDetails() {
             <span className="text-red-500">*</span>
           </div>
           <Textarea
-            {...register("propertyDescription")}
+            {...register("description")}
             placeholder="Property Description"
             rows={4}
             className="w-full resize-y"

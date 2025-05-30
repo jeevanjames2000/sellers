@@ -1,24 +1,37 @@
 import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
-  propertyType: "",
-  lookingTo: "",
-  transactionType: "",
+  property_in: "",
+  property_for: "",
+  transaction_type: "",
+  unique_property_id: "",
+  user_type: "",
+  user_id: "",
 };
 const basicDetailsSlice = createSlice({
   name: "basicDetails",
   initialState,
   reducers: {
-    setPropertyType: (state, action) => {
-      state.propertyType = action.payload;
+    setPropertyIn: (state, action) => {
+      state.property_in = action.payload;
     },
-    setLookingTo: (state, action) => {
-      state.lookingTo = action.payload;
+    setPropertyFor: (state, action) => {
+      state.property_for = action.payload;
     },
     setTransactionType: (state, action) => {
-      state.transactionType = action.payload;
+      state.transaction_type = action.payload;
+    },
+    setBasicDetails: (state, action) => {
+      return {
+        ...state,
+        ...action.payload,
+      };
     },
   },
 });
-export const { setPropertyType, setLookingTo, setTransactionType } =
-  basicDetailsSlice.actions;
+export const {
+  setPropertyIn,
+  setPropertyFor,
+  setTransactionType,
+  setBasicDetails,
+} = basicDetailsSlice.actions;
 export default basicDetailsSlice.reducer;
