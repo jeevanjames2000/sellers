@@ -5,6 +5,7 @@ import addressSlice from "./slices/addPropertySlice/addressSlice";
 import photosSlice from "./slices/addPropertySlice/propertyPhotosSlice";
 import enquirySlice from "./slices/enquirySlice";
 import searchSlice from './slices/searchSlice';
+import invoiceSlice from './slices/invoiceSlice';
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     address: addressSlice,
     photos: photosSlice,
     enquiries:enquirySlice,
-    search:searchSlice
+    search:searchSlice,
+    invoices:invoiceSlice,
   },
 });

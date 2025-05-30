@@ -46,7 +46,7 @@ export default function ContactedDetails() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-[#f4f4f4]">
       {/* Header */}
    
 
