@@ -1,42 +1,63 @@
-"use client";
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import Mainnavigation from "./MainNavigation";
-import { Home, Menu, X, Download, LogIn } from "lucide-react";
-import logo from "../../../public/assets/logo.svg";
-import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import MainNavigation from './MainNavigation';
+import { Home, Menu, X, Download, LogIn } from 'lucide-react';
+import logo from '../../../public/assets/logo.svg';
+import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
+import { setLogin, clearLogin } from '@/store/slices/loginSlice'; // Import setLogin to restore state
 
 function Header() {
   const pathname = usePathname();
   const router = useRouter();
+  const dispatch = useDispatch();
+  const { user, token } = useSelector((state) => state.login);
   const [scrollY, setScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const isLoggedIn = !!token;
 
+  // Rehydrate Redux state from localStorage on mount
   useEffect(() => {
-    router.prefetch("/addProperty");
-    router.prefetch("/listings");
-    router.prefetch("/enquiry");
+    const storedToken = localStorage.getItem('userToken');
+    const storedUser = localStorage.getItem('userDetails');
 
-    const userToken = localStorage.getItem("userToken");
-    setIsLoggedIn(!!userToken);
-  }, []);
+    if (storedToken && storedUser && !token) {
+      try {
+        const userDetails = JSON.parse(storedUser);
+        dispatch(setLogin({ user: userDetails, token: storedToken }));
+      } catch (error) {
+        console.error('Error parsing user details from localStorage:', error);
+        // Clear invalid data from localStorage
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userDetails');
+        dispatch(clearLogin());
+      }
+    }
+
+    // Prefetch routes
+    router.prefetch('/addProperty');
+    router.prefetch('/listings');
+    router.prefetch('/enquiry');
+  }, [router, dispatch, token]);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const handleAddProperty = () => {
     if (!isLoggedIn) {
-      router.push("/");
+      router.push('/');
     } else {
-      router.push("/addProperty");
+      router.push('/addProperty');
     }
   };
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -45,8 +66,8 @@ function Header() {
       }
     };
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const toggleMobileMenu = () => {
@@ -57,33 +78,33 @@ function Header() {
     const handleClickOutside = (e) => {
       if (
         isMobileMenuOpen &&
-        !e.target.closest("#mobile-sidebar") &&
-        !e.target.closest("#mobile-menu-trigger")
+        !e.target.closest('#mobile-sidebar') &&
+        !e.target.closest('#mobile-menu-trigger')
       ) {
         setIsMobileMenuOpen(false);
       }
     };
 
     if (isMobileMenuOpen) {
-      document.addEventListener("click", handleClickOutside);
-      document.body.style.overflow = "hidden";
+      document.addEventListener('click', handleClickOutside);
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = 'unset';
     }
 
     return () => {
-      document.removeEventListener("click", handleClickOutside);
-      document.body.style.overflow = "unset";
+      document.removeEventListener('click', handleClickOutside);
+      document.body.style.overflow = 'unset';
     };
   }, [isMobileMenuOpen]);
 
   return (
     <header
       className={`h-16 lg:h-20 bg-white/95 backdrop-blur-md w-full transition-all duration-300 border-b border-gray-200/50 flex items-center justify-between px-4 lg:px-8 xl:px-12 sticky top-0 z-50 ${
-        scrollY > 50 ? "shadow-lg bg-white/98" : "shadow-sm"
+        scrollY > 50 ? 'shadow-lg bg-white/98' : 'shadow-sm'
       }`}
     >
-      <Link href="/">
+      <Link href="/dashboard">
         <Image
           src={logo}
           alt="Meetowner Logo"
@@ -96,22 +117,24 @@ function Header() {
       <div className="flex items-center space-x-3">
         {isLoggedIn ? (
           <>
-            <div className="hidden lg:flex items-center space-x-8 ">
-              <Mainnavigation isLoggedIn={isLoggedIn} />
+           
+            <div className="hidden lg:flex items-center space-x-8">
+              <MainNavigation isLoggedIn={isLoggedIn} />
+           
             </div>
 
+         
             <Button
               onClick={handleAddProperty}
-              className="bg-gradient-to-r from-[#1D3A76] cursor-pointer  to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
+              className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
               size="sm"
             >
               <Home className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-              <span className="hidden sm:inline font-semibold">
-                Add Property
-              </span>
+              <span className="hidden sm:inline font-semibold">Add Property</span>
               <span className="sm:hidden font-semibold">Add</span>
             </Button>
 
+            {/* Mobile Menu Trigger */}
             <div className="lg:hidden">
               <Button
                 id="mobile-menu-trigger"
@@ -126,6 +149,7 @@ function Header() {
           </>
         ) : (
           <div className="flex items-center space-x-3">
+            {/* Download App Button */}
             <Button
               variant="outline"
               size="sm"
@@ -135,22 +159,22 @@ function Header() {
               Download App
             </Button>
 
+            {/* Add Property Button (Visible but redirects to login if not logged in) */}
             <div className="hidden md:block">
-              {pathname !== "/addProperty" && (
+              {pathname !== '/addProperty' && (
                 <Button
                   onClick={handleAddProperty}
                   className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
                   size="sm"
                 >
                   <Home className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                  <span className="hidden sm:inline font-semibold">
-                    Add Property
-                  </span>
+                  <span className="hidden sm:inline font-semibold">Add Property</span>
                   <span className="sm:hidden font-semibold">Add</span>
                 </Button>
               )}
             </div>
 
+            {/* Sign Up Button */}
             <div className="hidden md:block">
               <Link href="/">
                 <Button
@@ -163,10 +187,25 @@ function Header() {
                 </Button>
               </Link>
             </div>
+
+            {/* Mobile Menu Trigger for Logged-Out Users */}
+            <div className="lg:hidden">
+              <Button
+                id="mobile-menu-trigger"
+                variant="outline"
+                size="sm"
+                className="w-10 h-10 p-0 border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                onClick={toggleMobileMenu}
+              >
+                <Menu className="w-5 h-5 text-[#1D3A76]" />
+              </Button>
+            </div>
           </div>
         )}
       </div>
-      {isLoggedIn && isMobileMenuOpen && (
+
+      {/* Mobile Sidebar */}
+      {isMobileMenuOpen && (
         <>
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden" />
 
@@ -198,11 +237,36 @@ function Header() {
 
             {/* Mobile Navigation */}
             <div className="flex-1">
-              <Mainnavigation
+              <MainNavigation
                 toggleSidebar={() => setIsMobileMenuOpen(false)}
                 isMobile={true}
                 isLoggedIn={isLoggedIn}
               />
+            
+              {!isLoggedIn && (
+                <div className="p-3 space-y-2">
+                  <Button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      router.push('/');
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-gray-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Sign Up
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-gray-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download App
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </>

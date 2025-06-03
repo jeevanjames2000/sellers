@@ -1,8 +1,9 @@
-
+'use client';
 import React from 'react';
 
 import { FileText, Upload, Calculator, Shield } from 'lucide-react';
 import ServiceCard from '../ui/servicesCard';
+
 
 const ServicesGrid = () => {
   const services = [

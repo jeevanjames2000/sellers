@@ -20,8 +20,11 @@ import {
   HelpCircle,
 } from "lucide-react";
 import LoadingOverlay from "../shared/LoadingOverlay";
+import { useDispatch } from "react-redux";
+import { clearLogin } from "@/store/slices/loginSlice";
 
 const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
+   const dispatch = useDispatch();
   const [isLoadingEffect, setIsLoadingEffect] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
@@ -29,16 +32,12 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
   const pathname = usePathname();
   const isActive = (path) => pathname === path;
 
-  const handleLogout = () => {
-    setIsLoadingEffect(true);
-    setTimeout(() => {
-      setIsLoadingEffect(false);
-      sessionStorage.clear();
-      localStorage.clear();
-      router.push("/");
-      if (toggleSidebar) toggleSidebar();
-    }, 2000);
-  };
+   const handleLogout = () => {
+      dispatch(clearLogin());
+      localStorage.removeItem('userToken');
+      localStorage.removeItem('userDetails');
+      router.push('/');
+   }
 
   const navigationItems = [
     { href: "/dashboard", label: "Dashboard", icon: Home },

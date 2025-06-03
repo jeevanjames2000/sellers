@@ -1,23 +1,104 @@
-'use client'
+'use client';
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useRouter } from "next/navigation";
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { setLogin,setLoading, setError  } from '@/store/slices/loginSlice';
+
+export function LoginForm({ className, ...props }) {
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.login);
 
 
-export function LoginForm({className,...props}) {
+  const [formData, setFormData] = useState({
+    mobile: '',
+    password: '',
+  });
+
+  // Validation errors
+  const [errors, setErrors] = useState({
+    mobile: '',
+    password: '',
+  });
+
+ 
+  const validateMobile = (mobile) => {
+    const mobileRegex = /^(?:\+91)?[6-9]\d{9}$/;
+    return mobileRegex.test(mobile) ? '' : 'Please enter a valid Indian phone number (10 digits, starting with 6-9)';
+  };
+
+
+  const validatePassword = (password) => {
+    return password.length >= 4 ? '' : 'Password must be at least 4 characters';
+  };
+
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === 'mobile') {
+      setErrors((prev) => ({ ...prev, mobile: validateMobile(value) }));
+    } else if (name === 'password') {
+      setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
   
- 
- const router = useRouter();
-  function handleSubmit(){
-     localStorage.setItem("userToken", "some-token");
-    router.push('/dashboard')
+    const mobileError = validateMobile(formData.mobile);
+    const passwordError = validatePassword(formData.password);
 
-  }
- 
+    setErrors({ mobile: mobileError, password: passwordError });
 
+    if (mobileError || passwordError) {
+      return;
+    }
+
+    try {
+      dispatch(setLoading());
+
+      const response = await fetch('https://api.meetowner.in/auth/v1/loginAgent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mobile: formData.mobile,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+
+      dispatch(setLogin({
+        user: data.user,
+        token: data.token,
+      }));
+
+
+      localStorage.setItem('userToken', data.token);
+      localStorage.setItem('userDetails', JSON.stringify(data.user));
+
+   
+      router.push('/dashboard');
+    } catch (err) {
+      dispatch(setError(err.message || 'An error occurred during login'));
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} {...props}>
@@ -29,44 +110,55 @@ export function LoginForm({className,...props}) {
       </div>
       <div className="grid gap-6">
         <div className="grid gap-3">
-          <Label htmlFor="number">Phone Number</Label>
-          <Input 
-          id="number"
-          type="tel" 
-          placeholder="+91"
-           pattern="[0-9+]*"
-                  required
-           />
+          <Label htmlFor="mobile">Phone Number</Label>
+          <Input
+            id="mobile"
+            name="mobile"
+            type="tel"
+            placeholder="+91"
+            value={formData.mobile}
+            onChange={handleChange}
+            pattern="[0-9+]*"
+            required
+            className={errors.mobile ? 'border-red-500' : ''}
+          />
+          {errors.mobile && <p className="text-red-500 text-sm">{errors.mobile}</p>}
         </div>
         <div className="grid gap-3">
           <div className="flex items-center">
             <Label htmlFor="password">Password</Label>
-           
           </div>
-          <Input id="password"
-           type="password" 
-           required />
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            className={errors.password ? 'border-red-500' : ''}
+          />
+          {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
         </div>
-        <Button type="submit" className="w-full bg-[#1D3A76]">
-          Login
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        <Button
+          type="submit"
+          className="w-full bg-[#1D3A76]"
+          disabled={loading}
+        >
+          {loading ? 'Logging in...' : 'Login'}
         </Button>
-        <div
-          className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+        <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
           <span className="bg-background text-muted-foreground relative z-10 px-2">
             Or continue with
           </span>
         </div>
-      
       </div>
       <div className="text-center text-sm">
-        Don&apos;t have an account?{" "}
+        Don't have an account?{' '}
         <a href="/signup" className="underline underline-offset-4">
           Sign up
         </a>
-        
       </div>
-      
-       
     </form>
   );
 }

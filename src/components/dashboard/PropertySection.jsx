@@ -2,7 +2,9 @@
 import React from "react";
 import Link from "next/link";
 
+
 const PropertySection = () => {
+  
   return (
     <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
       <div className="flex items-center justify-between mb-6">
@@ -27,7 +29,7 @@ const PropertySection = () => {
           </h2>
         </div>
         <Link
-          href="/properties"
+          href="/listings"
           className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center space-x-1 transition-colors duration-200"
         >
           <span>View All</span>

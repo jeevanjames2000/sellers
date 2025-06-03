@@ -1,9 +1,14 @@
-
+'use client';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { useRouter } from 'next/navigation';
 
 const PlanFinder = () => {
+  const router = useRouter();
+    const handleButtonClick = () => {
+      router.push('/packages');
+  };
   return (
     <Card className="bg-gradient-to-r from-yellow-100 to-orange-100 border-0 mb-8 shadow-sm hover:shadow-md transition-shadow duration-300">
       <CardContent className="p-6">
@@ -25,7 +30,8 @@ const PlanFinder = () => {
               </p>
             </div>
           </div>
-          <Button className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-2 rounded-lg shadow-sm mt-2 md:mt-0">
+          <Button onClick={handleButtonClick}
+           className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-2 rounded-lg shadow-sm mt-2 md:mt-0">
             Find plan
           </Button>
         </div>

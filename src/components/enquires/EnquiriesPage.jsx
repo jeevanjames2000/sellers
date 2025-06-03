@@ -35,7 +35,7 @@ const EnquiriesPage = ({ activeTab }) => {
     fetchEnquiries();
   }, [activeTab, dispatch]);
 
-const mapToEnquiryCardProps = (enquiry) => {
+  const mapToEnquiryCardProps = (enquiry) => {
   const avatarUrl = enquiry.image
     ? `/api/proxy-image?url=${`https://api.meetowner.in/uploads/${enquiry.image}`}`
     : '/placeholder.png';

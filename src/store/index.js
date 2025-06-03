@@ -6,6 +6,9 @@ import photosSlice from "./slices/addPropertySlice/propertyPhotosSlice";
 import enquirySlice from "./slices/enquirySlice";
 import searchSlice from './slices/searchSlice';
 import invoiceSlice from './slices/invoiceSlice';
+import loginSlice from './slices/loginSlice';
+import profileSlice from './slices/profileSlice';
+import locationsSlice from './slices/locationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,5 +19,8 @@ export const store = configureStore({
     enquiries:enquirySlice,
     search:searchSlice,
     invoices:invoiceSlice,
+    login:loginSlice,
+    profile:profileSlice,
+    locations:locationsSlice
   },
 });
