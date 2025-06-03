@@ -20,7 +20,11 @@ const addressSlice = createSlice({
     setLocality: (stateData, action) => {
       stateData.locality = action.payload;
     },
+    setAddress: (state, action) => {
+      return { ...state, ...action.payload };
+    },
   },
 });
-export const { setState, setCity, setLocality } = addressSlice.actions;
+export const { setState, setCity, setLocality, setAddress } =
+  addressSlice.actions;
 export default addressSlice.reducer;

@@ -10,7 +10,6 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { toast } from "sonner";
-
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
     const script = document.createElement("script");
@@ -20,13 +19,11 @@ const loadRazorpayScript = () => {
     document.body.appendChild(script);
   });
 };
-
 const handlePayment = async (plan, userInfo, fetchPlans, cityName) => {
   if (!userInfo?.user_id) {
     toast.error("User ID is required. Please log in.");
     return;
   }
-
   const isLoaded = await loadRazorpayScript();
   if (!isLoaded) {
     toast.error(
@@ -34,10 +31,7 @@ const handlePayment = async (plan, userInfo, fetchPlans, cityName) => {
     );
     return;
   }
-
-  // Mock config for demo - replace with your actual config
   const apiURL = "https://api.meetowner.in";
-
   try {
     const checkResponse = await fetch(`${apiURL}/payments/checkSubscription`, {
       method: "POST",
@@ -62,7 +56,6 @@ const handlePayment = async (plan, userInfo, fetchPlans, cityName) => {
     toast.error("Error checking subscription status. Please try again.");
     return;
   }
-
   const amount = Number(plan.price);
   try {
     const response = await fetch(`${apiURL}/payments/createOrder`, {
@@ -80,7 +73,6 @@ const handlePayment = async (plan, userInfo, fetchPlans, cityName) => {
       toast.error(`Error creating order: ${order.message || "Unknown error"}`);
       return;
     }
-
     const razorKey = process.env.NEXT_PUBLIC_RAZOR_PAY_KEY;
     const options = {
       key: razorKey,
@@ -200,7 +192,6 @@ const handlePayment = async (plan, userInfo, fetchPlans, cityName) => {
     toast.error("Something went wrong!. Please try again.");
   }
 };
-
 const PricingCard = ({
   title,
   duration,
@@ -226,13 +217,11 @@ const PricingCard = ({
         return <Star className="h-6 w-6" />;
     }
   };
-
   const getGradient = () => {
     if (isCurrentPlan) return "from-green-50 to-green-100 border-green-300";
     if (isPopular) return "from-blue-50 to-purple-100 border-purple-300";
     return "from-gray-50 to-white border-gray-200";
   };
-
   return (
     <Card
       className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 bg-gradient-to-br ${getGradient()}`}
@@ -242,13 +231,11 @@ const PricingCard = ({
           🔥 Most Popular
         </div>
       )}
-
       {isCurrentPlan && (
         <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-green-500 to-green-600 text-white text-center py-2 text-sm font-semibold">
           ✓ Current Plan
         </div>
       )}
-
       <CardHeader
         className={`text-center ${
           (isPopular && !isCurrentPlan) || isCurrentPlan ? "mt-8" : ""
@@ -265,7 +252,6 @@ const PricingCard = ({
         >
           {getCardIcon()}
         </div>
-
         <CardTitle
           className={`text-2xl font-bold ${
             isCurrentPlan
@@ -277,9 +263,7 @@ const PricingCard = ({
         >
           {title}
         </CardTitle>
-
         <p className="text-gray-600">{duration}</p>
-
         <div
           className={`text-3xl font-bold flex items-center justify-center gap-1 ${
             isCurrentPlan
@@ -299,7 +283,6 @@ const PricingCard = ({
           )}
         </div>
       </CardHeader>
-
       <CardContent className="space-y-4">
         <ul className="space-y-3">
           {Object.entries(features).map(([feature, value]) => (
@@ -317,7 +300,6 @@ const PricingCard = ({
             </li>
           ))}
         </ul>
-
         <Button
           className={`w-full mt-2 mb-2 ${
             isCurrentPlan
@@ -345,7 +327,6 @@ const PricingCard = ({
     </Card>
   );
 };
-
 const PricingCards = ({
   plans,
   isLoadingEffect,
@@ -363,11 +344,9 @@ const PricingCards = ({
       </div>
     );
   }
-
   const currentPlan = subscription?.subscription_package?.toLowerCase();
   const paymentStatus = subscription?.payment_status;
   const subscriptionStatus = subscription?.subscription_status;
-
   const transformRulesToFeatures = (rules) => {
     const features = {};
     rules.forEach((rule) => {
@@ -375,7 +354,6 @@ const PricingCards = ({
     });
     return features;
   };
-
   return (
     <div className="max-w-9xl mx-auto">
       <Carousel className="w-full max-w-7xl mx-auto">
@@ -388,14 +366,12 @@ const PricingCards = ({
               "Prime Plus": "prime_plus",
             };
             const planKey = packageEnumMap[plan.name];
-
             const isCurrentPlan =
               currentPlan === planKey &&
               (paymentStatus === "processing" || paymentStatus === "success") &&
               (subscriptionStatus === "processing" ||
                 subscriptionStatus === "active") &&
               subscription?.city === cityName;
-
             return (
               <CarouselItem
                 key={plan.id}
@@ -424,5 +400,4 @@ const PricingCards = ({
     </div>
   );
 };
-
 export default PricingCards;

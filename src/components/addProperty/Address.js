@@ -20,11 +20,13 @@ import {
 } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import {
+  setAddress,
   setCity,
   setLocality,
   setState,
 } from "@/store/slices/addPropertySlice/addressSlice";
-export default function Address() {
+export default function Address({ property }) {
+  console.log("property: ", property);
   const {
     register,
     watch,
@@ -37,6 +39,7 @@ export default function Address() {
     city: selectedCity,
     locality: selectedLocality,
   } = useSelector((store) => store.address);
+  console.log("city: ", selectedCity);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [localityInput, setLocalityInput] = useState("");
@@ -45,8 +48,15 @@ export default function Address() {
   const [openCity, setOpenCity] = useState(false);
   const [openLocality, setOpenLocality] = useState(false);
   useEffect(() => {
+    if (property) {
+      setValue("property_name", property?.property_name);
+      dispatch(setCity(property.city_id || null));
+      dispatch(setLocality(property.google_address || ""));
+    }
     fetchStates();
+    fetchCities();
   }, []);
+
   const fetchStates = async () => {
     try {
       const res = await fetch("https://api.meetowner.in/api/v1/getAllStates");
@@ -58,9 +68,7 @@ export default function Address() {
   };
   const fetchCities = async (state) => {
     try {
-      const res = await fetch(
-        `https://api.meetowner.in/api/v1/getAllCities?state=${state}`
-      );
+      const res = await fetch(`https://api.meetowner.in/api/v1/getAllCities`);
       const data = await res.json();
       setCities(data);
     } catch (error) {
@@ -85,7 +93,7 @@ export default function Address() {
     }
   }, [selectedState]);
   useEffect(() => {
-    if (selectedCity && localityInput.length >= 2) {
+    if (selectedCity) {
       fetchLocalities(selectedCity, localityInput);
     } else {
       setLocalitySuggestions([]);
@@ -239,7 +247,7 @@ export default function Address() {
           Property/Project Name <span className="text-red-500">*</span>
         </Label>
         <Input
-          {...register("propertyName", {
+          {...register("property_name", {
             required: "Property name is required",
           })}
           placeholder="Search Projects"
