@@ -21,8 +21,8 @@ import axios from "axios";
 import useFetchAndSetProperty from "../services/useFetchAndSetProperty";
 
 const steps = [
-  { label: "Basic Details", component: BasicDetails },
-  { label: "Property Details", component: PropertyDetails },
+  // { label: "Basic Details", component: BasicDetails },
+  // { label: "Property Details", component: PropertyDetails },
   { label: "Address", component: Address },
   { label: "Property Photos", component: Photos },
   { label: "Review", component: Review },
@@ -33,7 +33,6 @@ export default function MultiStepForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const onNext = () => setCurrentStep((prev) => prev + 1);
   const onBack = () => setCurrentStep((prev) => prev - 1);
-  const onSubmit = (data) => console.log("Final Submit:", data);
   const CurrentComponent = steps[currentStep].component;
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
   const handleRoute = () => {

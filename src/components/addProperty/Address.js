@@ -26,7 +26,6 @@ import {
   setState,
 } from "@/store/slices/addPropertySlice/addressSlice";
 export default function Address({ property }) {
-  console.log("property: ", property);
   const {
     register,
     watch,
@@ -39,7 +38,6 @@ export default function Address({ property }) {
     city: selectedCity,
     locality: selectedLocality,
   } = useSelector((store) => store.address);
-  console.log("city: ", selectedCity);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [localityInput, setLocalityInput] = useState("");
@@ -50,11 +48,15 @@ export default function Address({ property }) {
   useEffect(() => {
     if (property) {
       setValue("property_name", property?.property_name);
-      dispatch(setCity(property.city_id || null));
-      dispatch(setLocality(property.google_address || ""));
+      setValue("floors", property?.floors);
+      setValue("total_floors", property?.total_floors);
+      setValue("unit_flat_house_no", property?.unit_flat_house_no);
+      dispatch(setCity(property?.city_id || null));
+      dispatch(setLocality(property?.location_id || ""));
     }
-    fetchStates();
-    fetchCities();
+
+    fetchStates(property);
+    fetchCities(property);
   }, []);
 
   const fetchStates = async () => {
@@ -71,6 +73,12 @@ export default function Address({ property }) {
       const res = await fetch(`https://api.meetowner.in/api/v1/getAllCities`);
       const data = await res.json();
       setCities(data);
+      if (property?.city_id) {
+        const matchedCity = data.find((city) => city.city === property.city_id);
+        if (matchedCity) {
+          dispatch(setCity(matchedCity.city));
+        }
+      }
     } catch (error) {
       console.error("Error fetching cities:", error);
     }
@@ -263,7 +271,7 @@ export default function Address({ property }) {
             Flat No. <span className="text-red-500">*</span>
           </Label>
           <Input
-            {...register("flatNumber", {
+            {...register("unit_flat_house_no", {
               required: "Flat number is required",
             })}
             placeholder="Flat No."
@@ -278,7 +286,7 @@ export default function Address({ property }) {
           </Label>
           <Input
             type="number"
-            {...register("floorNumber", {
+            {...register("floors", {
               required: "Floor number is required",
               max: {
                 value: 100,
@@ -299,7 +307,7 @@ export default function Address({ property }) {
         </Label>
         <Input
           type="number"
-          {...register("totalFloors", {
+          {...register("total_floors", {
             required: "Total floors is required",
             max: {
               value: 100,

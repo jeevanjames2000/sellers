@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import MainNavigation from './MainNavigation';
-import { Home, Menu, X, Download, LogIn } from 'lucide-react';
-import logo from '../../../public/assets/logo.svg';
-import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-import { useDispatch, useSelector } from 'react-redux';
-import { setLogin, clearLogin } from '@/store/slices/loginSlice'; // Import setLogin to restore state
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import MainNavigation from "./MainNavigation";
+import { Home, Menu, X, Download, LogIn } from "lucide-react";
+import logo from "../../../public/assets/logo.svg";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { setLogin, clearLogin } from "@/store/slices/loginSlice"; // Import setLogin to restore state
 
 function Header() {
   const pathname = usePathname();
@@ -22,42 +22,41 @@ function Header() {
 
   // Rehydrate Redux state from localStorage on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('userToken');
-    const storedUser = localStorage.getItem('userDetails');
+    const storedToken = localStorage.getItem("userToken");
+    const storedUser = localStorage.getItem("userDetails");
 
     if (storedToken && storedUser && !token) {
       try {
         const userDetails = JSON.parse(storedUser);
         dispatch(setLogin({ user: userDetails, token: storedToken }));
       } catch (error) {
-        console.error('Error parsing user details from localStorage:', error);
+        console.error("Error parsing user details from localStorage:", error);
         // Clear invalid data from localStorage
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userDetails');
+        localStorage.removeItem("userToken");
+        localStorage.removeItem("userDetails");
         dispatch(clearLogin());
       }
     }
 
     // Prefetch routes
-    router.prefetch('/addProperty');
-    router.prefetch('/listings');
-    router.prefetch('/enquiry');
+    router.prefetch("/addProperty");
+    router.prefetch("/listings");
+    router.prefetch("/enquiry");
   }, [router, dispatch, token]);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleAddProperty = () => {
     if (!isLoggedIn) {
-      router.push('/');
+      router.push("/");
     } else {
-      router.push('/addProperty');
+      router.push("/addProperty");
     }
   };
-
 
   useEffect(() => {
     const handleResize = () => {
@@ -66,8 +65,8 @@ function Header() {
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const toggleMobileMenu = () => {
@@ -78,30 +77,30 @@ function Header() {
     const handleClickOutside = (e) => {
       if (
         isMobileMenuOpen &&
-        !e.target.closest('#mobile-sidebar') &&
-        !e.target.closest('#mobile-menu-trigger')
+        !e.target.closest("#mobile-sidebar") &&
+        !e.target.closest("#mobile-menu-trigger")
       ) {
         setIsMobileMenuOpen(false);
       }
     };
 
     if (isMobileMenuOpen) {
-      document.addEventListener('click', handleClickOutside);
-      document.body.style.overflow = 'hidden';
+      document.addEventListener("click", handleClickOutside);
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
 
     return () => {
-      document.removeEventListener('click', handleClickOutside);
-      document.body.style.overflow = 'unset';
+      document.removeEventListener("click", handleClickOutside);
+      document.body.style.overflow = "unset";
     };
   }, [isMobileMenuOpen]);
 
   return (
     <header
       className={`h-16 lg:h-20 bg-white/95 backdrop-blur-md w-full transition-all duration-300 border-b border-gray-200/50 flex items-center justify-between px-4 lg:px-8 xl:px-12 sticky top-0 z-50 ${
-        scrollY > 50 ? 'shadow-lg bg-white/98' : 'shadow-sm'
+        scrollY > 50 ? "shadow-lg bg-white/98" : "shadow-sm"
       }`}
     >
       <Link href="/dashboard">
@@ -117,20 +116,19 @@ function Header() {
       <div className="flex items-center space-x-3">
         {isLoggedIn ? (
           <>
-           
             <div className="hidden lg:flex items-center space-x-8">
               <MainNavigation isLoggedIn={isLoggedIn} />
-           
             </div>
 
-         
             <Button
               onClick={handleAddProperty}
               className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
               size="sm"
             >
               <Home className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-              <span className="hidden sm:inline font-semibold">Add Property</span>
+              <span className="hidden sm:inline font-semibold">
+                Add Property
+              </span>
               <span className="sm:hidden font-semibold">Add</span>
             </Button>
 
@@ -161,14 +159,16 @@ function Header() {
 
             {/* Add Property Button (Visible but redirects to login if not logged in) */}
             <div className="hidden md:block">
-              {pathname !== '/addProperty' && (
+              {pathname !== "/addProperty" && (
                 <Button
                   onClick={handleAddProperty}
                   className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
                   size="sm"
                 >
                   <Home className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-                  <span className="hidden sm:inline font-semibold">Add Property</span>
+                  <span className="hidden sm:inline font-semibold">
+                    Add Property
+                  </span>
                   <span className="sm:hidden font-semibold">Add</span>
                 </Button>
               )}
@@ -187,8 +187,6 @@ function Header() {
                 </Button>
               </Link>
             </div>
-
-           
           </div>
         )}
       </div>
@@ -231,13 +229,13 @@ function Header() {
                 isMobile={true}
                 isLoggedIn={isLoggedIn}
               />
-            
+
               {!isLoggedIn && (
                 <div className="p-3 space-y-2">
                   <Button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      router.push('/');
+                      router.push("/");
                     }}
                     variant="outline"
                     size="sm"
