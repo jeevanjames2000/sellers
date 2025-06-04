@@ -188,18 +188,7 @@ function Header() {
               </Link>
             </div>
 
-            {/* Mobile Menu Trigger for Logged-Out Users */}
-            <div className="lg:hidden">
-              <Button
-                id="mobile-menu-trigger"
-                variant="outline"
-                size="sm"
-                className="w-10 h-10 p-0 border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-colors"
-                onClick={toggleMobileMenu}
-              >
-                <Menu className="w-5 h-5 text-[#1D3A76]" />
-              </Button>
-            </div>
+           
           </div>
         )}
       </div>

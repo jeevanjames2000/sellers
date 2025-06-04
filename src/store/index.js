@@ -9,6 +9,7 @@ import invoiceSlice from './slices/invoiceSlice';
 import loginSlice from './slices/loginSlice';
 import profileSlice from './slices/profileSlice';
 import locationsSlice from './slices/locationSlice';
+import signUpSlice from './slices/signupSlice';
 
 export const store = configureStore({
   reducer: {
@@ -21,6 +22,7 @@ export const store = configureStore({
     invoices:invoiceSlice,
     login:loginSlice,
     profile:profileSlice,
-    locations:locationsSlice
+    locations:locationsSlice,
+    signup:signUpSlice
   },
 });
