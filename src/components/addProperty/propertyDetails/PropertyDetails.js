@@ -717,8 +717,8 @@ export default function PropertyDetails({ property }) {
               <SelectValue placeholder="Select unit" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="sq.ft">Sq.ft</SelectItem>
-              <SelectItem value="sq.yd">Sq.yd</SelectItem>
+              <SelectItem value="Sq.ft">Sq.ft</SelectItem>
+              <SelectItem value="Sq.yd">Sq.yd</SelectItem>
               <SelectItem value="Acres">Acres</SelectItem>
             </SelectContent>
           </Select>
