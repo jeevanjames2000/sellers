@@ -15,11 +15,10 @@ import Address from "./Address";
 import Photos from "./Photos";
 import Review from "./Review";
 import { useRouter } from "next/navigation";
-import config from "../api/config";
 import { useSearchParams } from "next/navigation";
-import axios from "axios";
+import { useDispatch } from "react-redux";
 import useFetchAndSetProperty from "../services/useFetchAndSetProperty";
-
+import { submitBasicDetails } from "../services/submitBasicDetails";
 const steps = [
   { label: "Basic Details", component: BasicDetails },
   { label: "Property Details", component: PropertyDetails },
@@ -28,10 +27,68 @@ const steps = [
   { label: "Review", component: Review },
 ];
 export default function MultiStepForm() {
+  const dispatch = useDispatch();
+  const [propertyId, setPropertyId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const searchParams = useSearchParams();
   const router = useRouter();
+  useEffect(() => {
+    const idFromURL = searchParams.get("property_id");
+    if (idFromURL) {
+      setPropertyId(idFromURL);
+    }
+  }, [searchParams]);
   const methods = useForm({ mode: "onChange" });
   const [currentStep, setCurrentStep] = useState(0);
-  const onNext = () => setCurrentStep((prev) => prev + 1);
+  const { property, setProperty } = useFetchAndSetProperty(
+    propertyId,
+    methods.reset
+  );
+  const onNext = async () => {
+    if (currentStep === 0) {
+      const isValid = await methods.trigger();
+      if (!isValid) {
+        toast.error("Please fill all required fields");
+        return;
+      }
+      setIsSubmitting(true);
+      const basicData = methods.getValues();
+      const userInfo = JSON.parse(localStorage.getItem("userDetails")) || {};
+      const { success, data } = await submitBasicDetails(
+        {
+          propertyType: basicData.property_in,
+          lookingTo: basicData.property_for,
+          transactionType: basicData.transaction_type,
+          unique_property_id: propertyId,
+        },
+        dispatch,
+        userInfo
+      );
+      setIsSubmitting(false);
+      if (success) {
+        setPropertyId(data.unique_property_id);
+        methods.reset({
+          ...methods.getValues(),
+          ...data,
+          property_id: data.property_id,
+          unique_property_id: data.unique_property_id,
+          updated_date: data.updated_date,
+          user_type: data.user_type,
+        });
+        const stepKey = steps[currentStep + 1].label
+          .toLowerCase()
+          .replace(/\s/g, "");
+        router.replace(
+          `/addProperty?active_step=${stepKey}&status=inprogress&property_id=${data.unique_property_id}`
+        );
+        setCurrentStep((prev) => prev + 1);
+      } else {
+        toast.error(`Failed to create property: ${data.message}`);
+      }
+    } else {
+      setCurrentStep((prev) => prev + 1);
+    }
+  };
   const onBack = () => setCurrentStep((prev) => prev - 1);
   const onSubmit = (data) => console.log("Final Submit:", data);
   const CurrentComponent = steps[currentStep].component;
@@ -39,35 +96,12 @@ export default function MultiStepForm() {
   const handleRoute = () => {
     router.push("/dashboard");
   };
-  const searchParams = useSearchParams();
-  // const unique_property_id = "MO-835432";
-  const unique_property_id = searchParams.get("property_id");
-  const { property, setProperty } = useFetchAndSetProperty(
-    unique_property_id,
-    methods.reset
-  );
-
-  const activeStep = searchParams.get("active_step");
-  const status = searchParams.get("status");
-
-  // useEffect(() => {
-  //   if (activeStep) {
-  //     const stepIndex = steps.findIndex(
-  //       (step) =>
-  //         step.label.toLowerCase().replace(/\s/g, "") ===
-  //         activeStep.toLowerCase()
-  //     );
-  //     if (stepIndex !== -1) {
-  //       setCurrentStep(stepIndex);
-  //     }
-  //   }
-  // }, [activeStep]);
   useEffect(() => {
+    if (!propertyId) return;
     const stepKey = steps[currentStep].label.toLowerCase().replace(/\s/g, "");
-    const newSearch = `?active_step=${stepKey}&status=inprogress&property_id=${unique_property_id}`;
+    const newSearch = `?active_step=${stepKey}&status=inprogress&property_id=${propertyId}`;
     router.replace(`/addProperty${newSearch}`);
-  }, [currentStep]);
-
+  }, [currentStep, propertyId, router]);
   return (
     <div className="min-h-screen bg-gray-50 p-2 w-full">
       <FormProvider {...methods}>
@@ -166,18 +200,15 @@ export default function MultiStepForm() {
                 </div>
               </div>
             </ResizablePanel>
-
             <ResizableHandle className="hidden md:block" />
-
             <ResizablePanel
               defaultSize={90}
-              // minSize={80}
               maxSize={95}
               className="w-full max-w-full"
             >
               <div className="h-full max-h-screen overflow-y-auto items-center p-4">
                 <div className="flex gap-3 items-center mb-8">
-                  {steps[currentStep].label != "Basic Details" && (
+                  {steps[currentStep].label !== "Basic Details" && (
                     <button
                       type="button"
                       onClick={() => {
@@ -192,12 +223,11 @@ export default function MultiStepForm() {
                     {steps[currentStep].label}
                   </h2>
                 </div>
-
                 <div className="mb-8">
                   <CurrentComponent
                     property={property}
                     setProperty={setProperty}
-                    unique_property_id={unique_property_id}
+                    unique_property_id={propertyId}
                   />
                 </div>
                 <div className="flex justify-between pt-6 border-t">
@@ -217,13 +247,17 @@ export default function MultiStepForm() {
                       <Button
                         type="button"
                         onClick={onNext}
+                        disabled={isSubmitting} // Disable during submission
                         className="px-8 bg-[#1D3A76] hover:bg-blue-800"
                       >
-                        Next: Add {steps[currentStep + 1].label}
+                        {isSubmitting
+                          ? "Submitting..."
+                          : `Next: Add ${steps[currentStep + 1].label}`}
                       </Button>
                     ) : (
                       <Button
                         type="submit"
+                        disabled={isSubmitting}
                         className="px-8 bg-green-600 hover:bg-green-700"
                       >
                         Submit Property

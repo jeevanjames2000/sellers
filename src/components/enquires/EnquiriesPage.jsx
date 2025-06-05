@@ -1,47 +1,52 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Button } from '@/components/ui/button';
-import EnquiryCard from './EnquiryCard';
-import { PaginationWrapper } from './PaginationWrapper';
-import { setEnquiries, setLoading, setError } from '@/store/slices/enquirySlice';
-import { Loading } from '@/lib/loader';
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Button } from "@/components/ui/button";
+import EnquiryCard from "./EnquiryCard";
+import { PaginationWrapper } from "./PaginationWrapper";
+import {
+  setEnquiries,
+  setLoading,
+  setError,
+} from "@/store/slices/enquirySlice";
+import { Loading } from "@/lib/loader";
 
 const EnquiriesPage = ({ activeTab }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const dispatch = useDispatch();
-  const { count, properties, loading, error } = useSelector((state) => state.enquiries);
+  const { count, properties, loading, error } = useSelector(
+    (state) => state.enquiries
+  );
 
   const totalPages = Math.ceil(count / itemsPerPage);
 
   useEffect(() => {
     const fetchEnquiries = async () => {
-      if (activeTab !== 'my-enquiries') return;
-      const storedUser = localStorage.getItem('userDetails');
+      if (activeTab !== "my-enquiries") return;
+      const storedUser = localStorage.getItem("userDetails");
       let userId;
       if (storedUser) {
         try {
-          const parsedUser = JSON.parse(storedUser); 
+          const parsedUser = JSON.parse(storedUser);
           userId = parsedUser.user_id;
-          
         } catch (error) {
-          console.error('Error parsing userDetails from localStorage:', error);
-          userId = null; 
+          console.error("Error parsing userDetails from localStorage:", error);
+          userId = null;
         }
       } else {
-        console.log('No userDetails found in localStorage');
-        userId = null; 
+        console.log("No userDetails found in localStorage");
+        userId = null;
       }
-      
+
       dispatch(setLoading());
       try {
         const response = await fetch(
           `https://api.meetowner.in/listings/v1/getPropertiesByUserID?user_id=${userId}`
         );
         if (!response.ok) {
-          throw new Error('Failed to fetch properties');
+          throw new Error("Failed to fetch properties");
         }
         const data = await response.json();
         dispatch(setEnquiries(data));
@@ -53,43 +58,50 @@ const EnquiriesPage = ({ activeTab }) => {
   }, [activeTab, dispatch]);
 
   const mapToEnquiryCardProps = (enquiry) => {
-  const avatarUrl = enquiry.image
-    ? `/api/proxy-image?url=${`https://api.meetowner.in/uploads/${enquiry.image}`}`
-    : '/placeholder.png';
- 
-  return {
-    property_name: enquiry.property_name || 'Unknown Property',
-    property_for:enquiry.property_for || "N/A",
-    bedrooms : enquiry.bedrooms,
-    propertyId: enquiry.unique_property_id || 'N/A',
-    propertyType: enquiry.sub_type || 'N/A',
-    location: enquiry.google_address || enquiry.location_id || 'N/A',
-    builtupArea: `${enquiry.builtup_area || 'N/A'} ${enquiry.area_units || ''}`,
-    price: enquiry.property_cost ? `₹${parseFloat(enquiry.property_cost).toLocaleString('en-IN')}` : 'N/A',
-    avatar: avatarUrl,
-    isFavorite: false,
-    totalContacted:enquiry.totalContacted,
-    activity: enquiry.activity || []
+    console.log("enquiry: ", enquiry.image);
+    const avatarUrl = enquiry.image
+      ? `https://api.meetowner.in/uploads/${enquiry.image}`
+      : "https://placehold.co/100x100";
+
+    return {
+      property_name: enquiry.property_name || "Unknown Property",
+      property_for: enquiry.property_for || "N/A",
+      bedrooms: enquiry.bedrooms,
+      propertyId: enquiry.unique_property_id || "N/A",
+      propertyType: enquiry.sub_type || "N/A",
+      location: enquiry.google_address || enquiry.location_id || "N/A",
+      builtupArea: `${enquiry.builtup_area || "N/A"} ${
+        enquiry.area_units || ""
+      }`,
+      price: enquiry.property_cost
+        ? `₹${parseFloat(enquiry.property_cost).toLocaleString("en-IN")}`
+        : "N/A",
+      avatar: avatarUrl,
+      isFavorite: false,
+      totalContacted: enquiry.totalContacted,
+      activity: enquiry.activity || [],
+    };
   };
-};
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedData = properties.slice(startIndex, endIndex).map(mapToEnquiryCardProps);
+  const paginatedData = properties
+    .slice(startIndex, endIndex)
+    .map(mapToEnquiryCardProps);
 
   return (
     <div className="w-full">
       <div className="p-6 sm:p-2 lg:p-6">
-        {activeTab === 'my-enquiries' ? (
+        {activeTab === "my-enquiries" ? (
           <>
             {loading ? (
               <div className="text-center py-16">
-                <Loading color='[#1D7A36]'/>
+                <Loading color="[#1D7A36]" />
                 <p className="text-gray-600 text-lg">Loading...</p>
               </div>
             ) : error ? (
@@ -107,8 +119,15 @@ const EnquiriesPage = ({ activeTab }) => {
                 <div className="mb-2">
                   <div className="flex items-center justify-between">
                     <p className="text-gray-600 text-base sm:text-lg">
-                      Displaying <span className="font-semibold text-[#1D3A76]">{paginatedData.length}</span> out of{' '}
-                      <span className="font-semibold text-[#1D3A76]">{count}</span> Enquiries
+                      Displaying{" "}
+                      <span className="font-semibold text-[#1D3A76]">
+                        {paginatedData.length}
+                      </span>{" "}
+                      out of{" "}
+                      <span className="font-semibold text-[#1D3A76]">
+                        {count}
+                      </span>{" "}
+                      Listings
                     </p>
                     <div className="hidden sm:block w-24 h-1 bg-gradient-to-r from-[#1D3A76] to-blue-400 rounded-full"></div>
                   </div>
@@ -126,7 +145,9 @@ const EnquiriesPage = ({ activeTab }) => {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-600 text-lg text-center">No enquiries found.</p>
+                    <p className="text-gray-600 text-lg text-center">
+                      No enquiries found.
+                    </p>
                   )}
                 </div>
 
@@ -154,7 +175,8 @@ const EnquiriesPage = ({ activeTab }) => {
                 No Matching Tenants Found
               </h3>
               <p className="text-gray-600 text-lg leading-relaxed">
-                We'll notify you when we find tenants that match your property requirements.
+                We'll notify you when we find tenants that match your property
+                requirements.
               </p>
               <div className="mt-8">
                 <Button className="bg-[#1D3A76] hover:bg-[#2B4A86] text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200">

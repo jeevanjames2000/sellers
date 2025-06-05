@@ -37,8 +37,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 import { formatCurrencyInWords } from "@/components/shared/formatCurrencyInWords";
 import { useSelector } from "react-redux";
-export default function PropertyDetails({ property }) {
-  console.log("property: ", property.around_places);
+export default function PropertyDetails({
+  property,
+  setProperty,
+  unique_property_id,
+}) {
+  console.log("property: ", property);
   const { register, watch, setValue, getValues } = useFormContext();
   const formValues = watch();
   const propertySubtype = watch("sub_type");
@@ -240,17 +244,6 @@ export default function PropertyDetails({ property }) {
       case "car_parking":
         return !isNaN(intVal) ? (intVal >= 4 ? "4+" : `${intVal}`) : "0";
 
-      // case "investor_property":
-      // case "pent_house":
-      // case "loan_facility":
-      // case "servant_room":
-      //   return value === null ||
-      //     value === "" ||
-      //     value === undefined ||
-      //     value === "0"
-      //     ? "No"
-      //     : "Yes";
-
       default:
         return value;
     }
@@ -258,7 +251,6 @@ export default function PropertyDetails({ property }) {
 
   useEffect(() => {
     let defaultUnit = areaUnit?.toLowerCase();
-    console.log("propertySubtype: ", propertySubtype);
     if (
       ["Apartment", "Independent Villa", "Independent House"].includes(
         propertySubtype
@@ -270,7 +262,6 @@ export default function PropertyDetails({ property }) {
     } else if (propertySubtype === "Land") {
       defaultUnit = "Acres";
     }
-    console.log("defaultUnit: ", defaultUnit);
     setValue("area_units", defaultUnit);
   }, [propertySubtype, setValue]);
   useEffect(() => {

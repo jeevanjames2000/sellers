@@ -1,12 +1,10 @@
+"use client";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import config from "../api/config";
-import { useForm } from "react-hook-form";
-
 export default function useFetchAndSetProperty(unique_property_id, resetForm) {
+  console.log("unique_property_id: ", unique_property_id);
   const [property, setProperty] = useState(null);
-  const { register, handleSubmit, setValue, reset } = useForm();
-
   useEffect(() => {
     const getPropertyDetails = async () => {
       try {
@@ -14,25 +12,21 @@ export default function useFetchAndSetProperty(unique_property_id, resetForm) {
           `${config.api_url}/listings/v1/getSinleProperty?unique_property_id=${unique_property_id}`
         );
         const propertyData = res.data.property;
+        console.log("propertyData: ", propertyData);
         if (propertyData) {
           setProperty(propertyData);
           resetForm(propertyData);
         }
       } catch (err) {
         console.error("Failed to fetch property details:", err);
+        setProperty(null);
       }
     };
-    if (unique_property_id) getPropertyDetails();
-  }, [unique_property_id, resetForm]);
-
-  useEffect(() => {
-    if (property && property.id) {
-      console.log("property: ", property);
-      Object.entries(property).forEach(([key, value]) => {
-        setValue(key, value ?? "");
-      });
+    if (unique_property_id) {
+      getPropertyDetails();
+    } else {
+      setProperty(null);
     }
-  }, [property, setValue]);
-
+  }, [unique_property_id, resetForm]);
   return { property, setProperty };
 }

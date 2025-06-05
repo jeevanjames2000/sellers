@@ -6,7 +6,6 @@ export const submitBasicDetails = async (formData, dispatch, userInfo) => {
   try {
     const response = await axios.post(
       `${config.api_url}/property/v1/addBasicDetails`,
-
       {
         property_in: formData.propertyType,
         property_for: formData.lookingTo,
@@ -16,15 +15,21 @@ export const submitBasicDetails = async (formData, dispatch, userInfo) => {
         user_type: userInfo.user_type || 2,
       }
     );
-    const { status, property } = response.data;
+    const { status, property, message } = response.data;
     if (status === "success") {
       dispatch(setBasicDetails(property));
       return { success: true, data: property };
     } else {
-      return { success: false, message: response.data.message };
+      return { success: false, message };
     }
   } catch (error) {
-    console.error("submitBasicDetails error:", error);
-    return { success: false, message: error.message };
+    console.error(
+      "submitBasicDetails error:",
+      error.response?.data || error.message
+    );
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message,
+    };
   }
 };

@@ -11,12 +11,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { setBasicDetails } from "@/store/slices/addPropertySlice/basicDetailsSlice";
+
 export default function BasicDetails({ property }) {
   const dispatch = useDispatch();
   const { watch, setValue } = useFormContext();
   const property_in = watch("property_in");
   const property_for = watch("property_for");
   const transaction_type = watch("transaction_type");
+
   const handleSetTransactionType = (value) => {
     setValue("transaction_type", value, { shouldValidate: true });
     dispatch(
@@ -25,6 +27,7 @@ export default function BasicDetails({ property }) {
       })
     );
   };
+
   const handleSetPropertyType = (key, value) => {
     setValue(key, value, { shouldValidate: true });
     dispatch(
@@ -33,6 +36,7 @@ export default function BasicDetails({ property }) {
       })
     );
   };
+
   useEffect(() => {
     if (property) {
       if (property.property_in) {
@@ -51,6 +55,7 @@ export default function BasicDetails({ property }) {
       }
     }
   }, [property, setValue, dispatch]);
+
   return (
     <div className="space-y-8">
       <div className="space-y-4">

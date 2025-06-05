@@ -1,9 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CustomCard } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { MapPin, Phone, Mail, Heart, Building, Ruler, User, IdCard, CreditCard } from 'lucide-react';
+import { Card, CardContent, CustomCard } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Heart,
+  Building,
+  Ruler,
+  User,
+  IdCard,
+  CreditCard,
+} from "lucide-react";
 
 const EnquiryCard = ({
   property_name,
@@ -19,18 +29,17 @@ const EnquiryCard = ({
   activity,
 }) => {
   const [imageSrc, setImageSrc] = useState(avatar);
+  console.log("imageSrc: ", imageSrc);
   const router = useRouter();
-  router.prefetch('/enquiry/contact-details');
+  router.prefetch("/enquiry/contact-details");
 
   const handleImageError = () => {
-    console.log('Image failed to load, falling back to placeholder:', avatar);
-    setImageSrc('https://placehold.co/100x100');
+    console.log("Image failed to load, falling back to placeholder:", avatar);
+    setImageSrc("https://placehold.co/100x100");
   };
 
   const handleViewContacted = () => {
-   
     const queryParams = new URLSearchParams({
-  
       property_name,
       bedrooms,
       propertyId,
@@ -60,7 +69,9 @@ const EnquiryCard = ({
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-1">{property_name}</h3>
+                <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-1">
+                  {property_name}
+                </h3>
                 <div className="space-y-1">
                   <div className="flex items-center text-gray-500">
                     <CreditCard className="w-3 h-3 mr-2 text-gray-400 flex-shrink-0" />
@@ -68,19 +79,25 @@ const EnquiryCard = ({
                   </div>
                   <div className="flex items-center text-gray-600">
                     <Phone className="w-3 h-3 mr-2 text-green-500 flex-shrink-0" />
-                    <span className="text-xs font-medium">Contacted - {totalContacted || 0}</span>
+                    <span className="text-xs font-medium">
+                      Contacted - {totalContacted || 0}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
             {/* Property Details - Mobile */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 mb-4">
-              <h4 className="text-xs font-semibold text-gray-700 mb-2 tracking-wide">Property Details</h4>
+              <h4 className="text-xs font-semibold text-gray-700 mb-2 tracking-wide">
+                Property Details
+              </h4>
               <div className="space-y-2">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <p className="text-xs text-gray-500">Type</p>
-                    <p className="text-sm font-semibold text-gray-900">{bedrooms}BHK for {propertyType}</p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {bedrooms}BHK for {propertyType}
+                    </p>
                   </div>
                   <Badge className="bg-blue-100 text-blue-800 px-2 py-1 text-xs font-semibold ml-2">
                     <Ruler className="w-3 h-3 mr-1" />
@@ -90,7 +107,9 @@ const EnquiryCard = ({
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <p className="text-xs text-gray-500">Location</p>
-                    <p className="text-sm font-medium text-gray-700 line-clamp-1">{location}</p>
+                    <p className="text-sm font-medium text-gray-700 line-clamp-1">
+                      {location}
+                    </p>
                   </div>
                   <Badge className="bg-green-100 text-green-800 px-2 py-1 text-sm font-bold ml-2">
                     ₹ {price}
@@ -100,7 +119,10 @@ const EnquiryCard = ({
             </div>
             {/* Action Buttons - Mobile */}
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50 text-xs py-2">
+              <Button
+                variant="outline"
+                className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50 text-xs py-2"
+              >
                 Favourites
               </Button>
               <Button
@@ -124,6 +146,7 @@ const EnquiryCard = ({
                     className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl object-cover border-4 border-white shadow-lg group-hover:scale-110 transition-transform duration-300"
                     onError={handleImageError}
                     loading="lazy"
+                    crossOrigin="anonymous"
                   />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -137,7 +160,9 @@ const EnquiryCard = ({
                     </div>
                     <div className="flex items-center text-gray-600">
                       <Phone className="w-4 h-4 mr-3 text-[#1D37A6]" />
-                      <span className="text-sm font-medium">Contacted - {totalContacted || 0}</span>
+                      <span className="text-sm font-medium">
+                        Contacted - {totalContacted || 0}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -145,17 +170,23 @@ const EnquiryCard = ({
               {/* Property Details */}
               <div className="flex-1 space-y-1">
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-3 lg:p-4">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-3 tracking-wide">Property Details</h4>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3 tracking-wide">
+                    Property Details
+                  </h4>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
                       <div>
-                        <p className="text-sm text-gray-500 tracking-wide">Type</p>
+                        <p className="text-sm text-gray-500 tracking-wide">
+                          Type
+                        </p>
                         <p className="font-semibold text-gray-900">
                           {bedrooms}BHK - {propertyType} for {property_for}
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 tracking-wide">Location</p>
+                        <p className="text-sm text-gray-500 tracking-wide">
+                          Location
+                        </p>
                         <p className="font-medium text-gray-700">{location}</p>
                       </div>
                     </div>

@@ -25,11 +25,10 @@ import {
 } from "@/store/slices/addPropertySlice/addressSlice";
 function PackagesWrapper() {
   const dispatch = useDispatch();
-  const userInfo = {
-    user_id: 271,
-    city: "Hyderabad",
-    user_type: 6,
-  };
+
+  const [userInfo, setUserInfo] = useState("");
+  console.log("userInfo: ", userInfo);
+
   const [isLoadingEffect, setIsLoadingEffect] = useState(false);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
@@ -39,7 +38,7 @@ function PackagesWrapper() {
   const [openState, setOpenState] = useState(false);
   const [openCity, setOpenCity] = useState(false);
   const [selectedState, setSelectedState] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedCity, setSelectedCity] = useState("Hyderabad");
   const cityName = useMemo(
     () => selectedCity || userInfo?.city,
     [selectedCity]
@@ -80,6 +79,7 @@ function PackagesWrapper() {
         `https://api.meetowner.in/packages/v1/getAllPackages?package_for=${package_for}&city=${cityName}`
       );
       const data = await res.json();
+
       setPlans(data || []);
     } catch (error) {
       console.error("Failed to fetch plans:", error);
@@ -93,6 +93,7 @@ function PackagesWrapper() {
         `https://api.meetowner.in/packages/v1/getSubscriptionDetails?user_id=${userInfo.user_id}&city=${cityName}`
       );
       const data = await res.json();
+      console.log("data: ", data);
       setSubscription(data?.data?.[0] || null);
     } catch (error) {
       console.error("Failed to fetch subscription:", error);
@@ -110,18 +111,27 @@ function PackagesWrapper() {
     }
   };
   useEffect(() => {
+    const loadData = async () => {
+      const storedUser = localStorage.getItem("userDetails");
+      if (!storedUser) return;
+
+      const parsedUser = JSON.parse(storedUser);
+      setUserInfo(parsedUser);
+    };
+    loadData();
     fetchStates();
   }, []);
   useEffect(() => {
     if (selectedState) fetchCities(selectedState);
   }, [selectedState]);
   useEffect(() => {
-    if (cityName) {
+    if (userInfo?.user_id && cityName) {
       fetchPlans();
       fetchSubscription();
       fetchCustomPackages();
     }
-  }, [cityName]);
+  }, [userInfo, cityName]);
+
   return (
     <div className="flex flex-col gap-2 p-2 bg-white rounded-bl-[10px] rounded-br-[10px]">
       <div className="flex flex-row justify-center gap-10">
