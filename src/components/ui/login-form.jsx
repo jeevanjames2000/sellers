@@ -7,6 +7,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogin, setLoading, setError } from "@/store/slices/loginSlice";
+import { Eye, EyeOff } from "lucide-react";
+import { Loading } from "@/lib/loader";
+
+
 export function LoginForm({ className, ...props }) {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -19,6 +23,7 @@ export function LoginForm({ className, ...props }) {
     mobile: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const validateMobile = (mobile) => {
     const mobileRegex = /^(?:\+91)?[6-9]\d{9}$/;
     return mobileRegex.test(mobile)
@@ -76,6 +81,9 @@ export function LoginForm({ className, ...props }) {
       dispatch(setError(err.message || "An error occurred during login"));
     }
   };
+   const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
   return (
     <form
       onSubmit={handleSubmit}
@@ -110,26 +118,46 @@ export function LoginForm({ className, ...props }) {
           <div className="flex items-center">
             <Label htmlFor="password">Password</Label>
           </div>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            className={errors.password ? "border-red-500" : ""}
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"} // Toggle type based on state
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className={errors.password ? "border-red-500" : ""}
+            />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+          </div>
           {errors.password && (
             <p className="text-red-500 text-sm">{errors.password}</p>
           )}
         </div>
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-        <Button
+         <Button
           type="submit"
-          className="w-full bg-[#1D3A76]"
+          className="w-full bg-[#1D3A76] flex items-center justify-center gap-2"
           disabled={loading}
         >
-          {loading ? "Logging in..." : "Login"}
+          {loading ? (
+            <>
+              <Loading size={5} color="white" />
+              <span>Loading...</span>
+            </>
+          ) : (
+            "Login"
+          )}
         </Button>
         <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
           <span className="bg-background text-muted-foreground relative z-10 px-2">

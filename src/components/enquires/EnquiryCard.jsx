@@ -20,6 +20,7 @@ const EnquiryCard = ({
 }) => {
   const [imageSrc, setImageSrc] = useState(avatar);
   const router = useRouter();
+  router.prefetch('/enquiry/contact-details');
 
   const handleImageError = () => {
     console.log('Image failed to load, falling back to placeholder:', avatar);
@@ -27,11 +28,12 @@ const EnquiryCard = ({
   };
 
   const handleViewContacted = () => {
-    // Construct query parameters manually
+   
     const queryParams = new URLSearchParams({
-      userActivity: JSON.stringify(activity || []),
+  
       property_name,
       bedrooms,
+      propertyId,
       propertyType,
       property_for,
       location,
@@ -103,7 +105,7 @@ const EnquiryCard = ({
               </Button>
               <Button
                 variant="outline"
-                className="flex-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50 text-xs py-2"
+                className="flex-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50 text-xs py-2 cursor-pointer"
                 onClick={handleViewContacted}
               >
                 View Contacted
@@ -184,7 +186,7 @@ const EnquiryCard = ({
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-200 font-semibold py-3"
+                  className="flex-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-200 font-semibold py-3 cursor-pointer"
                   onClick={handleViewContacted}
                 >
                   View Contacted

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import EnquiryCard from './EnquiryCard';
 import { PaginationWrapper } from './PaginationWrapper';
 import { setEnquiries, setLoading, setError } from '@/store/slices/enquirySlice';
+import { Loading } from '@/lib/loader';
 
 const EnquiriesPage = ({ activeTab }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -18,10 +19,26 @@ const EnquiriesPage = ({ activeTab }) => {
   useEffect(() => {
     const fetchEnquiries = async () => {
       if (activeTab !== 'my-enquiries') return;
+      const storedUser = localStorage.getItem('userDetails');
+      let userId;
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser); 
+          userId = parsedUser.user_id;
+          
+        } catch (error) {
+          console.error('Error parsing userDetails from localStorage:', error);
+          userId = null; 
+        }
+      } else {
+        console.log('No userDetails found in localStorage');
+        userId = null; 
+      }
+      
       dispatch(setLoading());
       try {
         const response = await fetch(
-          `https://api.meetowner.in/listings/v1/getPropertiesByUserID?user_id=96`
+          `https://api.meetowner.in/listings/v1/getPropertiesByUserID?user_id=${userId}`
         );
         if (!response.ok) {
           throw new Error('Failed to fetch properties');
@@ -72,6 +89,7 @@ const EnquiriesPage = ({ activeTab }) => {
           <>
             {loading ? (
               <div className="text-center py-16">
+                <Loading color='[#1D7A36]'/>
                 <p className="text-gray-600 text-lg">Loading...</p>
               </div>
             ) : error ? (

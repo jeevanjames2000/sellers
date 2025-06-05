@@ -1,19 +1,11 @@
-import React from "react";
-import { Card, CardContent, CustomCard } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  MapPin,
-  Eye,
-  Edit,
-  Trash2,
-  BarChart3,
-  ArrowUp,
-  Camera,
-  Heart,
-  Building,
-} from "lucide-react";
+import React from 'react';
+import { Card, CardContent, CustomCard } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { MapPin, Eye, Edit, Trash2, BarChart3, ArrowUp, Camera, Heart, Building } from 'lucide-react';
 import { useRouter } from "next/navigation";
+
+
 const PropertyCard = ({
   id,
   title,
@@ -26,6 +18,7 @@ const PropertyCard = ({
   lastUpdated,
   furnished_status,
   enquiries,
+  favourites,
   image,
   developer,
   propertyFor,
@@ -48,12 +41,12 @@ const PropertyCard = ({
     if (!dateString) return "N/A";
     try {
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "N/A";
-      return new Intl.DateTimeFormat("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }).format(date);
+      if (isNaN(date.getTime())) return 'N/A';
+      return new Intl.DateTimeFormat('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }).format(date); 
     } catch {
       return "N/A";
     }
@@ -63,6 +56,8 @@ const PropertyCard = ({
       ? parseInt(value.toString())
       : parseFloat(value.toString()).toFixed(2).replace(/\.00$/, "");
   };
+
+  
   const getBHKDisplay = () => {
     if (propertyIn === "Commercial") {
       return propertySubType || "N/A";
@@ -84,6 +79,8 @@ const PropertyCard = ({
     }
     return propertySubType || "N/A";
   };
+
+  
   const getPriceDisplay = () => {
     if (propertyFor === "Rent") {
       return monthly_rent
@@ -92,9 +89,11 @@ const PropertyCard = ({
     }
     return price ? `₹ ${formatToIndianCurrency(price)}` : "N/A";
   };
+
+  
   const getOccupancyDisplay = () => {
-    if (["Plot", "Land"].includes(propertySubType)) {
-      return "";
+    if (['Plot', 'Land'].includes(propertySubType)) {
+      return ''; 
     }
     if (propertyFor === "Rent") {
       return formatDate(available_from);
@@ -105,6 +104,25 @@ const PropertyCard = ({
   const handleEdit = () => {
     router.push(`/addProperty?property_id=${id}`);
   };
+  
+   const handleViewContacted = () => {
+   
+    const queryParams = new URLSearchParams({
+     
+      property_name:title,
+      bedrooms:bhk,
+      propertyId:id,
+      propertyType:propertySubType,
+      property_for:propertyFor,
+      location,
+    }).toString();
+
+    // Navigate to the child route with query parameters
+    router.push(`/enquiry/contact-details?${queryParams}`);
+  };
+
+  
+
   return (
     <CustomCard className="group overflow-hidden hover:shadow-2xl transition-all duration-500 bg-white border-0 shadow-lg hover:scale-[1.02] transform">
       <CardContent className="p-0">
@@ -211,9 +229,13 @@ const PropertyCard = ({
                   <span className="text-sm">{facing} Facing</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 py-1">
-                  <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-sm font-medium">
+                  <div className="flex items-center gap-2 bg-blue-50 text-[#1D73A6] px-3 py-1.5 rounded-full text-sm font-medium">
                     <Eye className="w-4 h-4" />
                     <span>{enquiries} Enquiries</span>
+                  </div>
+                   <div className="flex items-center gap-2 bg-blue-50 text-[#1D73A6] px-3 py-1.5 rounded-full text-sm font-medium">
+                    <Eye className="w-4 h-4" />
+                    <span>{favourites} Favourites</span>
                   </div>
                 </div>
               </div>
@@ -237,9 +259,9 @@ const PropertyCard = ({
                 </Button>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <Button
+                <Button  onClick={handleViewContacted}
                   variant="outline"
-                  className="border-2 cursor-pointer border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 font-medium rounded-lg transition-all"
+                  className="border-2 border-blue-200 text-[#1D73A6] hover:bg-blue-50 hover:border-blue-300 font-medium rounded-lg transition-all cursor-pointer"
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
                   Analytics

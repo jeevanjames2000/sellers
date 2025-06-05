@@ -21,6 +21,8 @@ import { X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setError, setLogin } from "@/store/slices/loginSlice";
 import { useRouter } from "next/navigation";
+import { Loading } from "@/lib/loader";
+import { useState } from "react";
 const FormSchema = z.object({
   pin: z.string().min(6, {
     message: "Your one-time password must be 6 characters.",
@@ -29,6 +31,8 @@ const FormSchema = z.object({
 export default function InputOTPForm({ onClose, formData }) {
   const router = useRouter();
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
+
   const form = useForm({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -38,6 +42,7 @@ export default function InputOTPForm({ onClose, formData }) {
   const { user, token } = useSelector((state) => state.login);
   async function onSubmit(data) {
     try {
+        setLoading(true);
       const response = await fetch(
         "https://api.meetowner.in/auth/v1/verifyOtpSellers",
         {
@@ -59,9 +64,11 @@ export default function InputOTPForm({ onClose, formData }) {
       localStorage.setItem("userToken", token);
       localStorage.setItem("userDetails", JSON.stringify(user));
       router.push("/dashboard");
+       setLoading(false);
       onClose();
     } catch (error) {
       dispatch(setError(error.message || "OTP verification error"));
+      setLoading(false);
       alert("Invalid OTP. Please try again.");
     }
   }
@@ -104,8 +111,19 @@ export default function InputOTPForm({ onClose, formData }) {
               </FormItem>
             )}
           />
-          <Button type="submit" className="bg-[#1D3A76]">
-            Submit OTP
+         <Button
+            type="submit"
+            className="w-full bg-[#1D3A76] flex items-center justify-center gap-2"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Loading size={5} color="white" />
+                <span>Submitting...</span>
+              </>
+            ) : (
+              "Submit OTP"
+            )}
           </Button>
         </form>
       </Form>

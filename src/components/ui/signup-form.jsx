@@ -30,6 +30,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { ChevronRightIcon, SearchIcon } from "lucide-react";
+import { Loading } from "@/lib/loader";
 const FormSchema = z.object({
   mobile: z.string().regex(/^(?:\+91)?[6-9]\d{9}$/, {
     message:
@@ -318,7 +319,14 @@ export function SignupForm({ className, ...props }) {
                     signupLoading || locationsLoading || !form.getValues("city")
                   }
                 >
-                  {signupLoading ? "Signing up..." : "Start Now"}
+                   {signupLoading ? (
+                      <>
+                        <Loading size={5} color="white" />
+                        <span>Signing up...</span>
+                      </>
+                    ) : (
+                      "Start Now"
+                    )}
                 </Button>
               </div>
               {}

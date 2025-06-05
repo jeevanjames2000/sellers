@@ -6,13 +6,15 @@ import EnquirySidebar, { MobileFilterContent } from './EnquirySideBar';
 import { Badge, Filter } from 'lucide-react';
 import { Button } from '../ui/button';
 import BottomSheet from './BottomSheet';
+import { useSelector } from 'react-redux';
 
 
 function EnquiriesWrapper() {
   const [activeTab, setActiveTab] = useState('my-enquiries');
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+   const { count,  } = useSelector((state) => state.enquiries);
 
-  const enquiryCount = 37;
+  const enquiryCount =count;
   const tenantCount = 0;
 
   return (

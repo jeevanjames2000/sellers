@@ -14,7 +14,8 @@ import {
   setLoading,
   setError,
   setSubType,
-} from "@/store/slices/searchSlice";
+} from '@/store/slices/searchSlice';
+import { Loading } from '@/lib/loader';
 
 const ListingsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,6 +44,21 @@ const ListingsPage = () => {
     const fetchProperties = async () => {
       dispatch(setLoading(true));
       dispatch(setError(null));
+      const storedUser = localStorage.getItem('userDetails');
+      let userId;
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser); 
+          userId = parsedUser.user_id;
+          
+        } catch (error) {
+          console.error('Error parsing userDetails from localStorage:', error);
+          userId = null; 
+        }
+      } else {
+        console.log('No userDetails found in localStorage');
+        userId = null; 
+      }
 
       try {
         // Map filters to API parameters
@@ -57,7 +73,8 @@ const ListingsPage = () => {
           priceFilter: "Relevance",
           occupancy: "",
           property_status: 1,
-          city_id: "",
+          city_id: '',
+          user_id:userId
         };
 
         // Construct the API URL
@@ -76,6 +93,7 @@ const ListingsPage = () => {
         }
 
         const data = await response.json();
+        console.log(data.properties.length,"length");
         setProperties(data.properties || []);
         setTotalPages(data.total_pages || 1);
       } catch (err) {
@@ -133,9 +151,16 @@ const ListingsPage = () => {
       {/* Filter Bar */}
       <FilterBar filters={filters} onFilterChange={handleFilterChange} />
 
-      {/* Loading and Error States */}
-      {loading && <p className="text-center text-gray-600">Loading...</p>}
-      {error && <p className="text-center text-red-600">Error: {error}</p>}
+      {loading ? (
+        <div className="text-center py-16">
+          <Loading color='[#1D7A36]' />
+          <p className="text-gray-600 text-lg">Loading...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-16">
+          <p className="text-red-600 text-lg">Error: {error}</p>
+        </div>
+      ) : null}
 
       {/* Property Listings */}
       {!loading && !error && properties.length === 0 && (
@@ -154,15 +179,12 @@ const ListingsPage = () => {
             location={property.google_address}
             facing={property.facing}
             lastUpdated={property.updated_date}
-            expiry={property.expiry_date || "N/A"}
-            furnished_status={property.furnished_status || "N/A"}
-            enquiries={property.enquiries || 0}
-            image={
-              property.image
-                ? `https://api.meetowner.in/uploads/${property.image}`
-                : "https://placehold.co/400x300"
-            }
-            developer={property.user?.name || "Unknown Developer"}
+            expiry={property.expiry_date || 'N/A'}
+            furnished_status={property.furnished_status || 'N/A'}
+            enquiries={property.enquiries || 0} 
+            favourites={property.favourites || 0}
+            image={property.image ? `https://api.meetowner.in/images/${property.image}` : 'https://placehold.co/400x300'}
+            developer={property.user?.name || 'Unknown Developer'}
             propertyFor={property.property_for}
             propertyIn={property.property_in}
             propertySubType={property.sub_type || ""}

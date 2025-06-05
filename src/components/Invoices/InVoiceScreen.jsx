@@ -22,10 +22,25 @@ const InvoiceScreen = () => {
 
   // Fetch invoices from API
   useEffect(() => {
+    const storedUser = localStorage.getItem('userDetails');
+      let userId;
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser); 
+          userId = parsedUser.user_id;
+          
+        } catch (error) {
+          console.error('Error parsing userDetails from localStorage:', error);
+          userId = null; 
+        }
+      } else {
+        console.log('No userDetails found in localStorage');
+        userId = null; 
+      }
     const fetchInvoices = async () => {
       dispatch(setLoading());
       try {
-        const response = await fetch('https://api.meetowner.in/payments/getAllInvoicesByID?user_id=347', {
+        const response = await fetch(`https://api.meetowner.in/payments/getAllInvoicesByID?user_id=${userId}`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -55,7 +70,7 @@ const InvoiceScreen = () => {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
-      }); // e.g., "05/26/2025"
+      });
     } catch {
       return 'N/A';
     }
