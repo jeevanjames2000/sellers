@@ -1,10 +1,19 @@
-import React from 'react';
-import { Card, CardContent, CustomCard } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { MapPin, Eye, Edit, Trash2, BarChart3, ArrowUp, Camera, Heart, Building } from 'lucide-react';
+import React from "react";
+import { Card, CardContent, CustomCard } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  MapPin,
+  Eye,
+  Edit,
+  Trash2,
+  BarChart3,
+  ArrowUp,
+  Camera,
+  Heart,
+  Building,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
-
 
 const PropertyCard = ({
   id,
@@ -41,12 +50,12 @@ const PropertyCard = ({
     if (!dateString) return "N/A";
     try {
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) return 'N/A';
-      return new Intl.DateTimeFormat('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      }).format(date); 
+      if (isNaN(date.getTime())) return "N/A";
+      return new Intl.DateTimeFormat("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(date);
     } catch {
       return "N/A";
     }
@@ -57,7 +66,6 @@ const PropertyCard = ({
       : parseFloat(value.toString()).toFixed(2).replace(/\.00$/, "");
   };
 
-  
   const getBHKDisplay = () => {
     if (propertyIn === "Commercial") {
       return propertySubType || "N/A";
@@ -80,7 +88,6 @@ const PropertyCard = ({
     return propertySubType || "N/A";
   };
 
-  
   const getPriceDisplay = () => {
     if (propertyFor === "Rent") {
       return monthly_rent
@@ -90,10 +97,9 @@ const PropertyCard = ({
     return price ? `₹ ${formatToIndianCurrency(price)}` : "N/A";
   };
 
-  
   const getOccupancyDisplay = () => {
-    if (['Plot', 'Land'].includes(propertySubType)) {
-      return ''; 
+    if (["Plot", "Land"].includes(propertySubType)) {
+      return "";
     }
     if (propertyFor === "Rent") {
       return formatDate(available_from);
@@ -104,24 +110,20 @@ const PropertyCard = ({
   const handleEdit = () => {
     router.push(`/addProperty?property_id=${id}`);
   };
-  
-   const handleViewContacted = () => {
-   
+
+  const handleViewContacted = () => {
     const queryParams = new URLSearchParams({
-     
-      property_name:title,
-      bedrooms:bhk,
-      propertyId:id,
-      propertyType:propertySubType,
-      property_for:propertyFor,
+      property_name: title,
+      bedrooms: bhk,
+      propertyId: id,
+      propertyType: propertySubType,
+      property_for: propertyFor,
       location,
     }).toString();
 
     // Navigate to the child route with query parameters
     router.push(`/enquiry/contact-details?${queryParams}`);
   };
-
-  
 
   return (
     <CustomCard className="group overflow-hidden hover:shadow-2xl transition-all duration-500 bg-white border-0 shadow-lg hover:scale-[1.02] transform">
@@ -152,15 +154,7 @@ const PropertyCard = ({
                   {status}
                 </Badge>
               </div>
-              <div className="absolute top-4 right-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="bg-white/90 backdrop-blur-sm hover:bg-white text-gray-700 hover:text-red-500 p-2 rounded-full shadow-lg transition-all"
-                >
-                  <Heart className="w-4 h-4" />
-                </Button>
-              </div>
+
               <div className="absolute bottom-1 left-4">
                 <Badge
                   variant="outline"
@@ -233,7 +227,7 @@ const PropertyCard = ({
                     <Eye className="w-4 h-4" />
                     <span>{enquiries} Enquiries</span>
                   </div>
-                   <div className="flex items-center gap-2 bg-blue-50 text-[#1D73A6] px-3 py-1.5 rounded-full text-sm font-medium">
+                  <div className="flex items-center gap-2 bg-blue-50 text-[#1D73A6] px-3 py-1.5 rounded-full text-sm font-medium">
                     <Eye className="w-4 h-4" />
                     <span>{favourites} Favourites</span>
                   </div>
@@ -259,7 +253,8 @@ const PropertyCard = ({
                 </Button>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <Button  onClick={handleViewContacted}
+                <Button
+                  onClick={handleViewContacted}
                   variant="outline"
                   className="border-2 border-blue-200 text-[#1D73A6] hover:bg-blue-50 hover:border-blue-300 font-medium rounded-lg transition-all cursor-pointer"
                 >
