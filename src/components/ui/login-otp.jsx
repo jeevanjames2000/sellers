@@ -8,10 +8,11 @@ import { useState } from "react";
 import InputOTPForm from "@/app/otpscreen/page";
 import { setError, setLoading, setLogin } from "@/store/slices/loginSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { Loading } from "@/lib/loader";
 export function LoginWithOtp({ className, ...props }) {
   const dispatch = useDispatch();
   const router = useRouter();
-  const { user, token } = useSelector((state) => state.login);
+  const { user, token,loading, error } = useSelector((state) => state.login);
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     mobile: "",
@@ -103,8 +104,19 @@ export function LoginWithOtp({ className, ...props }) {
                   <p className="text-red-500 text-sm">{errors.mobile}</p>
                 )}
               </div>
-              <Button type="submit" className="w-full bg-[#1D3A76]">
-                Login
+               <Button
+                type="submit"
+                className="w-full bg-[#1D3A76] flex items-center justify-center gap-2"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loading size={5} color="white" />
+                    <span>Logging in...</span>
+                  </>
+                ) : (
+                  "Login"
+                )}
               </Button>
             </div>
             <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">

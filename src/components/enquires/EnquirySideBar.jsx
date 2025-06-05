@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Users, TrendingUp } from 'lucide-react';
 
 const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount }) => {
+  
   return (
     <div className="space-y-6">
      
@@ -116,7 +117,8 @@ export default EnquirySidebar;
 
 
 
-export const MobileFilterContent = ({ activeTab, onTabChange, enquiryCount, tenantCount, onClose }) => {
+export const MobileFilterContent = ({ activeTab, onTabChange,  tenantCount, onClose }) => {
+   const { count, } = useSelector((state) => state.enquiries);
   const handleTabChange = (tab) => {
     onTabChange(tab);
     onClose();
@@ -130,7 +132,7 @@ export const MobileFilterContent = ({ activeTab, onTabChange, enquiryCount, tena
           <MessageSquare className="w-8 h-8 text-white" />
         </div>
         <h3 className="text-xl font-bold text-gray-800 mb-1">Total Enquiries</h3>
-        <p className="text-3xl font-bold text-[#1D3A76]">{enquiryCount}</p>
+        <p className="text-3xl font-bold text-[#1D3A76]">{count}</p>
       </div>
 
       {/* Filter Options */}
@@ -157,7 +159,7 @@ export const MobileFilterContent = ({ activeTab, onTabChange, enquiryCount, tena
                   : 'bg-blue-100 text-blue-800'
               } font-bold px-3 py-1`}
             >
-              {enquiryCount}
+              {count}
             </Badge>
           </div>
         </button>

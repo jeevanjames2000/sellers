@@ -1,39 +1,43 @@
-"use client"
+"use client";
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useSelector, useDispatch } from 'react-redux';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, Building, Home, Building2, Filter } from 'lucide-react';
+import { ChevronDown, ChevronRight, Building2, Home } from 'lucide-react';
+import { setPropertyIn } from '@/store/slices/searchSlice';
 
 const ListingsSidebar = () => {
+  const dispatch = useDispatch();
+  const { property_in } = useSelector((state) => state.search);
+
   const [openSections, setOpenSections] = useState({
     category: true,
     buy: true,
     rent: false,
-    pg: false
   });
 
   const toggleSection = (section) => {
-    setOpenSections(prev => ({
+    setOpenSections((prev) => ({
       ...prev,
-      [section]: !prev[section]
+      [section]: !prev[section],
     }));
   };
 
   const categories = [
-    { label: 'Residential Properties', active: true, icon: Home },
-    { label: 'Commercial Properties', active: false, icon: Building2 }
+    { label: 'Residential Properties', value: 'Residential', active: property_in === 'Residential', icon: Home },
+    { label: 'Commercial Properties', value: 'Commercial', active: property_in === 'Commercial', icon: Building2 },
   ];
 
   const subCategories = {
     buy: [
-      { label: 'Buy', count: 10, active: true },
+      { label: 'Buy', count: 10 },
       { label: 'Reported', count: 0 },
       { label: 'Active', count: 5 },
       { label: 'Expired', count: 2 },
       { label: 'Rejected', count: 1 },
       { label: 'Deleted', count: 0 },
-      { label: 'Expiring Soon', count: 2 }
+      { label: 'Expiring Soon', count: 2 },
     ],
     rent: [
       { label: 'Rent', count: 0 },
@@ -42,32 +46,43 @@ const ListingsSidebar = () => {
       { label: 'Expired', count: 0 },
       { label: 'Rejected', count: 0 },
       { label: 'Deleted', count: 0 },
-      { label: 'Under Review', count: 0 }
+      { label: 'Under Review', count: 0 },
     ],
-  
+  };
+
+  const handleCategoryChange = (value) => {
+    dispatch(setPropertyIn(value)); // Update property_in (Residential or Commercial)
   };
 
   return (
     <div className="space-y-3">
       {/* Category Selection Card */}
       <Card className="shadow-xl border-0 bg-white rounded-2xl overflow-hidden">
-       
         <CardContent className="p-2">
           <div className="space-y-1">
             {categories.map((category, index) => {
               const IconComponent = category.icon;
               return (
-                <label key={index} className="flex items-center space-x-4 cursor-pointer group p-3 rounded-xl hover:bg-blue-50 transition-all duration-200">
-            
+                <button
+                  key={index}
+                  onClick={() => handleCategoryChange(category.value)}
+                  className={`flex items-center space-x-4 cursor-pointer group p-3 rounded-xl transition-all duration-200 w-full ${
+                    category.active ? 'bg-blue-50 text-[#1D73A6] font-semibold border-l-4 border-blue-500' : 'hover:bg-blue-50'
+                  }`}
+                >
                   <div className="flex items-center space-x-3 flex-1">
-                    <IconComponent className={`w-5 h-5 ${category.active ? 'text-blue-600' : 'text-gray-400'} group-hover:text-blue-600 transition-colors`} />
-                    <span className={`font-medium text-sm ${
-                      category.active ? 'text-blue-700' : 'text-gray-700'
-                    } group-hover:text-blue-700 transition-colors`}>
+                    <IconComponent
+                      className={`w-5 h-5 ${category.active ? 'text-[#1D73A6]' : 'text-gray-400'} group-hover:text-[#1D73A6] transition-colors`}
+                    />
+                    <span
+                      className={`font-medium text-sm ${
+                        category.active ? 'text-[#1D73A6]' : 'text-gray-700'
+                      } group-hover:text-[#1D73A6] transition-colors`}
+                    >
                       {category.label}
                     </span>
                   </div>
-                </label>
+                </button>
               );
             })}
           </div>
@@ -76,54 +91,64 @@ const ListingsSidebar = () => {
 
       {/* Sub Categories Card */}
       <Card className="shadow-xl border-0 bg-white rounded-2xl overflow-hidden">
-      
         <CardContent className="p-1 space-y-1">
           {/* Buy Section */}
           <Collapsible open={openSections.buy} onOpenChange={() => toggleSection('buy')}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-4 text-left hover:bg-blue-50 rounded-xl transition-all duration-200 group">
+            <CollapsibleTrigger
+              className="flex items-center justify-between w-full p-4 text-left hover:bg-blue-50 rounded-xl transition-all duration-200 group"
+            >
               <div className="flex items-center justify-between w-full">
-                <span className="font-semibold text-sm text-gray-900 group-hover:text-blue-700 transition-colors">Buy Properties</span>
+                <span className="font-semibold text-sm text-gray-900 group-hover:text-[#1D73A6] transition-colors">
+                  Buy Properties
+                </span>
                 <div className="flex items-center gap-3">
                   <Badge className="bg-blue-100 text-blue-800 font-semibold px-3 py-1">
-                    10
+                    {subCategories.buy.find((item) => item.label === 'Buy').count}
                   </Badge>
                   {openSections.buy ? (
-                    <ChevronDown className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-colors" />
+                    <ChevronDown className="w-5 h-5 text-gray-500 group-hover:text-[#1D73A6] transition-colors" />
                   ) : (
-                    <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-colors" />
+                    <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-[#1D73A6] transition-colors" />
                   )}
                 </div>
               </div>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 ml-4 space-y-2">
               {subCategories.buy.map((item, index) => (
-                <button
+                <div
                   key={index}
                   className={`w-full flex items-center justify-between p-3 text-sm rounded-lg transition-all duration-200 ${
-                    item.active 
-                      ? 'bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-500' 
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    item.label === 'Buy'
+                      ? 'bg-blue-50 text-[#1D73A6] font-semibold border-l-4 border-blue-500'
+                      : 'text-gray-600'
                   }`}
                 >
                   <span>{item.label}</span>
-                  <Badge variant={item.active ? "default" : "secondary"} className={`text-xs font-medium ${
-                    item.active ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
-                  }`}>
+                  <Badge
+                    variant={item.label === 'Buy' ? 'default' : 'secondary'}
+                    className={`text-xs font-medium ${
+                      item.label === 'Buy' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
                     {item.count}
                   </Badge>
-                </button>
+                </div>
               ))}
             </CollapsibleContent>
           </Collapsible>
 
           {/* Rent Section */}
           <Collapsible open={openSections.rent} onOpenChange={() => toggleSection('rent')}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-4 text-left hover:bg-green-50 rounded-xl transition-all duration-200 group">
+            <CollapsibleTrigger
+              className="flex items-center justify-between w-full p-4 text-left hover:bg-green-50 rounded-xl transition-all duration-200 group"
+            >
               <div className="flex items-center justify-between w-full">
-                <span className="font-semibold text-sm text-gray-900 group-hover:text-green-700 transition-colors">Rent Properties</span>
+                <span className="font-semibold text-sm text-gray-900 group-hover:text-green-700 transition-colors">
+                  Rent Properties
+                </span>
                 <div className="flex items-center gap-3">
                   <Badge className="bg-gray-100 text-gray-600 font-semibold px-3 py-1">
-                    0
+                    {subCategories.rent.find((item) => item.label === 'Rent').count}
                   </Badge>
                   {openSections.rent ? (
                     <ChevronDown className="w-5 h-5 text-gray-500 group-hover:text-green-600 transition-colors" />
@@ -135,21 +160,27 @@ const ListingsSidebar = () => {
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 ml-4 space-y-2">
               {subCategories.rent.map((item, index) => (
-                <button
+                <div
                   key={index}
-                  className="w-full flex items-center justify-between p-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-all duration-200"
+                  className={`w-full flex items-center justify-between p-3 text-sm rounded-lg transition-all duration-200 ${
+                    item.label === 'Rent'
+                      ? 'bg-green-50 text-green-700 font-semibold border-l-4 border-green-500'
+                      : 'text-gray-600'
+                  }`}
                 >
                   <span>{item.label}</span>
-                  <Badge variant="secondary" className="text-xs font-medium bg-gray-100 text-gray-600">
+                  <Badge
+                    variant={item.label === 'Rent' ? 'default' : 'secondary'}
+                    className={`text-xs font-medium ${
+                      item.label === 'Rent' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
                     {item.count}
                   </Badge>
-                </button>
+                </div>
               ))}
             </CollapsibleContent>
           </Collapsible>
-
-          {/* PG Section */}
-        
         </CardContent>
       </Card>
     </div>

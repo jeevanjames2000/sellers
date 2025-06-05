@@ -3,6 +3,8 @@ import { Card, CardContent, CustomCard } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MapPin, Eye, Edit, Trash2, BarChart3, ArrowUp, Camera, Heart, Building } from 'lucide-react';
+import { useRouter } from "next/navigation";
+
 
 const PropertyCard = ({
   id,
@@ -16,6 +18,7 @@ const PropertyCard = ({
   lastUpdated,
   furnished_status,
   enquiries,
+  favourites,
   image,
   developer,
   propertyFor,
@@ -33,7 +36,7 @@ const PropertyCard = ({
     if (numValue >= 1000) return (numValue / 1000).toFixed(2) + ' K';
     return numValue.toString();
   };
-
+  const router = useRouter();
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     try {
@@ -43,7 +46,7 @@ const PropertyCard = ({
         day: '2-digit',
         month: 'short',
         year: 'numeric',
-      }).format(date); // Outputs: "21 Feb 2025"
+      }).format(date); 
     } catch {
       return 'N/A';
     }
@@ -53,7 +56,7 @@ const PropertyCard = ({
     return value % 1 === 0 ? parseInt(value.toString()) : parseFloat(value.toString()).toFixed(2).replace(/\.00$/, '');
   };
 
-  // Determine what to display in place of BHK
+  
   const getBHKDisplay = () => {
     if (propertyIn === 'Commercial') {
       return propertySubType || 'N/A';
@@ -72,7 +75,7 @@ const PropertyCard = ({
     return propertySubType || 'N/A';
   };
 
-  // Determine price or monthly rent to display
+  
   const getPriceDisplay = () => {
     if (propertyFor === 'Rent') {
       return monthly_rent ? `₹ ${formatToIndianCurrency(monthly_rent)}/month` : 'N/A';
@@ -80,19 +83,36 @@ const PropertyCard = ({
     return price ? `₹ ${formatToIndianCurrency(price)}` : 'N/A';
   };
 
-  // Determine occupancy display
+  
   const getOccupancyDisplay = () => {
     if (['Plot', 'Land'].includes(propertySubType)) {
-      return ''; // Hide occupancy for Plot and Land
+      return ''; 
     }
     if (propertyFor === 'Rent') {
       return formatDate(available_from);
     }
     return occupancy || 'N/A';
   };
+  
+   const handleViewContacted = () => {
+   
+    const queryParams = new URLSearchParams({
+     
+      property_name:title,
+      bedrooms:bhk,
+      propertyId:id,
+      propertyType:propertySubType,
+      property_for:propertyFor,
+      location,
+    }).toString();
 
-  // Check if furnished_status should be displayed
+    // Navigate to the child route with query parameters
+    router.push(`/enquiry/contact-details?${queryParams}`);
+  };
+
+  
   const showFurnishedStatus = !['Plot', 'Land'].includes(propertySubType);
+
 
   return (
     <CustomCard className="group overflow-hidden hover:shadow-2xl transition-all duration-500 bg-white border-0 shadow-lg hover:scale-[1.02] transform">
@@ -102,7 +122,7 @@ const PropertyCard = ({
           <div className="lg:col-span-2 relative">
             <div className="aspect-[4/3] w-full lg:aspect-auto h-[100%] relative overflow-hidden">
               <img
-                src={ '/assets/kohinoor.jpg'}
+                src={image}
                 alt={title}
                 className="w-full h-[100%] object-cover transition-all duration-700 group-hover:scale-110"
               />
@@ -181,9 +201,13 @@ const PropertyCard = ({
                   <span className="text-sm">{facing} Facing</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 py-1">
-                  <div className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-sm font-medium">
+                  <div className="flex items-center gap-2 bg-blue-50 text-[#1D73A6] px-3 py-1.5 rounded-full text-sm font-medium">
                     <Eye className="w-4 h-4" />
                     <span>{enquiries} Enquiries</span>
+                  </div>
+                   <div className="flex items-center gap-2 bg-blue-50 text-[#1D73A6] px-3 py-1.5 rounded-full text-sm font-medium">
+                    <Eye className="w-4 h-4" />
+                    <span>{favourites} Favourites</span>
                   </div>
                 </div>
               </div>
@@ -207,9 +231,9 @@ const PropertyCard = ({
                 </Button>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <Button
+                <Button  onClick={handleViewContacted}
                   variant="outline"
-                  className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 font-medium rounded-lg transition-all"
+                  className="border-2 border-blue-200 text-[#1D73A6] hover:bg-blue-50 hover:border-blue-300 font-medium rounded-lg transition-all cursor-pointer"
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
                   Analytics

@@ -36,6 +36,9 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
       dispatch(clearLogin());
       localStorage.removeItem('userToken');
       localStorage.removeItem('userDetails');
+       if (isMobile && toggleSidebar) {
+        toggleSidebar();
+      }
       router.push('/');
    }
 
