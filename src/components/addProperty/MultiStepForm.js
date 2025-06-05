@@ -21,8 +21,8 @@ import axios from "axios";
 import useFetchAndSetProperty from "../services/useFetchAndSetProperty";
 
 const steps = [
-  // { label: "Basic Details", component: BasicDetails },
-  // { label: "Property Details", component: PropertyDetails },
+  { label: "Basic Details", component: BasicDetails },
+  { label: "Property Details", component: PropertyDetails },
   { label: "Address", component: Address },
   { label: "Property Photos", component: Photos },
   { label: "Review", component: Review },
@@ -33,19 +33,40 @@ export default function MultiStepForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const onNext = () => setCurrentStep((prev) => prev + 1);
   const onBack = () => setCurrentStep((prev) => prev - 1);
+  const onSubmit = (data) => console.log("Final Submit:", data);
   const CurrentComponent = steps[currentStep].component;
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
   const handleRoute = () => {
     router.push("/dashboard");
   };
   const searchParams = useSearchParams();
-  // const unique_property_id = searchParams.get("unique_property_id");
-  const unique_property_id = "MO-835432";
-
+  // const unique_property_id = "MO-835432";
+  const unique_property_id = searchParams.get("property_id");
   const { property, setProperty } = useFetchAndSetProperty(
     unique_property_id,
     methods.reset
   );
+
+  const activeStep = searchParams.get("active_step");
+  const status = searchParams.get("status");
+
+  // useEffect(() => {
+  //   if (activeStep) {
+  //     const stepIndex = steps.findIndex(
+  //       (step) =>
+  //         step.label.toLowerCase().replace(/\s/g, "") ===
+  //         activeStep.toLowerCase()
+  //     );
+  //     if (stepIndex !== -1) {
+  //       setCurrentStep(stepIndex);
+  //     }
+  //   }
+  // }, [activeStep]);
+  useEffect(() => {
+    const stepKey = steps[currentStep].label.toLowerCase().replace(/\s/g, "");
+    const newSearch = `?active_step=${stepKey}&status=inprogress&property_id=${unique_property_id}`;
+    router.replace(`/addProperty${newSearch}`);
+  }, [currentStep]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-2 w-full">

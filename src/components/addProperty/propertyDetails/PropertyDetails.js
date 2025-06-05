@@ -229,7 +229,7 @@ export default function PropertyDetails({ property }) {
 
       case "bedrooms":
         return !isNaN(intVal)
-          ? intVal >= 4
+          ? intVal > 4
             ? "4+ BHK"
             : `${intVal} BHK`
           : "0 BHK";
