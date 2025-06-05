@@ -78,7 +78,7 @@ const ListingsPage = () => {
 
         // Construct the API URL
         const url = new URL(
-          "https://api.meetowner.in/listings/v1/getAllPropertiesByType"
+          "https://api.meetowner.in/listings/v1/getAllListingsByType"
         );
         Object.keys(queryParams).forEach((key) => {
           if (queryParams[key]) {

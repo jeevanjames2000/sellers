@@ -4,9 +4,12 @@ const initialState = {
   profile: null,
   loading: false, 
   error: null,
-   updateLoading: false, 
+  updateLoading: false, 
   updateError: null,  
   updateMessage: null, 
+  updateImageLoading:false,
+  updateImageError : false,
+  updateImageMessage:null,
 };
 
 const profileSlice = createSlice({
@@ -36,7 +39,7 @@ const profileSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
-      updateProfileStart: (state) => {
+    updateProfileStart: (state) => {
       state.updateLoading = true;
       state.updateError = null;
       state.updateMessage = null;
@@ -52,6 +55,13 @@ const profileSlice = createSlice({
       state.updateError = action.payload;
       state.updateMessage = null;
     },
+    updateImageSuccess :(state,action)=>{
+      state.updateImageLoading = false;
+      state.updateImageError = null;
+      state.updateImageMessage = action.payload; 
+      state.profile = { ...state.profile, ...action.payload.updateImageMessage }; 
+    },
+    
   },
 });
 
@@ -64,6 +74,11 @@ export const {
   updateProfileStart,
   updateProfileSuccess,
   updateProfileFailure,
+  updateImageStart,
+  updateImageSuccess,
+  updateImageFailure
+
+
 } = profileSlice.actions;
 
 export default profileSlice.reducer;
