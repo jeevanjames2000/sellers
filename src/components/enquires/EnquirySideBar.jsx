@@ -1,14 +1,11 @@
-import React from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Users, TrendingUp } from "lucide-react";
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { MessageSquare, Users, TrendingUp, Heart, HeartIcon } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
-const EnquirySidebar = ({
-  activeTab,
-  onTabChange,
-  enquiryCount,
-  tenantCount,
-}) => {
+const EnquirySidebar = ({ activeTab, onTabChange, enquiryCount, tenantCount,favouriteCount }) => {
+  
   return (
     <div className="space-y-6">
       <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm py-6">
@@ -86,24 +83,29 @@ const EnquirySidebar = ({
       </Card>
 
       <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-100">
-        <CardContent className="p-6">
+        <CardContent className="p-6 flex justify-evenly">
           <div className="text-center">
             <div className="w-16 h-16 bg-gradient-to-br from-[#1D3A76] to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <MessageSquare className="w-8 h-8 text-white" />
+            <MessageSquare className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">
-              Total Enquiries
-            </h3>
-            <p className="text-3xl font-bold text-[#1D3A76] mb-2">
-              {enquiryCount}
-            </p>
-            <p className="text-sm text-gray-600">
-              This month's property enquiries
-            </p>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Total Enquiries</h3>
+            <p className="text-3xl font-bold text-[#1D3A76] mb-2">{enquiryCount}</p>
+           
           </div>
+           <div className="text-center">
+            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <HeartIcon className="w-8 h-8 text-[#1D3A76]" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Total Favourites</h3>
+            <p className="text-3xl font-bold text-[#1D3A76] mb-2">{favouriteCount}</p>
+           
+          </div>
+          
         </CardContent>
       </Card>
+       
 
+    
       <Card className="shadow-lg border-0 bg-white/90 py-6">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-bold text-gray-800">
@@ -131,13 +133,10 @@ const EnquirySidebar = ({
 
 export default EnquirySidebar;
 
-export const MobileFilterContent = ({
-  activeTab,
-  onTabChange,
-  tenantCount,
-  onClose,
-}) => {
-  const { count } = useSelector((state) => state.enquiries);
+
+
+export const MobileFilterContent = ({ activeTab, onTabChange, enquiryCount, favouriteCount,tenantCount, onClose }) => {
+  
   const handleTabChange = (tab) => {
     onTabChange(tab);
     onClose();
@@ -146,14 +145,22 @@ export const MobileFilterContent = ({
   return (
     <div className="p-4 space-y-4">
       {/* Total Enquiries Display */}
+      <div className='flex justify-between'>
       <div className="text-center py-4">
         <div className="w-16 h-16 bg-gradient-to-br from-[#1D3A76] to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
           <MessageSquare className="w-8 h-8 text-white" />
         </div>
-        <h3 className="text-xl font-bold text-gray-800 mb-1">Total Listings</h3>
-        <p className="text-3xl font-bold text-[#1D3A76]">{count}</p>
+        <h3 className="text-xl font-bold text-gray-800 mb-1">Total Enquiries</h3>
+        <p className="text-3xl font-bold text-[#1D3A76]">{enquiryCount}</p>
       </div>
-
+      <div className="text-center py-4">
+        <div className="w-16 h-16 bg-white rounded-full border-2 flex items-center justify-center mx-auto mb-4 shadow-lg">
+        <HeartIcon className="w-8 h-8 text-[#1D3A76]" />
+        </div>
+        <h3 className="text-xl font-bold text-gray-800 mb-1">Total Favourites</h3>
+        <p className="text-3xl font-bold text-[#1D3A76]">{favouriteCount}</p>
+      </div>
+  </div>
       {/* Filter Options */}
       <div className="space-y-3">
         <button
@@ -180,7 +187,7 @@ export const MobileFilterContent = ({
                   : "bg-blue-100 text-blue-800"
               } font-bold px-3 py-1`}
             >
-              {count}
+              {enquiryCount}
             </Badge>
           </div>
         </button>
@@ -217,7 +224,8 @@ export const MobileFilterContent = ({
         </button>
       </div>
 
-      {/* Quick Actions */}
+    
+      
     </div>
   );
 };

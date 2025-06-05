@@ -1,14 +1,18 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
 const ServiceCard = ({ title, description, buttonText, icon, gradient }) => {
   const router = useRouter();
+   useEffect(() => {
+      router.prefetch("/addProperty");
+     
+    }, []);
   const handleButtonClick = () => {
-      router.push('/addProperty');
+     router.push("/addProperty");
   };
   return (
     <Card className="h-full shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-0">
@@ -22,7 +26,7 @@ const ServiceCard = ({ title, description, buttonText, icon, gradient }) => {
         <p className="text-gray-600 text-sm mb-4 leading-relaxed">{description}</p>
         <Button   onClick={handleButtonClick}
           variant="ghost" 
-          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-0 h-auto font-medium"
+          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-0 h-auto font-medium cursor-pointer"
         >
           {buttonText}
         </Button>
