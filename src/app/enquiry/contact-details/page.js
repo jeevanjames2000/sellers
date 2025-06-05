@@ -3,8 +3,21 @@ import React, { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { Button } from "@/components/ui/button";
-import { Table, TableHeader, TableRow, TableHead, TableCell, TableBody } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle, CustomCard } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableBody,
+} from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CustomCard,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   MessageSquare,
@@ -25,13 +38,19 @@ import {
 } from "lucide-react";
 
 import { Loading } from "@/lib/loader";
-import { setActivity, setResultsError, setResultsLoading } from "@/store/slices/enquirySlice";
+import {
+  setActivity,
+  setResultsError,
+  setResultsLoading,
+} from "@/store/slices/enquirySlice";
 
 export default function ContactedDetails() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
-  const { results, resultsLoading, resultsError } = useSelector((state) => state.enquiries);
+  const { results, resultsLoading, resultsError } = useSelector(
+    (state) => state.enquiries
+  );
 
   const property_name = searchParams.get("property_name") || "Unknown Property";
   const bedrooms = searchParams.get("bedrooms") || "N/A";
@@ -64,6 +83,10 @@ export default function ContactedDetails() {
 
   const handleBack = () => {
     router.back();
+  };
+
+  const hideUserDetails = (id) => {
+    return `${id?.slice(0, 3)}xxxxxxx`;
   };
 
   return (
@@ -99,24 +122,27 @@ export default function ContactedDetails() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Total Enquiries</p>
-                      <p className="text-2xl font-bold text-gray-900">{results.length}</p>
+                      <p className="text-sm font-medium text-gray-600">
+                        Total Enquiries
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {results.length}
+                      </p>
                     </div>
                     <div className="w-12 h-12 bg-[#1D37A6] rounded-full flex items-center justify-center">
                       <Users className="w-6 h-6 text-white" />
                     </div>
                   </div>
-                 
                 </CardContent>
               </Card>
-
-              
             </div>
 
             {/* Quick Actions */}
             <CustomCard className="bg-white shadow-lg border-0 py-4">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
+                <CardTitle className="text-lg font-semibold">
+                  Quick Actions
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button
@@ -128,8 +154,12 @@ export default function ContactedDetails() {
                       <Download className="w-4 h-4 text-white" />
                     </div>
                     <div className="text-left">
-                      <p className="font-medium text-green-800">Export Reports</p>
-                      <p className="text-xs text-green-600">Download detailed analytics</p>
+                      <p className="font-medium text-green-800">
+                        Export Reports
+                      </p>
+                      <p className="text-xs text-green-600">
+                        Download detailed analytics
+                      </p>
                     </div>
                   </div>
                 </Button>
@@ -143,7 +173,9 @@ export default function ContactedDetails() {
                     </div>
                     <div className="text-left">
                       <p className="font-medium text-purple-800">Set Alerts</p>
-                      <p className="text-xs text-purple-600">Get notified of new enquiries</p>
+                      <p className="text-xs text-purple-600">
+                        Get notified of new enquiries
+                      </p>
                     </div>
                   </div>
                 </Button>
@@ -157,7 +189,9 @@ export default function ContactedDetails() {
               <CardHeader className="border-b border-gray-200 bg-gray-50 py-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                   <div>
-                    <CardTitle className="text-xl font-bold text-gray-900">Contact Details</CardTitle>
+                    <CardTitle className="text-xl font-bold text-gray-900">
+                      Contact Details
+                    </CardTitle>
                     <p className="text-sm text-gray-600 mt-1">
                       Showing {results.length} of {results.length} enquiries
                     </p>
@@ -174,19 +208,33 @@ export default function ContactedDetails() {
                 ) : resultsError ? (
                   <div className="flex flex-col items-center justify-center py-16 text-gray-500">
                     <MessageSquare className="w-16 h-16 mb-4 text-gray-300" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Contacteed Sellers found for this property</h3>
-                    <p className="text-sm text-center max-w-sm">{resultsError}</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      No Contacteed Sellers found for this property
+                    </h3>
+                    <p className="text-sm text-center max-w-sm">
+                      {resultsError}
+                    </p>
                   </div>
                 ) : results.length > 0 ? (
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-gray-50">
-                          <TableHead className="font-semibold text-gray-900">Contact</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Communication</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Enquiry Details</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Status</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Actions</TableHead>
+                          <TableHead className="font-semibold text-gray-900">
+                            Contact
+                          </TableHead>
+                          <TableHead className="font-semibold text-gray-900">
+                            Communication
+                          </TableHead>
+                          <TableHead className="font-semibold text-gray-900">
+                            Enquiry Details
+                          </TableHead>
+                          <TableHead className="font-semibold text-gray-900">
+                            Status
+                          </TableHead>
+                          <TableHead className="font-semibold text-gray-900">
+                            Actions
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -213,11 +261,13 @@ export default function ContactedDetails() {
                               <div className="space-y-1">
                                 <div className="flex items-center text-sm text-gray-600">
                                   <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                                  {item.userDetails.email || "N/A"}
+                                  {hideUserDetails(item.userDetails.email) ||
+                                    "N/A"}
                                 </div>
                                 <div className="flex items-center text-sm text-gray-600">
                                   <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                                  {item.userDetails.mobile || "N/A"}
+                                  {hideUserDetails(item.userDetails.mobile) ||
+                                    "N/A"}
                                 </div>
                               </div>
                             </TableCell>
@@ -228,7 +278,9 @@ export default function ContactedDetails() {
                                 </Badge>
                                 <div className="flex items-center text-sm text-gray-500">
                                   <Calendar className="w-4 h-4 mr-1" />
-                                  {new Date(item.created_date).toLocaleDateString("en-IN", {
+                                  {new Date(
+                                    item.created_date
+                                  ).toLocaleDateString("en-IN", {
                                     day: "2-digit",
                                     month: "short",
                                     year: "numeric",
@@ -246,10 +298,18 @@ export default function ContactedDetails() {
                             </TableCell>
                             <TableCell className="py-4">
                               <div className="flex items-center space-x-2">
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0"
+                                >
                                   <Eye className="w-4 h-4" />
                                 </Button>
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0"
+                                >
                                   <MoreHorizontal className="w-4 h-4" />
                                 </Button>
                               </div>
@@ -262,9 +322,12 @@ export default function ContactedDetails() {
                 ) : (
                   <div className="flex flex-col items-center justify-center py-16 text-gray-500">
                     <MessageSquare className="w-16 h-16 mb-4 text-gray-300" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No enquiries found</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      No enquiries found
+                    </h3>
                     <p className="text-sm text-center max-w-sm">
-                      Try adjusting your search terms or filters to find what you're looking for.
+                      Try adjusting your search terms or filters to find what
+                      you're looking for.
                     </p>
                   </div>
                 )}
