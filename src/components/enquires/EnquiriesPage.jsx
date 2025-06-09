@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import EnquiryCard from "./EnquiryCard";
 import { PaginationWrapper } from "./PaginationWrapper";
@@ -13,15 +14,43 @@ import {
 import { Loading } from "@/lib/loader";
 
 const EnquiriesPage = ({ activeTab }) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const dispatch = useDispatch();
   const { count, properties, loading, error } = useSelector(
     (state) => state.enquiries
   );
 
+  const itemsPerPage = 5;
   const totalPages = Math.ceil(count / itemsPerPage);
 
+
+  const initialPage = parseInt(searchParams.get("page")) || 1;
+  const [currentPage, setCurrentPage] = useState(initialPage);
+
+ 
+  useEffect(() => {
+    if (loading || activeTab !== "my-enquiries") return;
+
+    
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages || 1);
+    }
+  }, [totalPages, currentPage, loading, activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== "my-enquiries") return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (currentPage === 1) {
+      params.delete("page"); 
+    } else {
+      params.set("page", currentPage);
+    }
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [currentPage, activeTab, router, searchParams]);
+
+ 
   useEffect(() => {
     const fetchEnquiries = async () => {
       if (activeTab !== "my-enquiries") return;

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -9,25 +8,16 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-export function PaginationWrapper({ totalPages = 15, onPageChange }) {
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    if (onPageChange) {
-      onPageChange(page); // Fixed: Properly close the if block
-    }
-  };
-
+export function PaginationWrapper({ totalPages = 15, currentPage, onPageChange }) {
   const handlePrevious = () => {
     if (currentPage > 1) {
-      handlePageChange(currentPage - 1);
+      onPageChange(currentPage - 1);
     }
   };
 
   const handleNext = () => {
     if (currentPage < totalPages) {
-      handlePageChange(currentPage + 1);
+      onPageChange(currentPage + 1);
     }
   };
 
@@ -73,7 +63,7 @@ export function PaginationWrapper({ totalPages = 15, onPageChange }) {
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  handlePageChange(1);
+                  onPageChange(1);
                 }}
               >
                 1
@@ -92,7 +82,7 @@ export function PaginationWrapper({ totalPages = 15, onPageChange }) {
               isActive={currentPage === page}
               onClick={(e) => {
                 e.preventDefault();
-                handlePageChange(page);
+                onPageChange(page);
               }}
             >
               {page}
@@ -110,7 +100,7 @@ export function PaginationWrapper({ totalPages = 15, onPageChange }) {
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  handlePageChange(totalPages);
+                  onPageChange(totalPages);
                 }}
               >
                 {totalPages}
