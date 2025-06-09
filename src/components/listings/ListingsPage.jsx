@@ -1,8 +1,6 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-
 import FilterBar from "./FilterBar";
 import PropertyCard from "./PropertyCard";
 import { PaginationWrapper } from "../enquires/PaginationWrapper";
@@ -23,23 +21,20 @@ const ListingsPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 5;
 
-  // Get filter state from Redux
   const dispatch = useDispatch();
-  const { property_for, property_in, sub_type, bhk, location, loading, error } =
+  const { property_for, property_in, sub_type, bhk, location, loading, error, statusFilter } =
     useSelector((state) => state.search);
 
-  // Map FilterBar filters to Redux state
   const filters = {
     searchLocation: location,
     propertyFor: property_for,
     propertyType: property_in,
     propertySubType: sub_type,
     bhk: bhk,
-    verificationStatus: "all",
+    verificationStatus: statusFilter[property_for === 'Sell' ? 'buy' : 'rent'] || '1',
     propertyId: "",
   };
 
-  // Fetch properties when filters or page change
   useEffect(() => {
     const fetchProperties = async () => {
       dispatch(setLoading(true));
@@ -60,28 +55,27 @@ const ListingsPage = () => {
       }
 
       try {
-        // Map filters to API parameters
+        let apiPropertyFor = property_for || "Sell";
+        let apiPropertyStatus = statusFilter[apiPropertyFor === 'Sell' ? 'buy' : 'rent'] ?? '1';
+
         const queryParams = {
           page: currentPage,
-          property_for: property_for || "Sell",
+          property_for: apiPropertyFor,
           property_in: property_in || "Residential",
-          sub_type: sub_type || "", // Use sub_type from Redux
+          sub_type: sub_type || "",
           search: location || "",
           bedrooms: bhk || "",
           property_cost: "",
           priceFilter: "Relevance",
           occupancy: "",
-          property_status: 1,
+          property_status: apiPropertyStatus,
           city_id: "",
           user_id: userId,
         };
 
-        // Construct the API URL
-        const url = new URL(
-          "https://api.meetowner.in/listings/v1/getAllListingsByType"
-        );
+        const url = new URL("https://api.meetowner.in/listings/v1/getAllListingsByType");
         Object.keys(queryParams).forEach((key) => {
-          if (queryParams[key]) {
+          if (queryParams[key] !== null && queryParams[key] !== "") {
             url.searchParams.append(key, queryParams[key]);
           }
         });
@@ -105,15 +99,7 @@ const ListingsPage = () => {
     };
 
     fetchProperties();
-  }, [
-    currentPage,
-    property_for,
-    property_in,
-    sub_type,
-    bhk,
-    location,
-    dispatch,
-  ]); // Add sub_type to dependencies
+  }, [currentPage, property_for, property_in, sub_type, bhk, location, statusFilter, dispatch]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -121,7 +107,6 @@ const ListingsPage = () => {
   };
 
   const handleFilterChange = (filterName, value) => {
-    // Update Redux state based on filterName
     switch (filterName) {
       case "searchLocation":
         dispatch(setLocation(value));
@@ -132,7 +117,7 @@ const ListingsPage = () => {
       case "propertyType":
         dispatch(setPropertyIn(value));
         break;
-      case "propertySubType": // Handle propertySubType
+      case "propertySubType":
         dispatch(setSubType(value));
         break;
       case "bhk":
@@ -141,15 +126,12 @@ const ListingsPage = () => {
       default:
         break;
     }
-    // Reset to first page when filters change
     setCurrentPage(1);
   };
 
   return (
     <div className="space-y-8">
-      {/* Filter Bar */}
-      <FilterBar filters={filters} onFilterChange={handleFilterChange} />
-
+      <FilterBar onFilterChange={handleFilterChange} />
       {loading ? (
         <div className="text-center py-16">
           <Loading color="[#1D7A36]" />
@@ -160,8 +142,6 @@ const ListingsPage = () => {
           <p className="text-red-600 text-lg">Error: {error}</p>
         </div>
       ) : null}
-
-      {/* Property Listings */}
       {!loading && !error && properties.length === 0 && (
         <p className="text-center text-gray-600">No properties found.</p>
       )}
@@ -174,7 +154,7 @@ const ListingsPage = () => {
             price={property.property_cost || "N/A"}
             bhk={property.bedrooms || "N/A"}
             type={property.property_in}
-            status={property.property_status === 1 ? "Active" : "Inactive"}
+            status={property.property_status === 1 ? "Approved" : property.property_status === 0 ? "Review" : "Rejected"}
             location={property.google_address}
             facing={property.facing}
             lastUpdated={property.updated_date}
@@ -197,8 +177,6 @@ const ListingsPage = () => {
           />
         ))}
       </div>
-
-      {/* Pagination */}
       {!loading && properties.length > 0 && (
         <div className="mt-6 flex justify-center">
           <PaginationWrapper

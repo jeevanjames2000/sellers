@@ -5,11 +5,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronRight, Building2, Home } from 'lucide-react';
-import { setPropertyIn } from '@/store/slices/searchSlice';
+
+import { setPropertyFor, setPropertyIn, setStatusFilter,  } from '@/store/slices/searchSlice';
 
 const ListingsSidebar = () => {
   const dispatch = useDispatch();
-  const { property_in } = useSelector((state) => state.search);
+  const { property_in, statusFilter } = useSelector((state) => state.search);
 
   const [openSections, setOpenSections] = useState({
     category: true,
@@ -31,27 +32,24 @@ const ListingsSidebar = () => {
 
   const subCategories = {
     buy: [
-      { label: 'Buy', count: 10 },
-      { label: 'Reported', count: 0 },
-      { label: 'Active', count: 5 },
-      { label: 'Expired', count: 2 },
-      { label: 'Rejected', count: 1 },
-      { label: 'Deleted', count: 0 },
-      { label: 'Expiring Soon', count: 2 },
+      { label: 'Review', value: 0, count: 0 },
+      { label: 'Approved', value: 1, count: 0 },
+      { label: 'Rejected', value: 2, count: 0 },
     ],
     rent: [
-      { label: 'Rent', count: 0 },
-      { label: 'Reported', count: 0 },
-      { label: 'Active', count: 0 },
-      { label: 'Expired', count: 0 },
-      { label: 'Rejected', count: 0 },
-      { label: 'Deleted', count: 0 },
-      { label: 'Under Review', count: 0 },
+      { label: 'Review', value: 0, count: 0 },
+      { label: 'Approved', value: 1, count: 0 },
+      { label: 'Rejected', value: 2, count: 0 },
     ],
   };
 
   const handleCategoryChange = (value) => {
-    dispatch(setPropertyIn(value)); // Update property_in (Residential or Commercial)
+    dispatch(setPropertyIn(value));
+  };
+
+  const handleStatusFilter = (type, value) => {
+    dispatch(setStatusFilter({ type, value }));
+     dispatch(setPropertyFor(type === 'buy' ? 'Sell' : 'Rent'));
   };
 
   return (
@@ -103,7 +101,7 @@ const ListingsSidebar = () => {
                 </span>
                 <div className="flex items-center gap-3">
                   <Badge className="bg-blue-100 text-blue-800 font-semibold px-3 py-1">
-                    {subCategories.buy.find((item) => item.label === 'Buy').count}
+                    {subCategories.buy.reduce((sum, item) => sum + item.count, 0)}
                   </Badge>
                   {openSections.buy ? (
                     <ChevronDown className="w-5 h-5 text-gray-500 group-hover:text-[#1D73A6] transition-colors" />
@@ -115,24 +113,25 @@ const ListingsSidebar = () => {
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 ml-4 space-y-2">
               {subCategories.buy.map((item, index) => (
-                <div
+                <button
                   key={index}
+                  onClick={() => handleStatusFilter('buy', item.value)}
                   className={`w-full flex items-center justify-between p-3 text-sm rounded-lg transition-all duration-200 ${
-                    item.label === 'Buy'
+                    statusFilter?.buy === item.value
                       ? 'bg-blue-50 text-[#1D73A6] font-semibold border-l-4 border-blue-500'
-                      : 'text-gray-600'
+                      : 'text-gray-600 hover:bg-blue-50'
                   }`}
                 >
                   <span>{item.label}</span>
                   <Badge
-                    variant={item.label === 'Buy' ? 'default' : 'secondary'}
+                    variant={statusFilter?.buy === item.value ? 'default' : 'secondary'}
                     className={`text-xs font-medium ${
-                      item.label === 'Buy' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                      statusFilter?.buy === item.value ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
                     }`}
                   >
                     {item.count}
                   </Badge>
-                </div>
+                </button>
               ))}
             </CollapsibleContent>
           </Collapsible>
@@ -147,8 +146,8 @@ const ListingsSidebar = () => {
                   Rent Properties
                 </span>
                 <div className="flex items-center gap-3">
-                  <Badge className="bg-gray-100 text-gray-600 font-semibold px-3 py-1">
-                    {subCategories.rent.find((item) => item.label === 'Rent').count}
+                  <Badge className="bg-green-100 text-green-800 font-semibold px-3 py-1">
+                    {subCategories.rent.reduce((sum, item) => sum + item.count, 0)}
                   </Badge>
                   {openSections.rent ? (
                     <ChevronDown className="w-5 h-5 text-gray-500 group-hover:text-green-600 transition-colors" />
@@ -160,24 +159,25 @@ const ListingsSidebar = () => {
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 ml-4 space-y-2">
               {subCategories.rent.map((item, index) => (
-                <div
+                <button
                   key={index}
+                  onClick={() => handleStatusFilter('rent', item.value)}
                   className={`w-full flex items-center justify-between p-3 text-sm rounded-lg transition-all duration-200 ${
-                    item.label === 'Rent'
+                    statusFilter?.rent === item.value
                       ? 'bg-green-50 text-green-700 font-semibold border-l-4 border-green-500'
-                      : 'text-gray-600'
+                      : 'text-gray-600 hover:bg-green-50'
                   }`}
                 >
                   <span>{item.label}</span>
                   <Badge
-                    variant={item.label === 'Rent' ? 'default' : 'secondary'}
+                    variant={statusFilter?.rent === item.value ? 'default' : 'secondary'}
                     className={`text-xs font-medium ${
-                      item.label === 'Rent' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600'
+                      statusFilter?.rent === item.value ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600'
                     }`}
                   >
                     {item.count}
                   </Badge>
-                </div>
+                </button>
               ))}
             </CollapsibleContent>
           </Collapsible>

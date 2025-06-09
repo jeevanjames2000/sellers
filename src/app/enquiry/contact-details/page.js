@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { Button } from "@/components/ui/button";
@@ -58,6 +58,9 @@ export default function ContactedDetails() {
   const location = searchParams.get("location") || "N/A";
   const propertyId = searchParams.get("propertyId");
 
+  
+  const [visibleContacts, setVisibleContacts] = useState(new Set());
+
   // Fetch activity data when propertyId exists
   useEffect(() => {
     if (propertyId) {
@@ -86,7 +89,21 @@ export default function ContactedDetails() {
   };
 
   const hideUserDetails = (id) => {
-    return `${id?.slice(0, 3)}xxxxxxx`;
+    if (!id) return "N/A";
+    return `${id.slice(0, 3)}xxxxxxx`;
+  };
+
+ 
+  const toggleContactVisibility = (id) => {
+    setVisibleContacts((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
   };
 
   return (
@@ -209,7 +226,7 @@ export default function ContactedDetails() {
                   <div className="flex flex-col items-center justify-center py-16 text-gray-500">
                     <MessageSquare className="w-16 h-16 mb-4 text-gray-300" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      No Contacteed Sellers found for this property
+                      No Contacted Sellers found for this property
                     </h3>
                     <p className="text-sm text-center max-w-sm">
                       {resultsError}
@@ -261,13 +278,15 @@ export default function ContactedDetails() {
                               <div className="space-y-1">
                                 <div className="flex items-center text-sm text-gray-600">
                                   <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                                  {hideUserDetails(item.userDetails.email) ||
-                                    "N/A"}
+                                  {visibleContacts.has(item.id)
+                                    ? item.userDetails.email || "N/A"
+                                    : hideUserDetails(item.userDetails.email)}
                                 </div>
                                 <div className="flex items-center text-sm text-gray-600">
                                   <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                                  {hideUserDetails(item.userDetails.mobile) ||
-                                    "N/A"}
+                                  {visibleContacts.has(item.id)
+                                    ? item.userDetails.mobile || "N/A"
+                                    : hideUserDetails(item.userDetails.mobile)}
                                 </div>
                               </div>
                             </TableCell>
@@ -290,7 +309,6 @@ export default function ContactedDetails() {
                             </TableCell>
                             <TableCell className="py-4">
                               <div className="space-y-2">
-                                {/* Add status logic if available in API response */}
                                 <Badge variant="outline" className="text-xs">
                                   Active
                                 </Badge>
@@ -302,15 +320,14 @@ export default function ContactedDetails() {
                                   size="sm"
                                   variant="ghost"
                                   className="h-8 w-8 p-0"
+                                  onClick={() => toggleContactVisibility(item.id)}
+                                  aria-label={
+                                    visibleContacts.has(item.id)
+                                      ? "Hide contact details"
+                                      : "Show contact details"
+                                  }
                                 >
                                   <Eye className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <MoreHorizontal className="w-4 h-4" />
                                 </Button>
                               </div>
                             </TableCell>

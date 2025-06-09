@@ -1,108 +1,111 @@
 'use client';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Search, Filter, X, MapPin, Home, Bed, ChevronDown } from 'lucide-react';
+import { setPropertyFor, setPropertyIn, setSubType, setBHK, setLocation, setStatusFilter } from '@/store/slices/searchSlice';
 
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, X, MapPin, Home, Bed, Shield, ChevronDown } from 'lucide-react';
+// Debounce utility function
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
 
-const FilterBar = ({
-  filters = {
-    searchLocation: '',
-    propertyFor: 'Sell',
-    propertyType: 'Residential',
-    propertySubType: '',
-    bhk: '',
-    verificationStatus: '1',
-  },
-  onFilterChange = () => {},
-}) => {
+const FilterBar = ({ onFilterChange = () => {} }) => {
+  const dispatch = useDispatch();
+  const { property_for, property_in, sub_type, bhk, location } = useSelector((state) => state.search);
+
   const [showBottomSheet, setShowBottomSheet] = useState(false);
+  const [searchValue, setSearchValue] = useState(location || '');
 
-  // Define default filter values
-  const defaultFilters = {
-    searchLocation: '',
-    propertyFor: 'Sell',
-    propertyType: '',
-    propertySubType: '',
-    bhk: '',
-    verificationStatus: '1',
+  // Sync filters with Redux state
+  const filters = {
+    searchLocation: location || '',
+    propertyFor: property_for || 'Sell',
+    propertyType: property_in || '',
+    propertySubType: sub_type || '',
+    bhk: bhk || '',
   };
 
   // Reset dependent filters when propertyType or propertySubType changes
   useEffect(() => {
-    // Reset propertySubType and bhk when propertyType changes
-    if (filters.propertyType !== 'Residential' && filters.propertyType !== 'Commercial') {
-      onFilterChange('propertySubType', '');
-      onFilterChange('bhk', '');
-    } else if (filters.propertyType === 'Commercial') {
-      onFilterChange('bhk', ''); // Always reset bhk for Commercial
+    if (property_in !== 'Residential' && property_in !== 'Commercial') {
+      dispatch(setSubType(''));
+      dispatch(setBHK(''));
+    } else if (property_in === 'Commercial') {
+      dispatch(setBHK(''));
     }
 
-    // Reset bhk when propertySubType is not Apartment, Independent House, or Independent Villa
     if (
-      filters.propertyType === 'Residential' &&
-      !['Apartment', 'Independent House', 'Independent Villa'].includes(filters.propertySubType)
+      property_in === 'Residential' &&
+      !['Apartment', 'Independent House', 'Independent Villa'].includes(sub_type)
     ) {
-      onFilterChange('bhk', '');
+      dispatch(setBHK(''));
     }
-  }, [filters.propertyType, filters.propertySubType]);
+  }, [property_in, sub_type, dispatch]);
+
+  // Sync searchValue with location from Redux
+  useEffect(() => {
+    setSearchValue(location || '');
+  }, [location]);
+
+  // Debounced dispatch for location
+  const debouncedSetLocation = useCallback(
+    debounce((value) => {
+      dispatch(setLocation(value));
+      onFilterChange('searchLocation', value);
+    }, 500),
+    [dispatch, onFilterChange]
+  );
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    debouncedSetLocation(value);
+  };
+
+  const clearSearch = () => {
+    setSearchValue('');
+    dispatch(setLocation(''));
+    onFilterChange('searchLocation', '');
+  };
 
   const clearFilters = () => {
-    // Reset each filter to its default value
-    Object.entries(defaultFilters).forEach(([key, value]) => {
-      onFilterChange(key, value);
-    });
+    dispatch(setLocation(''));
+    dispatch(setPropertyFor('Sell'));
+    dispatch(setPropertyIn(''));
+    dispatch(setSubType(''));
+    dispatch(setBHK(''));
+    dispatch(setStatusFilter({ type: 'buy', value: '1' })); // Set Buy to Approved
+    dispatch(setStatusFilter({ type: 'rent', value: null })); // Clear Rent status
   };
 
   const hasActiveFilters = () => {
-    // Check if any filter differs from its default value
     return (
-      filters.searchLocation !== defaultFilters.searchLocation ||
-      filters.propertyFor !== defaultFilters.propertyFor ||
-      filters.propertyType !== defaultFilters.propertyType ||
-      filters.propertySubType !== defaultFilters.propertySubType ||
-      filters.bhk !== defaultFilters.bhk ||
-      filters.verificationStatus !== defaultFilters.verificationStatus
+      filters.searchLocation !== '' ||
+      filters.propertyFor !== 'Sell' ||
+      filters.propertyType !== '' ||
+      filters.propertySubType !== '' ||
+      filters.bhk !== ''
     );
   };
 
   const getActiveFiltersCount = () => {
     let count = 0;
-    if (filters.searchLocation !== defaultFilters.searchLocation) count++;
-    if (filters.propertyFor !== defaultFilters.propertyFor) count++;
-    if (filters.propertyType !== defaultFilters.propertyType) count++;
-    if (filters.propertySubType !== defaultFilters.propertySubType) count++;
-    if (filters.bhk !== defaultFilters.bhk) count++;
-    if (filters.verificationStatus !== defaultFilters.verificationStatus) count++;
+    if (filters.searchLocation !== '') count++;
+    if (filters.propertyFor !== 'Sell') count++;
+    if (filters.propertyType !== '') count++;
+    if (filters.propertySubType !== '') count++;
+    if (filters.bhk !== '') count++;
     return count;
   };
 
-  const CustomSelect = ({ value, onChange, placeholder, options, icon: Icon, className = '' }) => (
-    <div className={`relative group ${className}`}>
-      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-hover:text-blue-600 transition-colors z-10">
-        <Icon size={16} color="#1D37A6" />
-      </div>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full h-12 pl-10 pr-8 bg-white border-2 border-gray-200 rounded-xl text-gray-800 font-medium
-                   hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 
-                   transition-all duration-200 shadow-sm hover:shadow-md
-                   appearance-none cursor-pointer text-sm
-                   bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xIDFMNiA2TDExIDEiIHN0cm9rZT0iIzZCNzI4MCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==')] bg-no-repeat bg-[length:10px_6px] bg-[position:calc(100%-12px)_center]"
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-
   const filterOptions = {
     propertyFor: [
-      { value: 'Sell', label: 'For Sale' },
-      { value: 'Rent', label: 'For Rent' },
+      { value: 'Sell', label: 'Buy' },
+      { value: 'Rent', label: 'Rent' },
     ],
     propertyType: [
       { value: 'Residential', label: 'Residential' },
@@ -133,13 +136,8 @@ const FilterBar = ({
       { value: '4', label: '4 BHK' },
       { value: '5+', label: '5+ BHK' },
     ],
-    verificationStatus: [
-      { value: '1', label: '✅ Active' },
-      { value: '0', label: '❌ Inactive' },
-    ],
   };
 
-  // Determine subType options based on propertyType
   const subTypeOptions =
     filters.propertyType === 'Residential'
       ? filterOptions.propertySubType.Residential
@@ -147,19 +145,39 @@ const FilterBar = ({
       ? filterOptions.propertySubType.Commercial
       : [];
 
-  // Determine if BHK should be shown
   const showBHK =
     filters.propertyType === 'Residential' &&
     ['Apartment', 'Independent House', 'Independent Villa'].includes(filters.propertySubType);
 
+  const handleFilterChangeInternal = (filterName, value) => {
+    switch (filterName) {
+      case 'searchLocation':
+        dispatch(setLocation(value));
+        break;
+      case 'propertyFor':
+        dispatch(setPropertyFor(value));
+        break;
+      case 'propertyType':
+        dispatch(setPropertyIn(value));
+        break;
+      case 'propertySubType':
+        dispatch(setSubType(value));
+        break;
+      case 'bhk':
+        dispatch(setBHK(value));
+        break;
+      default:
+        break;
+    }
+    onFilterChange(filterName, value);
+  };
+
   return (
     <>
-      {/* Desktop Single Row Layout (lg, xl, 2xl, 3xl) */}
       <div className="hidden lg:block">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="p-4">
             <div className="flex items-center gap-3">
-              {/* Search Location - Flexible width */}
               <div className="relative group flex-1 min-w-0 lg:max-w-xs xl:max-w-sm 2xl:max-w-md">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-blue-600 transition-colors z-10">
                   <Search size={16} color="#1D37A6" />
@@ -167,50 +185,54 @@ const FilterBar = ({
                 <input
                   type="text"
                   placeholder="Search location..."
-                  value={filters.searchLocation}
-                  onChange={(e) => onFilterChange('searchLocation', e.target.value)}
-                  className="w-full h-12 pl-10 pr-4 bg-white border-2 border-gray-200 rounded-xl text-gray-800 font-medium
+                  value={searchValue}
+                  onChange={handleSearchChange}
+                  className="w-full h-12 pl-10 pr-10 bg-white border-2 border-gray-200 rounded-xl text-gray-800 font-medium
                            placeholder:text-gray-500 placeholder:font-normal
                            hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 
                            transition-all duration-200 shadow-sm hover:shadow-md text-sm"
                 />
+                {searchValue && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors z-10"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
               </div>
 
-              {/* Property For */}
               <CustomSelect
                 value={filters.propertyFor}
-                onChange={(value) => onFilterChange('propertyFor', value)}
+                onChange={(value) => handleFilterChangeInternal('propertyFor', value)}
                 placeholder="Property For"
                 icon={MapPin}
                 options={filterOptions.propertyFor}
                 className="w-40 flex-shrink-0"
               />
 
-              {/* Property Type */}
               <CustomSelect
                 value={filters.propertyType}
-                onChange={(value) => onFilterChange('propertyType', value)}
+                onChange={(value) => handleFilterChangeInternal('propertyType', value)}
                 placeholder="Property Types"
                 icon={Home}
                 options={filterOptions.propertyType}
                 className="w-44 flex-shrink-0"
               />
 
-              {/* Property SubType */}
               <CustomSelect
                 value={filters.propertySubType}
-                onChange={(value) => onFilterChange('propertySubType', value)}
+                onChange={(value) => handleFilterChangeInternal('propertySubType', value)}
                 placeholder="Property SubTypes"
                 icon={Home}
                 options={subTypeOptions}
                 className="w-44 flex-shrink-0"
               />
 
-              {/* BHK Configuration - Conditionally Rendered */}
               {showBHK && (
                 <CustomSelect
                   value={filters.bhk}
-                  onChange={(value) => onFilterChange('bhk', value)}
+                  onChange={(value) => handleFilterChangeInternal('bhk', value)}
                   placeholder="BHK"
                   icon={Bed}
                   options={filterOptions.bhk}
@@ -218,20 +240,10 @@ const FilterBar = ({
                 />
               )}
 
-              {/* Verification Status */}
-              <CustomSelect
-                value={filters.verificationStatus}
-                onChange={(value) => onFilterChange('verificationStatus', value)}
-                placeholder="Status"
-                icon={Shield}
-                options={filterOptions.verificationStatus}
-                className="w-36 flex-shrink-0"
-              />
-
-               {hasActiveFilters() && (
+              {hasActiveFilters() && (
                 <button
                   onClick={clearFilters}
-                  className="flex items-center px-4 py-3  bg-[#1D37A6] hover:bg-[#1D37A6] text-white font-medium rounded-xl 
+                  className="flex items-center px-4 py-3 bg-[#1D37A6] hover:bg-[#1D37A6] text-white font-medium rounded-xl 
                            transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0 text-sm"
                 >
                   <X size={16} className="mr-1" />
@@ -239,18 +251,13 @@ const FilterBar = ({
                 </button>
               )}
             </div>
-
-          
           </div>
         </div>
       </div>
 
-      {/* Mobile & Tablet Layout (sm, md) */}
       <div className="lg:hidden">
-        {/* Top Filter Button */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-4">
           <div className="p-4">
-            {/* Search Bar */}
             <div className="relative group mb-3">
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-[#1D37A6] transition-colors">
                 <Search size={18} />
@@ -258,15 +265,22 @@ const FilterBar = ({
               <input
                 type="text"
                 placeholder="Search location and name..."
-                value={filters.searchLocation}
-                onChange={(e) => onFilterChange('searchLocation', e.target.value)}
-                className="w-full h-12 pl-11 pr-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-800
+                value={searchValue}
+                onChange={handleSearchChange}
+                className="w-full h-12 pl-11 pr-10 bg-gray-50 border border-gray-200 rounded-xl text-gray-800
                          placeholder:text-gray-500 focus:border-[#1D37A6] focus:ring-2 focus:ring-blue-100 
                          transition-all duration-200"
               />
+              {searchValue && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors z-10"
+                >
+                  <X size={18} />
+                </button>
+              )}
             </div>
 
-            {/* Filter Toggle Button */}
             <button
               onClick={() => setShowBottomSheet(true)}
               className="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#1D37A6] to-[#1D37A6] 
@@ -288,18 +302,14 @@ const FilterBar = ({
         </div>
       </div>
 
-      {/* Bottom Sheet Overlay */}
       {showBottomSheet && (
         <div className="lg:hidden fixed inset-0 z-50">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
             onClick={() => setShowBottomSheet(false)}
           />
 
-          {/* Bottom Sheet */}
           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl max-h-[80vh] overflow-hidden animate-in slide-in-from-bottom duration-300">
-            {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <div className="flex items-center">
                 <Filter size={20} className="mr-2 text-[#1D37A6]" />
@@ -318,72 +328,54 @@ const FilterBar = ({
               </button>
             </div>
 
-            {/* Filter Content */}
             <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(80vh-140px)]">
-              {/* Property For */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Property For</label>
                 <CustomSelect
                   value={filters.propertyFor}
-                  onChange={(value) => onFilterChange('propertyFor', value)}
+                  onChange={(value) => handleFilterChangeInternal('propertyFor', value)}
                   placeholder="All Properties"
                   icon={MapPin}
                   options={filterOptions.propertyFor}
                 />
               </div>
 
-              {/* Property Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
                 <CustomSelect
                   value={filters.propertyType}
-                  onChange={(value) => onFilterChange('propertyType', value)}
+                  onChange={(value) => handleFilterChangeInternal('propertyType', value)}
                   placeholder="All Types"
                   icon={Home}
                   options={filterOptions.propertyType}
                 />
               </div>
 
-              {/* Property SubType */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Property SubType</label>
                 <CustomSelect
                   value={filters.propertySubType}
-                  onChange={(value) => onFilterChange('propertySubType', value)}
+                  onChange={(value) => handleFilterChangeInternal('propertySubType', value)}
                   placeholder="All SubTypes"
                   icon={Home}
                   options={subTypeOptions}
                 />
               </div>
 
-              {/* BHK and Verification in a row */}
-              <div className="grid grid-cols-2 gap-4">
-                {showBHK && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">BHK</label>
-                    <CustomSelect
-                      value={filters.bhk}
-                      onChange={(value) => onFilterChange('bhk', value)}
-                      placeholder="All BHK"
-                      icon={Bed}
-                      options={filterOptions.bhk}
-                    />
-                  </div>
-                )}
+              {showBHK && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">BHK</label>
                   <CustomSelect
-                    value={filters.verificationStatus}
-                    onChange={(value) => onFilterChange('verificationStatus', value)}
-                    placeholder="All Status"
-                    icon={Shield}
-                    options={filterOptions.verificationStatus}
+                    value={filters.bhk}
+                    onChange={(value) => handleFilterChangeInternal('bhk', value)}
+                    placeholder="All BHK"
+                    icon={Bed}
+                    options={filterOptions.bhk}
                   />
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Bottom Actions */}
             <div className="p-6 border-t border-gray-100 bg-gray-50">
               <div className="flex gap-3">
                 {hasActiveFilters() && (
@@ -410,6 +402,32 @@ const FilterBar = ({
       )}
     </>
   );
+
+  function CustomSelect({ value, onChange, placeholder, options, icon: Icon, className = '' }) {
+    return (
+      <div className={`relative group ${className}`}>
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-hover:text-blue-600 transition-colors z-10">
+          <Icon size={16} color="#1D37A6" />
+        </div>
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full h-12 pl-10 pr-8 bg-white border-2 border-gray-200 rounded-xl text-gray-800 font-medium
+                     hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 
+                     transition-all duration-200 shadow-sm hover:shadow-md
+                     appearance-none cursor-pointer text-sm
+                     bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xIDFMNiA2TDExIDEiIHN0cm9rZT0iIzZCNzI4MCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==')] bg-no-repeat bg-[length:10px_6px] bg-[position:calc(100%-12px)_center]"
+        >
+          <option value="">{placeholder}</option>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
 };
 
 export default FilterBar;

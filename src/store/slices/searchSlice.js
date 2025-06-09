@@ -14,6 +14,10 @@ const searchSlice = createSlice({
     occupancy: "",
     location: "",
     userCity: null,
+    statusFilter: {
+      buy: null,
+      rent: null,
+    },
     loading: false,
     error: null,
   },
@@ -66,6 +70,10 @@ const searchSlice = createSlice({
     setCommercialSubType: (state, action) => {
       state.commercial_subType = action.payload;
     },
+     setStatusFilter(state, action) {
+      const { type, value } = action.payload;
+      state.statusFilter[type] = value;
+    },
   },
 });
 export const {
@@ -84,5 +92,6 @@ export const {
   setSearchData,
   setPlotSubType,
   setCommercialSubType,
+  setStatusFilter
 } = searchSlice.actions;
 export default searchSlice.reducer;
