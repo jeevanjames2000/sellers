@@ -20,23 +20,23 @@ import { useDispatch } from "react-redux";
 import useFetchAndSetProperty from "../services/useFetchAndSetProperty";
 import { submitBasicDetails } from "../services/submitBasicDetails";
 const steps = [
-  // { label: "Basic Details", component: BasicDetails },
-  // { label: "Property Details", component: PropertyDetails },
-  // { label: "Address", component: Address },
+  { label: "Basic Details", component: BasicDetails },
+  { label: "Property Details", component: PropertyDetails },
+  { label: "Address", component: Address },
   { label: "Property Photos", component: Photos },
   { label: "Review", component: Review },
 ];
 export default function MultiStepForm() {
   const dispatch = useDispatch();
-  const [propertyId, setPropertyId] = useState("MO-517327");
+  const [propertyId, setPropertyId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
   useEffect(() => {
-    // const idFromURL = searchParams.get("property_id");
-    // if (idFromURL) {
-    //   setPropertyId(idFromURL);
-    // }
+    const idFromURL = searchParams.get("property_id");
+    if (idFromURL) {
+      setPropertyId(idFromURL);
+    }
   }, [searchParams]);
   const methods = useForm({ mode: "onChange" });
   const [currentStep, setCurrentStep] = useState(0);
