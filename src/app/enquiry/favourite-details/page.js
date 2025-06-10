@@ -60,10 +60,10 @@ export default function ContactedDetails() {
   const [endDate, setEndDate] = useState(null);
   const [selectedState, setSelectedState] = useState("");
 
-  
+  // Fetch activity data when component mounts
 
-  const fetchActivity = async () => {
-       const storedUser = localStorage.getItem('userDetails');
+const fetchActivity = async () => {
+    const storedUser = localStorage.getItem('userDetails');
         let userId;
         if (storedUser) {
             try {
@@ -85,18 +85,17 @@ export default function ContactedDetails() {
       dispatch(setResultsLoading());
       try {
         const response = await fetch(
-          `https://api.meetowner.in/enquiry/v1/getPropertyEnquiries?user_id=${userId}`
+          `https://api.meetowner.in/enquiry/v1/getAllFavouritesByUserId?user_id=${userId}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch property activity");
         }
         const data = await response.json();
-        dispatch(setActivity({ results: data.formattedResults || [] }));
+        dispatch(setActivity({ results: data.favourites || [] }));
       } catch (err) {
         dispatch(setResultsError(err.message));
       }
-  };
-
+    };
   useEffect(() => {
   
     fetchActivity();
@@ -204,7 +203,7 @@ export default function ContactedDetails() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">
-                        Total Contacted
+                        Total Favourites
                       </p>
                       <p className="text-2xl font-bold text-gray-900">
                         {results.length}
@@ -238,7 +237,7 @@ export default function ContactedDetails() {
                       <p className="font-medium text-green-800">
                         Export Reports
                       </p>
-                      <p className="text-xs text-wrap  text-green-600">
+                      <p className="text-xs text-wrap text-green-600">
                         Download detailed analytics
                       </p>
                     </div>
@@ -266,7 +265,7 @@ export default function ContactedDetails() {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <Card className="bg-white shadow-lg border-0 ">
+            <Card className="bg-white shadow-lg border-0">
               <CardHeader className="border-b border-gray-200 bg-gray-50 py-4">
                 <div className="flex flex-col space-y-4">
                   <CardTitle className="text-xl font-bold text-gray-900">
@@ -357,13 +356,13 @@ export default function ContactedDetails() {
                           </TableHead>
                            <TableHead className="font-semibold text-gray-900">
                             Property For
-                          </TableHead>
-                           <TableHead className="font-semibold text-gray-900">
-                            Property Type
-                          </TableHead>
-                           <TableHead className="font-semibold text-gray-900">
+                            </TableHead>
+                            <TableHead className="font-semibold text-gray-900">
+                                Property Type
+                            </TableHead>
+                            <TableHead className="font-semibold text-gray-900">
                             Property In
-                          </TableHead>
+                        </TableHead>
                           <TableHead className="font-semibold text-gray-900">
                             City
                           </TableHead>
@@ -433,24 +432,24 @@ export default function ContactedDetails() {
                             </TableCell>
                             <TableCell className="py-4">
                               <div className="space-y-2">
-                                {item.property_for || "N/A"}
-                              </div>
-                            </TableCell>
-                             <TableCell className="py-4">
-                              <div className="space-y-2">
-                                {item.property_in || "N/A"}
-                              </div>
-                            </TableCell>
-                            <TableCell className="py-4">
-                              <div className="space-y-2">
-                                {item.sub_type || "N/A"}
-                              </div>
-                            </TableCell>
-                            <TableCell className="py-4">
-                              <div className="space-y-2">
                                 {item.city_id || "N/A"}
                               </div>
                             </TableCell>
+                             <TableCell className="py-4">
+                            <div className="space-y-2">
+                                {item.property_for || "N/A"}
+                            </div>
+                            </TableCell>
+                            <TableCell className="py-4">
+                            <div className="space-y-2">
+                            {item.property_in || "N/A"}
+                            </div>
+                            </TableCell>
+                            <TableCell className="py-4">
+                            <div className="space-y-2">
+                                {item.sub_type || "N/A"}
+                            </div>
+                        </TableCell>
                             <TableCell className="py-4">
                               <div className="flex items-center space-x-2">
                                 <Button

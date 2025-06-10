@@ -69,18 +69,11 @@ const PropertySection = () => {
   };
 
  
-  const handleViewContacted = (property) => {
-    const queryParams = new URLSearchParams({
-      property_name: property.property_name,
-      bedrooms: property.bedrooms,
-      propertyId: property.unique_property_id,
-      propertyType: property.sub_type,
-      property_for: property.property_for,
-      location:property.google_address,
-    }).toString();
+  const handleViewContacted = () => {
+   
 
    
-    router.push(`/enquiry/contact-details?${queryParams}`);
+    router.push(`/enquiry/contact-details`);
   };
 
   const handleUpgradedClick = () => {
@@ -222,7 +215,7 @@ const PropertySection = () => {
                           <div className="pt-2 mt-auto">
                             <div className="grid grid-cols-2 gap-2">
                               <Button
-                                onClick={() => handleViewContacted(property)}
+                                onClick={() => handleViewContacted()}
                                 variant="outline"
                                 size="sm"
                                 className="border-2 border-blue-200 text-[#1D73A6] hover:bg-blue-50 hover:border-blue-300 font-medium rounded-lg transition-all cursor-pointer text-xs h-8"

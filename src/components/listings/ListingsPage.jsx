@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useRouter, useSearchParams } from "next/navigation";
 import FilterBar from "./FilterBar";
 import PropertyCard from "./PropertyCard";
 import { PaginationWrapper } from "../enquires/PaginationWrapper";
@@ -14,16 +15,21 @@ import {
   setSubType,
 } from "@/store/slices/searchSlice";
 import { Loading } from "@/lib/loader";
+import { Button } from "@/components/ui/button";
 
 const ListingsPage = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [properties, setProperties] = useState([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const itemsPerPage = 5;
-
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const dispatch = useDispatch();
   const { property_for, property_in, sub_type, bhk, location, loading, error, statusFilter } =
     useSelector((state) => state.search);
+
+  const initialPage = parseInt(searchParams.get("page")) || 1;
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [properties, setProperties] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentCount, setCurrentCount] = useState(0);
 
   const filters = {
     searchLocation: location,
@@ -31,7 +37,7 @@ const ListingsPage = () => {
     propertyType: property_in,
     propertySubType: sub_type,
     bhk: bhk,
-    verificationStatus: statusFilter[property_for === 'Sell' ? 'buy' : 'rent'] || '1',
+    verificationStatus: statusFilter[property_for === "Sell" ? "buy" : "rent"] || "1",
     propertyId: "",
   };
 
@@ -56,7 +62,7 @@ const ListingsPage = () => {
 
       try {
         let apiPropertyFor = property_for || "Sell";
-        let apiPropertyStatus = statusFilter[apiPropertyFor === 'Sell' ? 'buy' : 'rent'] ?? '1';
+        let apiPropertyStatus = statusFilter[apiPropertyFor === "Sell" ? "buy" : "rent"] ?? "1";
 
         const queryParams = {
           page: currentPage,
@@ -70,7 +76,7 @@ const ListingsPage = () => {
           occupancy: "",
           property_status: apiPropertyStatus,
           city_id: "",
-          user_id: userId,
+          user_id: 100,
         };
 
         const url = new URL("https://api.meetowner.in/listings/v1/getAllListingsByType");
@@ -86,13 +92,16 @@ const ListingsPage = () => {
         }
 
         const data = await response.json();
-        console.log(data.properties.length, "length");
         setProperties(data.properties || []);
         setTotalPages(data.total_pages || 1);
+        setTotalCount(data.total_count || 0);
+        setCurrentCount(data.current_count || 0);
       } catch (err) {
         dispatch(setError(err.message));
         setProperties([]);
         setTotalPages(1);
+        setTotalCount(0);
+        setCurrentCount(0);
       } finally {
         dispatch(setLoading(false));
       }
@@ -100,6 +109,24 @@ const ListingsPage = () => {
 
     fetchProperties();
   }, [currentPage, property_for, property_in, sub_type, bhk, location, statusFilter, dispatch]);
+
+  // Ensure currentPage is valid
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  // Sync currentPage with URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (currentPage === 1) {
+      params.delete("page");
+    } else {
+      params.set("page", currentPage);
+    }
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [currentPage, router, searchParams]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -130,7 +157,7 @@ const ListingsPage = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="p-6 sm:p-2 lg:p-6 space-y-8">
       <FilterBar onFilterChange={handleFilterChange} />
       {loading ? (
         <div className="text-center py-16">
@@ -140,47 +167,78 @@ const ListingsPage = () => {
       ) : error ? (
         <div className="text-center py-16">
           <p className="text-red-600 text-lg">Error: {error}</p>
+          <Button
+            onClick={() => handlePageChange(currentPage)}
+            className="mt-4 bg-[#1D3A76] hover:bg-[#2B4A86] text-white px-8 py-3 rounded-lg"
+          >
+            Retry
+          </Button>
         </div>
       ) : null}
       {!loading && !error && properties.length === 0 && (
-        <p className="text-center text-gray-600">No properties found.</p>
+        <p className="text-center text-gray-600 text-lg">No properties found.</p>
+      )}
+      {!loading && properties.length > 0 && (
+        <div className="mb-2">
+          <div className="flex flex-col md:flex-row items-center justify-between">
+            <p className="text-gray-600 text-base sm:text-lg">
+              Displaying{" "}
+              <span className="font-semibold text-[#1D3A76]">{currentCount}</span>{" "}
+              out of{" "}
+              <span className="font-semibold text-[#1D3A76]">{totalCount}</span>{" "}
+              Listings
+            </p>
+          </div>
+        </div>
       )}
       <div className="space-y-3">
-        {properties.map((property) => (
-          <PropertyCard
+        {properties.map((property, index) => (
+          <div
             key={property.id}
-            id={property.unique_property_id}
-            title={property.property_name}
-            price={property.property_cost || "N/A"}
-            bhk={property.bedrooms || "N/A"}
-            type={property.property_in}
-            status={property.property_status === 1 ? "Approved" : property.property_status === 0 ? "Review" : "Rejected"}
-            location={property.google_address}
-            facing={property.facing}
-            lastUpdated={property.updated_date}
-            expiry={property.expiry_date || "N/A"}
-            furnished_status={property.furnished_status || "N/A"}
-            enquiries={property.enquiries || 0}
-            favourites={property.favourites || 0}
-            image={
-              property.image
-                ? `https://api.meetowner.in/uploads/${property.image}`
-                : "https://placehold.co/400x300"
-            }
-            developer={property.user?.name || "Unknown Developer"}
-            propertyFor={property.property_for}
-            propertyIn={property.property_in}
-            propertySubType={property.sub_type || ""}
-            monthly_rent={property.monthly_rent}
-            occupancy={property.occupancy}
-            available_from={property.available_from}
-          />
+            className="animate-in slide-in-from-bottom-4 duration-500"
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            <PropertyCard
+              id={property.unique_property_id}
+              title={property.property_name}
+              price={property.property_cost || "N/A"}
+              bhk={property.bedrooms || "N/A"}
+              type={property.property_in}
+              status={
+                property.property_status === 1
+                  ? "Approved"
+                  : property.property_status === 0
+                  ? "Review"
+                  : "Rejected"
+              }
+              location={property.google_address || "N/A"}
+              facing={property.facing || null}
+              lastUpdated={property.updated_date || "N/A"}
+              expiryDate={property.expiry_date || "N/A"}
+              furnished_status={property.furnished_status || "N/A"}
+              enquiries={property.enquiries || 0}
+              favourites={property.favourites || 0}
+              image={
+                property.image
+                  ? `https://api.meetowner.in/uploads/${property.image}`
+                  : "https://placehold.co/400x300"
+              }
+              developer={property.user?.name || "N/A"}
+              propertyFor={property.property_for || "N/A"}
+              propertyType={property.property_in || "N/A"}
+              propertySubType={property.sub_type || "N/A"}
+              monthly_rent={property.monthly_rent || "N/A"}
+              occupancy={property.occupancy || "N/A"}
+              available_from={property.available_from || "N/A"}
+            />
+          </div>
         ))}
       </div>
-      {!loading && properties.length > 0 && (
+      {totalCount > 0 && totalPages > 1 && (
         <div className="mt-6 flex justify-center">
           <PaginationWrapper
             totalPages={totalPages}
+            currentPage={currentPage}
             onPageChange={handlePageChange}
           />
         </div>

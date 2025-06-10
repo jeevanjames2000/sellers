@@ -1,17 +1,11 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CustomCard } from "@/components/ui/card";
+import {  CardContent, CustomCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+
 import {
-  MapPin,
   Phone,
-  Mail,
-  Heart,
-  Building,
   Ruler,
-  User,
-  IdCard,
   CreditCard,
 } from "lucide-react";
 
@@ -26,7 +20,7 @@ const EnquiryCard = ({
   price,
   avatar,
   totalContacted,
-  activity,
+  
 }) => {
   const [imageSrc, setImageSrc] = useState(avatar);
   console.log("imageSrc: ", imageSrc);
@@ -38,19 +32,6 @@ const EnquiryCard = ({
     setImageSrc("https://placehold.co/100x100");
   };
 
-  const handleViewContacted = () => {
-    const queryParams = new URLSearchParams({
-      property_name,
-      bedrooms,
-      propertyId,
-      propertyType,
-      property_for,
-      location,
-    }).toString();
-
-    // Navigate to the child route with query parameters
-    router.push(`/enquiry/contact-details?${queryParams}`);
-  };
 
   return (
     <CustomCard className="group border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-white hover:scale-[1.01] overflow-hidden">
@@ -86,7 +67,7 @@ const EnquiryCard = ({
                 </div>
               </div>
             </div>
-            {/* Property Details - Mobile */}
+            
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 mb-4">
               <h4 className="text-xs font-semibold text-gray-700 mb-2 tracking-wide">
                 Property Details
@@ -111,28 +92,14 @@ const EnquiryCard = ({
                       {location}
                     </p>
                   </div>
-                  <Badge className="bg-green-100 text-green-800 px-2 py-1 text-sm font-bold ml-2">
-                    ₹ {price}
+                  <Badge className="bg-[#1D37A6] text-white px-2 py-1 text-sm font-bold ml-2">
+                     {price}
                   </Badge>
                 </div>
               </div>
             </div>
-            {/* Action Buttons - Mobile */}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50 text-xs py-2"
-              >
-                Favourites
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50 text-xs py-2 cursor-pointer"
-                onClick={handleViewContacted}
-              >
-                View Contacted
-              </Button>
-            </div>
+            
+
           </div>
           {/* Desktop Layout (md and above) */}
           <div className="hidden md:block">
@@ -198,8 +165,8 @@ const EnquiryCard = ({
                         </Badge>
                       </div>
                       <div className="text-center lg:text-right">
-                        <Badge className="bg-green-100 text-blue-800 hover:bg-green-200 transition-colors px-3 py-2 text-base font-bold">
-                          ₹ {price}
+                        <Badge className="bg-[#1D37A6] text-white transition-colors px-3 py-2 text-base font-bold">
+                           {price}
                         </Badge>
                       </div>
                     </div>
@@ -207,23 +174,7 @@ const EnquiryCard = ({
                 </div>
               </div>
             </div>
-            <div className="mt-4 pt-4">
-              <div className="flex flex-col md:flex-row gap-3">
-                <Button
-                  variant="outline"
-                  className="flex-1 text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 font-semibold py-3"
-                >
-                  Favourites
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-200 font-semibold py-3 cursor-pointer"
-                  onClick={handleViewContacted}
-                >
-                  View Contacted
-                </Button>
-              </div>
-            </div>
+           
           </div>
         </div>
       </CardContent>

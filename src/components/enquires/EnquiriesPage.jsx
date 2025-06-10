@@ -117,6 +117,15 @@ const EnquiriesPage = ({ activeTab }) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+
+  
+  const handleViewContacted = () => {
+    router.push(`/enquiry/contact-details`);
+  };
+  const handleViewFavourites = () => {
+    router.push(`/enquiry/favourite-details`);
+  };
+
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedData = properties
@@ -146,22 +155,33 @@ const EnquiriesPage = ({ activeTab }) => {
             ) : (
               <>
                 <div className="mb-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row  items-center justify-between">
                     <p className="text-gray-600 text-base sm:text-lg">
                       Displaying{" "}
-                      <span className="font-semibold text-[#1D3A76]">
-                        {paginatedData.length}
-                      </span>{" "}
+                      <span className="font-semibold text-[#1D3A76]">{paginatedData.length}</span>{" "}
                       out of{" "}
-                      <span className="font-semibold text-[#1D3A76]">
-                        {count}
-                      </span>{" "}
-                      Listings
+                      <span className="font-semibold text-[#1D3A76]">{count}</span> Listings
                     </p>
-                    <div className="hidden sm:block w-24 h-1 bg-gradient-to-r from-[#1D3A76] to-blue-400 rounded-full"></div>
+                    <div className="flex gap-4">
+                      <Button
+                        variant="outline"
+                        className="flex-1 bg-[#1D3A76] text-white  transition-all duration-200 font-semibold py-3 cursor-pointer"
+                        onClick={handleViewFavourites}
+                      >
+                        Favourites
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 bg-[#1D3A76] text-white  transition-all duration-200 font-semibold py-3 cursor-pointer"
+                        onClick={handleViewContacted}
+                      >
+                        View Contacted
+                      </Button>
+                    </div>
                   </div>
-                </div>
-
+                   <div className="mt-4 pt-4">
+                  </div>
+               </div>
                 <div className="space-y-3">
                   {paginatedData.length > 0 ? (
                     paginatedData.map((enquiry, index) => (
