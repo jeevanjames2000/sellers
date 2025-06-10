@@ -112,17 +112,10 @@ const PropertyCard = ({
   };
 
   const handleViewContacted = () => {
-    const queryParams = new URLSearchParams({
-      property_name: title,
-      bedrooms: bhk,
-      propertyId: id,
-      propertyType: propertySubType,
-      property_for: propertyFor,
-      location,
-    }).toString();
+    
 
-    // Navigate to the child route with query parameters
-    router.push(`/enquiry/contact-details?${queryParams}`);
+    
+    router.push(`/enquiry/contact-details`);
   };
 
   return (

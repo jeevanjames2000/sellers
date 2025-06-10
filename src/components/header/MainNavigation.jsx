@@ -22,25 +22,33 @@ import {
 import LoadingOverlay from "../shared/LoadingOverlay";
 import { useDispatch } from "react-redux";
 import { clearLogin } from "@/store/slices/loginSlice";
+import { clearSignup } from "@/store/slices/signupSlice";
 
 const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
-   const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const [isLoadingEffect, setIsLoadingEffect] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
   const router = useRouter();
+  router.prefetch('/');
   const pathname = usePathname();
   const isActive = (path) => pathname === path;
 
-   const handleLogout = () => {
-      dispatch(clearLogin());
-      localStorage.removeItem('userToken');
-      localStorage.removeItem('userDetails');
-       if (isMobile && toggleSidebar) {
-        toggleSidebar();
-      }
-      router.push('/');
-   }
+const handleLogout = () => {
+  setIsLoadingEffect(true);
+  dispatch(clearLogin()); 
+  dispatch(clearSignup()); 
+  localStorage.removeItem("userToken");
+  localStorage.removeItem("userDetails");
+  window.history.pushState(null, document.title, "/login");
+  window.onpopstate = () => {
+    window.history.pushState(null, document.title, "/login");
+    router.push("/login");
+  };
+  router.replace("/login");
+  setIsLoadingEffect(false);
+  if (isMobile && toggleSidebar) toggleSidebar();
+};
 
   const navigationItems = [
     { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -80,6 +88,7 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
                   href={item.href}
                   onClick={toggleSidebar}
                   className="block rounded-lg transition-all duration-200 cursor-pointer"
+                  prefetch={true}
                 >
                   <div
                     className={`flex items-center px-4 py-3 rounded-lg cursor-pointer ${
