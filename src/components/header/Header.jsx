@@ -31,7 +31,6 @@ function Header() {
         dispatch(setLogin({ user: userDetails, token: storedToken }));
       } catch (error) {
         console.error("Error parsing user details from localStorage:", error);
-        // Clear invalid data from localStorage
         localStorage.removeItem("userToken");
         localStorage.removeItem("userDetails");
         dispatch(clearLogin());

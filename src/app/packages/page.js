@@ -1,3 +1,4 @@
+import Authuserverify from "@/components/shared/AuthVerify";
 import dynamic from "next/dynamic";
 const PackagesWrapper = dynamic(() =>
   import("@/components/packages/PackagesWrapper")
@@ -5,7 +6,11 @@ const PackagesWrapper = dynamic(() =>
 import React from "react";
 
 function page() {
-  return <PackagesWrapper />;
+  return (
+    <Authuserverify>
+       <PackagesWrapper />
+    </Authuserverify>
+  );
 }
 
 export default page;

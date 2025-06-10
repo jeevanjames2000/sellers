@@ -28,3 +28,4 @@ export const store = configureStore({
     places:placesSlice
   },
 });
+

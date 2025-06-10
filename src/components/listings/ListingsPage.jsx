@@ -24,8 +24,11 @@ const ListingsPage = () => {
   const { property_for, property_in, sub_type, bhk, location, loading, error, statusFilter } =
     useSelector((state) => state.search);
 
+  // Initialize currentPage from URL
   const initialPage = parseInt(searchParams.get("page")) || 1;
+  console.log("initial page:", initialPage);
   const [currentPage, setCurrentPage] = useState(initialPage);
+  console.log("current page:", currentPage);
   const [properties, setProperties] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -41,6 +44,15 @@ const ListingsPage = () => {
     propertyId: "",
   };
 
+  // Update currentPage if URL changes (e.g., browser back/forward)
+  useEffect(() => {
+    const pageFromUrl = parseInt(searchParams.get("page")) || 1;
+    if (pageFromUrl !== currentPage) {
+      setCurrentPage(pageFromUrl);
+    }
+  }, [searchParams]);
+
+  // Fetch properties when currentPage or filters change
   useEffect(() => {
     const fetchProperties = async () => {
       dispatch(setLoading(true));
@@ -76,9 +88,10 @@ const ListingsPage = () => {
           occupancy: "",
           property_status: apiPropertyStatus,
           city_id: "",
-          user_id: 100,
+          user_id: userId, 
         };
 
+        console.log("API call with page:", currentPage); // Debug log
         const url = new URL("https://api.meetowner.in/listings/v1/getAllListingsByType");
         Object.keys(queryParams).forEach((key) => {
           if (queryParams[key] !== null && queryParams[key] !== "") {
