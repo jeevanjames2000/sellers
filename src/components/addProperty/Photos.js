@@ -675,9 +675,6 @@ export default function Photos({ property, unique_property_id }) {
             )}
           </div>
         </div>
-        <Button onClick={handleSubmit} disabled={isLoading}>
-          {isLoading ? "Submitting..." : "Submit"}
-        </Button>
       </div>
       {errorModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">

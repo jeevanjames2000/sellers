@@ -16,13 +16,22 @@ import {
 } from "@/store/slices/searchSlice";
 import { Loading } from "@/lib/loader";
 import { Button } from "@/components/ui/button";
+import config from "../api/config";
 
 const ListingsPage = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const dispatch = useDispatch();
-  const { property_for, property_in, sub_type, bhk, location, loading, error, statusFilter } =
-    useSelector((state) => state.search);
+  const {
+    property_for,
+    property_in,
+    sub_type,
+    bhk,
+    location,
+    loading,
+    error,
+    statusFilter,
+  } = useSelector((state) => state.search);
 
   // Initialize currentPage from URL
   const initialPage = parseInt(searchParams.get("page")) || 1;
@@ -40,7 +49,8 @@ const ListingsPage = () => {
     propertyType: property_in,
     propertySubType: sub_type,
     bhk: bhk,
-    verificationStatus: statusFilter[property_for === "Sell" ? "buy" : "rent"] || "1",
+    verificationStatus:
+      statusFilter[property_for === "Sell" ? "buy" : "rent"] || "1",
     propertyId: "",
   };
 
@@ -74,7 +84,8 @@ const ListingsPage = () => {
 
       try {
         let apiPropertyFor = property_for || "Sell";
-        let apiPropertyStatus = statusFilter[apiPropertyFor === "Sell" ? "buy" : "rent"] ?? "1";
+        let apiPropertyStatus =
+          statusFilter[apiPropertyFor === "Sell" ? "buy" : "rent"] ?? "1";
 
         const queryParams = {
           page: currentPage,
@@ -84,15 +95,17 @@ const ListingsPage = () => {
           search: location || "",
           bedrooms: bhk || "",
           property_cost: "",
-          priceFilter: "Relevance",
+          priceFilter: "",
           occupancy: "",
           property_status: apiPropertyStatus,
           city_id: "",
-          user_id: userId, 
+          user_id: userId,
         };
 
         console.log("API call with page:", currentPage); // Debug log
-        const url = new URL("https://api.meetowner.in/listings/v1/getAllListingsByType");
+        const url = new URL(
+          `${config.api_url}/listings/v1/getAllListingsByType`
+        );
         Object.keys(queryParams).forEach((key) => {
           if (queryParams[key] !== null && queryParams[key] !== "") {
             url.searchParams.append(key, queryParams[key]);
@@ -121,7 +134,16 @@ const ListingsPage = () => {
     };
 
     fetchProperties();
-  }, [currentPage, property_for, property_in, sub_type, bhk, location, statusFilter, dispatch]);
+  }, [
+    currentPage,
+    property_for,
+    property_in,
+    sub_type,
+    bhk,
+    location,
+    statusFilter,
+    dispatch,
+  ]);
 
   // Ensure currentPage is valid
   useEffect(() => {
@@ -189,14 +211,18 @@ const ListingsPage = () => {
         </div>
       ) : null}
       {!loading && !error && properties.length === 0 && (
-        <p className="text-center text-gray-600 text-lg">No properties found.</p>
+        <p className="text-center text-gray-600 text-lg">
+          No properties found.
+        </p>
       )}
       {!loading && properties.length > 0 && (
         <div className="mb-2">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <p className="text-gray-600 text-base sm:text-lg">
               Displaying{" "}
-              <span className="font-semibold text-[#1D3A76]">{currentCount}</span>{" "}
+              <span className="font-semibold text-[#1D3A76]">
+                {currentCount}
+              </span>{" "}
               out of{" "}
               <span className="font-semibold text-[#1D3A76]">{totalCount}</span>{" "}
               Listings

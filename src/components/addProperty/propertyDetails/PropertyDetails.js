@@ -41,17 +41,21 @@ export default function PropertyDetails({
   property,
   setProperty,
   unique_property_id,
+  places,
+  setPlaces,
+  fac,
+  setFac,
 }) {
-  console.log("property: ", property);
   const { register, watch, setValue, getValues } = useFormContext();
   const formValues = watch();
   const propertySubtype = watch("sub_type");
   const commercialSubType = watch("sub_type");
   const isRent = formValues?.property_for === "Rent";
+  console.log("isRent: ", isRent);
   const isSell = formValues?.property_for === "Sell";
   const securityDeposit = watch("security_deposit");
   const lockinPeriod = watch("lock_in");
-  const landSubType = watch("landSubType");
+  const landSubType = watch("land_sub_type");
   const brokerage = watch("brokerage_charge");
   const propertyCost = watch("property_cost");
   const preferredTenantType = watch("types");
@@ -59,7 +63,6 @@ export default function PropertyDetails({
   const pentHouse = watch("pent_house");
   const loanFacility = watch("loan_facility");
   const investorProperty = watch("investor_property");
-  console.log("investorProperty: ", investorProperty);
   const servantRoom = watch("servant_room");
   const facing = watch("facing");
   const carParking = watch("car_parking");
@@ -76,8 +79,14 @@ export default function PropertyDetails({
   const distanceFromProperty = watch("distanceFromProperty");
   const reraApproved = watch("rera_approved");
   const ownership = watch("ownership_type");
-  const [places, setPlaces] = useState([]);
   const [unit, setUnit] = useState("M");
+  const propertyAge = watch("property_age");
+  const [carCustomMode, setCarCustomMode] = useState(false);
+  const [bikeCustomMode, setBikeCustomMode] = useState(false);
+  const [openCustomMode, setOpenCustomMode] = useState(false);
+  const [bathroomCustom, setBathroomCustom] = useState(false);
+  const [balconyCustom, setBalconyCustom] = useState(false);
+  const [bhkCustom, setBhkCustom] = useState(false);
   function formatDistance(meters) {
     if (meters < 1000) {
       return meters + "m";
@@ -147,11 +156,11 @@ export default function PropertyDetails({
     "Outdoor Fitness Station",
     "Half Basket Ball Court",
     "Gazebo",
-    "Badmenton Court",
+    "Badminton Court",
     "Children Play area",
     "Ample Greenery",
     "Water Harvesting Pit",
-    "Water Softner",
+    "Water Softener",
     "Solar Fencing",
     "Security Cabin",
     "Lawn",
@@ -191,7 +200,7 @@ export default function PropertyDetails({
   const shouldShowAge =
     isApartment || isIndependentHouse || isIndependentVilla || isPlot;
   const shouldShowInvestor = isApartment || isIndependentVilla || isPlot;
-  const shouldShowPossession = isPlot || isLand;
+  const shouldShowPossession = isSell && (isPlot || isLand);
   const shouldShowRentPossession = isRent;
   const shouldShowServant =
     isApartment || isIndependentHouse || isIndependentVilla;
@@ -203,64 +212,141 @@ export default function PropertyDetails({
     commercialSubType === "Office" ||
     commercialSubType === "Retail Shop" ||
     commercialSubType === "Show Room";
-  const handleFacilityChange = (facility, checked) => {
-    const currentFacilities = getValues("facilities") || [];
-    if (checked) {
-      setValue("facilities", [...currentFacilities, facility]);
-    } else {
-      setValue(
-        "facilities",
-        currentFacilities.filter((f) => f !== facility)
+  useEffect(() => {
+    const currentFacilities = getValues("facilities");
+    let cleanedArray = [];
+    if (typeof currentFacilities === "string") {
+      cleanedArray = currentFacilities
+        .split(",")
+        .map((item) => item.trim())
+        .filter((item) => item && facilitiesOptions.includes(item));
+    } else if (Array.isArray(currentFacilities)) {
+      cleanedArray = currentFacilities.filter((item) =>
+        facilitiesOptions.includes(item)
       );
     }
+    setFac(cleanedArray);
+  }, [getValues]);
+  useEffect(() => {
+    const cleanedString = fac.join(", ");
+    setValue("facilities", cleanedString, { shouldDirty: true });
+  }, [fac, setValue]);
+  const handleFacilityChange = (facility, checked) => {
+    setFac((prev) => {
+      let updated = [...prev];
+      if (facility === "None" && checked) {
+        return ["None"];
+      } else {
+        updated = updated.filter((f) => f !== "None");
+        if (checked && !updated.includes(facility)) {
+          updated.push(facility);
+        } else if (!checked) {
+          updated = updated.filter((f) => f !== facility);
+        }
+        return updated;
+      }
+    });
   };
-  const formatFieldValue = (key, value) => {
-    // Convert to integer safely (handles both "5" and 5)
-    const intVal = parseInt(value);
+  useEffect(() => {
+    const config = [
+      {
+        value: carParking,
+        key: "car_parking",
+        setCustom: setCarCustomMode,
+        rawValue: property?.car_parking,
+      },
+      {
+        value: bikeParking,
+        key: "bike_parking",
+        setCustom: setBikeCustomMode,
+        rawValue: property?.bike_parking,
+      },
+      {
+        value: openParking,
+        key: "open_parking",
+        setCustom: setOpenCustomMode,
+        rawValue: property?.open_parking,
+      },
+      {
+        value: bhk,
+        key: "bedrooms",
+        setCustom: setBhkCustom,
+        rawValue: property?.bedrooms,
+      },
+      {
+        value: bathroom,
+        key: "bathroom",
+        setCustom: setBathroomCustom,
+        rawValue: property?.bathroom,
+      },
+      {
+        value: balcony,
+        key: "balconies",
+        setCustom: setBalconyCustom,
+        rawValue: property?.balconies,
+      },
+    ];
 
+    config.forEach(({ value, key, setCustom, rawValue }) => {
+      const numericValue = parseInt(value);
+      const numericRawValue = parseInt(rawValue);
+      if (!isNaN(numericRawValue) && numericRawValue > 4) {
+        setCustom(true);
+        setValue(key, `${numericRawValue}`, { shouldDirty: true });
+      } else if (value === "4+" || value === "4+ BHK") {
+        setCustom(true);
+        setValue(key, `${numericRawValue || ""}`, { shouldDirty: true });
+      } else if (!isNaN(numericValue) && numericValue <= 4) {
+        setCustom(false);
+        setValue(key, `${numericValue}`, { shouldDirty: true });
+      }
+    });
+  }, [
+    carParking,
+    bikeParking,
+    openParking,
+    bhk,
+    bathroom,
+    balcony,
+    property,
+    setValue,
+  ]);
+
+  const formatFieldValue = (key, value) => {
+    const intVal = parseInt(value);
     switch (key) {
       case "brokerage_charge":
         return intVal === 30 ? "30 Days" : intVal === 15 ? "15 Days" : "None";
-
       case "security_deposit":
       case "lock_in":
         return isNaN(intVal)
           ? "0 Months"
           : `${intVal} Month${intVal > 1 ? "s" : ""}`;
-
       case "rera_approved":
         return value === 1 || value === "1" ? "Yes" : "No";
-
       case "bedrooms":
-        return !isNaN(intVal)
-          ? intVal > 4
-            ? "4+ BHK"
-            : `${intVal} BHK`
-          : "0 BHK";
-
       case "bathroom":
       case "balconies":
       case "bike_parking":
       case "car_parking":
-        return !isNaN(intVal) ? (intVal >= 4 ? "4+" : `${intVal}`) : "0";
-
+      case "open_parking":
+        return !isNaN(intVal) ? `${intVal}` : "0"; // Preserve numeric value
       default:
         return value;
     }
   };
-
   const normalizeAreaUnit = (unit) => {
     const mapping = {
       "sq.ft": "Sq.ft",
       "sq.yd": "Sq.yd",
       acres: "Acres",
-      sq: "Sq.ft", // fallback for `sq.`
+      sq: "Sq.ft",
     };
     return mapping[unit?.toLowerCase()] || "Sq.ft";
   };
-
   useEffect(() => {
-    let defaultUnit = areaUnit;
+    let defaultUnit;
+
     if (
       ["Apartment", "Independent Villa", "Independent House"].includes(
         propertySubtype
@@ -272,11 +358,11 @@ export default function PropertyDetails({
     } else if (propertySubtype === "Land") {
       defaultUnit = "Acres";
     } else {
-      // Normalize if it exists in other cases
-      defaultUnit = normalizeAreaUnit(areaUnit);
+      defaultUnit = "Sq.ft"; // fallback default
     }
+
     setValue("area_units", defaultUnit);
-  }, [propertySubtype, areaUnit, setValue]);
+  }, [propertySubtype]); // ✅ remove areaUnit
 
   useEffect(() => {
     if (property && property.id) {
@@ -293,7 +379,6 @@ export default function PropertyDetails({
       setPlaces(mappedPlaces);
     }
   }, [property, setValue]);
-
   return (
     <div className="space-y-8 sm:space-y-2 gap-4">
       {!shouldShowCommercialSubTypes && (
@@ -372,7 +457,7 @@ export default function PropertyDetails({
                 <Button
                   key={type.id}
                   type="button"
-                  onClick={() => setValue("landSubType", type.id)}
+                  onClick={() => setValue("land_sub_type", type.id)}
                   className={`h-16 sm:h-20 p-1 w-auto flex flex-col items-center justify-center space-y-1 text-xs text-center break-words ${
                     isSelected
                       ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -442,18 +527,28 @@ export default function PropertyDetails({
       )}
       {shouldShowBHK && (
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Label>BHK</Label>
-            <span className="text-red-500">*</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
+          <Label>BHK</Label>
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
             {bhkOptions.map((option) => (
               <Button
                 key={option}
                 type="button"
-                onClick={() => setValue("bedrooms", option)}
-                className={`px-3 sm:px-4 py-3 text-sm ${
-                  bhk === option
+                variant={
+                  bhk === option || (bhkCustom && option === "4+ BHK")
+                    ? "default"
+                    : "outline"
+                }
+                onClick={() => {
+                  if (option === "4+ BHK") {
+                    setBhkCustom(true);
+                    setValue("bedrooms", "");
+                  } else {
+                    setBhkCustom(false);
+                    setValue("bedrooms", option);
+                  }
+                }}
+                className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
+                  bhk === option || (bhkCustom && option === "4+ BHK")
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
                     : "bg-white text-black hover:bg-gray-100 border"
                 }`}
@@ -462,30 +557,48 @@ export default function PropertyDetails({
               </Button>
             ))}
           </div>
-          {bhk === "4+ BHK" && (
+          {bhkCustom && (
             <Input
               type="number"
-              placeholder="Custom BHK"
+              placeholder="Enter custom bedrooms"
               className="w-full sm:w-1/2"
-              onChange={(e) => setValue("bedrooms", e.target.value)}
+              {...register("bedrooms", {
+                validate: (value) =>
+                  !value || parseInt(value) > 4
+                    ? true
+                    : "Value must be greater than 4",
+              })}
+              onChange={(e) =>
+                setValue("bedrooms", e.target.value, { shouldDirty: true })
+              }
             />
           )}
         </div>
       )}
       {shouldShowBathroom && (
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Label>Bathroom</Label>
-            <span className="text-red-500">*</span>
-          </div>
+          <Label>Bathroom</Label>
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
             {bathroomOptions.map((option) => (
               <Button
                 key={option}
                 type="button"
-                onClick={() => setValue("bathroom", option)}
-                className={`w-12 sm:w-16 h-10 sm:h-12 text-sm ${
-                  bathroom === option
+                variant={
+                  bathroom === option || (bathroomCustom && option === "4+")
+                    ? "default"
+                    : "outline"
+                }
+                onClick={() => {
+                  if (option === "4+") {
+                    setBathroomCustom(true);
+                    setValue("bathroom", "");
+                  } else {
+                    setBathroomCustom(false);
+                    setValue("bathroom", option);
+                  }
+                }}
+                className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
+                  bathroom === option || (bathroomCustom && option === "4+")
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
                     : "bg-white text-black hover:bg-gray-100 border"
                 }`}
@@ -494,12 +607,20 @@ export default function PropertyDetails({
               </Button>
             ))}
           </div>
-          {bathroom === "4+" && (
+          {bathroomCustom && (
             <Input
               type="number"
-              placeholder="Custom Bathrooms"
+              placeholder="Enter custom bathroom"
               className="w-full sm:w-1/2"
-              onChange={(e) => setValue("customBathroom", e.target.value)}
+              {...register("bathroom", {
+                validate: (value) =>
+                  !value || parseInt(value) > 4
+                    ? true
+                    : "Value must be greater than 4",
+              })}
+              onChange={(e) =>
+                setValue("bathroom", e.target.value, { shouldDirty: true })
+              }
             />
           )}
         </div>
@@ -515,9 +636,23 @@ export default function PropertyDetails({
               <Button
                 key={option}
                 type="button"
-                onClick={() => setValue("balconies", option)}
-                className={`w-12 sm:w-16 h-10 sm:h-12 text-sm ${
-                  balcony === option
+                variant={
+                  (balcony === option) === option ||
+                  (balconyCustom && option === "4+")
+                    ? "default"
+                    : "outline"
+                }
+                onClick={() => {
+                  if (option === "4+") {
+                    setBalconyCustom(true);
+                    setValue("balconies", "");
+                  } else {
+                    setBalconyCustom(false);
+                    setValue("balconies", option);
+                  }
+                }}
+                className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
+                  balcony === option || (balconyCustom && option === "4+")
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
                     : "bg-white text-black hover:bg-gray-100 border"
                 }`}
@@ -526,12 +661,20 @@ export default function PropertyDetails({
               </Button>
             ))}
           </div>
-          {balcony === "4+" && (
+          {balconyCustom && (
             <Input
               type="number"
-              placeholder="Custom Balcony"
+              placeholder="Enter Custom Balcony"
               className="w-full sm:w-1/2"
-              onChange={(e) => setValue("balconies", e.target.value)}
+              {...register("balconies", {
+                validate: (value) =>
+                  !value || parseInt(value) > 4
+                    ? true
+                    : "Value must be greater than 4",
+              })}
+              onChange={(e) =>
+                setValue("balconies", e.target.value, { shouldDirty: true })
+              }
             />
           )}
         </div>
@@ -561,24 +704,26 @@ export default function PropertyDetails({
         </div>
       )}
       {shouldShowAge && (
-        <div className="space-y-2 ">
+        <div className="space-y-2">
           <Label>Age of Property</Label>
           <Select
+            value={watch("property_age")}
             onValueChange={(value) => setValue("property_age", value)}
             className="bg-white"
           >
-            <SelectTrigger className="w-full sm:w-1/2 mb-2  bg-white">
+            <SelectTrigger className="w-full sm:w-1/2 mb-2 bg-white">
               <SelectValue placeholder="0-5" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="5">0-5 years</SelectItem>
-              <SelectItem value="5-10">5-10 years</SelectItem>
-              <SelectItem value="10-15">10-15 years</SelectItem>
-              <SelectItem value="15+">15+ years</SelectItem>
+              <SelectItem value="5.00">0-5 years</SelectItem>
+              <SelectItem value="10.00">5-10 years</SelectItem>
+              <SelectItem value="15.00">10-15 years</SelectItem>
+              <SelectItem value="20.00">15+ years</SelectItem>
             </SelectContent>
           </Select>
         </div>
       )}
+
       {isRent && (
         <>
           {shouldShowLifts && (
@@ -691,21 +836,24 @@ export default function PropertyDetails({
                 </div>
               </Label>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                {["Yes", "No"].map((val) => (
-                  <Button
-                    key={val}
-                    type="button"
-                    variant="outline"
-                    onClick={() => setValue("loan_facility", val)}
-                    className={`px-6 sm:px-8 py-3 capitalize ${
-                      loanFacility === val
-                        ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
-                        : "bg-white text-black hover:bg-gray-100 border"
-                    }`}
-                  >
-                    {val}
-                  </Button>
-                ))}
+                {["Yes", "No"].map((val) => {
+                  const mappedValue = val === "Yes" ? "1" : "0";
+                  return (
+                    <Button
+                      key={val}
+                      type="button"
+                      variant="outline"
+                      onClick={() => setValue("loan_facility", mappedValue)}
+                      className={`px-6 sm:px-8 py-3 capitalize ${
+                        loanFacility === mappedValue
+                          ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                          : "bg-white text-black hover:bg-gray-100 border"
+                      }`}
+                    >
+                      {val}
+                    </Button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -772,7 +920,7 @@ export default function PropertyDetails({
             <div className="space-y-2">
               <Label>Width Area (Sq.ft)</Label>
               <Input
-                {...register("length_area")}
+                {...register("width_area")}
                 placeholder="Width Area"
                 className="w-full"
               />
@@ -791,16 +939,17 @@ export default function PropertyDetails({
               className="flex-1 border-none focus:ring-0 focus:outline-none px-3"
             />
             <Select
+              value={watch("total_project_area_type")}
               onValueChange={(value) =>
-                setValue("total_project_area_unit", value)
+                setValue("total_project_area_type", value)
               }
             >
               <SelectTrigger className="border-l px-3 h-full w-24">
-                <SelectValue placeholder="Acres" />
+                <SelectValue placeholder="Select unit" />
               </SelectTrigger>
               <SelectContent className="bg-white">
                 <SelectItem value="acres">Acres</SelectItem>
-                <SelectItem value="sq.yds">Sq.yds</SelectItem>
+                <SelectItem value="sq.yd">Sq.yd</SelectItem>
                 <SelectItem value="sq.ft">Sq.ft</SelectItem>
               </SelectContent>
             </Select>
@@ -823,10 +972,11 @@ export default function PropertyDetails({
               />
             </div>
             <Select
+              value={watch("unit_cost_type")}
               onValueChange={(value) => setValue("unit_cost_type", value)}
             >
               <SelectTrigger className="border-l px-3 h-full w-28">
-                <SelectValue placeholder="Onwards" />
+                <SelectValue placeholder="Select price type" />
               </SelectTrigger>
               <SelectContent className="bg-white">
                 <SelectItem value="onwards">Onwards</SelectItem>
@@ -848,6 +998,7 @@ export default function PropertyDetails({
               className="flex-1 border-none focus:ring-0 focus:outline-none px-3"
             />
             <Select
+              value={watch("property_cost_type")}
               onValueChange={(value) => setValue("property_cost_type", value)}
             >
               <SelectTrigger className="border-l px-3 h-full w-28">
@@ -872,21 +1023,24 @@ export default function PropertyDetails({
             <span className="text-red-500">*</span>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            {["Yes", "No"].map((val) => (
-              <Button
-                key={val}
-                type="button"
-                variant="outline"
-                onClick={() => setValue("pent_house", val)}
-                className={`px-6 sm:px-8 py-3 capitalize ${
-                  pentHouse === val
-                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
-                    : "bg-white text-black hover:bg-gray-100 border"
-                }`}
-              >
-                {val}
-              </Button>
-            ))}
+            {["Yes", "No"].map((val) => {
+              const mappedValue = val === "Yes" ? "1" : "0";
+              return (
+                <Button
+                  key={val}
+                  type="button"
+                  variant="outline"
+                  onClick={() => setValue("pent_house", mappedValue)}
+                  className={`px-6 sm:px-8 py-3 capitalize ${
+                    pentHouse === mappedValue
+                      ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                      : "bg-white text-black hover:bg-gray-100 border"
+                  }`}
+                >
+                  {val}
+                </Button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -903,7 +1057,7 @@ export default function PropertyDetails({
                   key={item}
                   type="button"
                   variant="outline"
-                  onClick={() => setValue("securityDeposit", item)}
+                  onClick={() => setValue("security_deposit", item)}
                   className={`px-4 sm:px-6 py-3 capitalize ${
                     securityDeposit === item
                       ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -926,7 +1080,7 @@ export default function PropertyDetails({
                   key={item}
                   type="button"
                   variant="outline"
-                  onClick={() => setValue("locak_in", item)}
+                  onClick={() => setValue("lock_in", item)}
                   className={`px-4 sm:px-6 py-3 capitalize ${
                     lockinPeriod === item
                       ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -949,7 +1103,7 @@ export default function PropertyDetails({
                   key={item}
                   type="button"
                   variant="outline"
-                  onClick={() => setValue("brokerage", item)}
+                  onClick={() => setValue("brokerage_charge", item)}
                   className={`px-4 sm:px-6 py-3 capitalize ${
                     brokerage === item
                       ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -1033,7 +1187,7 @@ export default function PropertyDetails({
               <div key={facility} className="flex items-center space-x-2">
                 <Checkbox
                   id={facility}
-                  checked={facilities.includes(facility)}
+                  checked={fac.includes(facility)}
                   onCheckedChange={(checked) =>
                     handleFacilityChange(facility, checked)
                   }
@@ -1107,47 +1261,27 @@ export default function PropertyDetails({
             <span className="text-red-500">*</span>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            {["Yes", "No"].map((val) => (
-              <Button
-                key={val}
-                type="button"
-                variant="outline"
-                onClick={() => setValue("investor_property", val)}
-                className={`px-6 sm:px-8 py-3 capitalize ${
-                  investorProperty === val
-                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
-                    : "bg-white text-black hover:bg-gray-100 border"
-                }`}
-              >
-                {val}
-              </Button>
-            ))}
+            {["Yes", "No"].map((val) => {
+              const mappedValue = val === "Yes" ? "1" : "0";
+              return (
+                <Button
+                  key={val}
+                  type="button"
+                  variant="outline"
+                  onClick={() => setValue("investor_property", mappedValue)}
+                  className={`px-6 sm:px-8 py-3 capitalize ${
+                    investorProperty === mappedValue
+                      ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                      : "bg-white text-black hover:bg-gray-100 border"
+                  }`}
+                >
+                  {val}
+                </Button>
+              );
+            })}
           </div>
         </div>
       )}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Label>Loan Facility</Label>
-          <span className="text-red-500">*</span>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-          {["Yes", "No"].map((val) => (
-            <Button
-              key={val}
-              type="button"
-              variant="outline"
-              onClick={() => setValue("loanFacility", val)}
-              className={`px-6 sm:px-8 py-3 capitalize ${
-                loanFacility === val
-                  ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
-                  : "bg-white text-black hover:bg-gray-100 border"
-              }`}
-            >
-              {val}
-            </Button>
-          ))}
-        </div>
-      </div>
       <div className="space-y-4 sm:space-y-6">
         <h3 className="text-base sm:text-lg font-medium">
           Add Additional Details
@@ -1254,10 +1388,24 @@ export default function PropertyDetails({
                   <Button
                     key={option}
                     type="button"
-                    variant={carParking === option ? "default" : "outline"}
-                    onClick={() => setValue("carParking", option)}
+                    variant={
+                      carParking === option ||
+                      (carCustomMode && option === "4+")
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() => {
+                      if (option === "4+") {
+                        setCarCustomMode(true);
+                        setValue("car_parking", "");
+                      } else {
+                        setCarCustomMode(false);
+                        setValue("car_parking", option);
+                      }
+                    }}
                     className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
-                      carParking === option
+                      carParking === option ||
+                      (carCustomMode && option === "4+")
                         ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
                         : "bg-white text-black hover:bg-gray-100 border"
                     }`}
@@ -1266,12 +1414,22 @@ export default function PropertyDetails({
                   </Button>
                 ))}
               </div>
-              {carParking === "4+" && (
+              {carCustomMode && (
                 <Input
                   type="number"
-                  placeholder="Custom Car Parking"
+                  placeholder="Enter custom car parking"
                   className="w-full sm:w-1/2"
-                  onChange={(e) => setValue("customCarParking", e.target.value)}
+                  {...register("car_parking", {
+                    validate: (value) =>
+                      !value || parseInt(value) > 4
+                        ? true
+                        : "Value must be greater than 4",
+                  })}
+                  onChange={(e) =>
+                    setValue("car_parking", e.target.value, {
+                      shouldDirty: true,
+                    })
+                  }
                 />
               )}
             </div>
@@ -1282,10 +1440,24 @@ export default function PropertyDetails({
                   <Button
                     key={option}
                     type="button"
-                    variant={bikeParking === option ? "default" : "outline"}
-                    onClick={() => setValue("bike_parking", option)}
+                    variant={
+                      bikeParking === option ||
+                      (bikeCustomMode && option === "4+")
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() => {
+                      if (option === "4+") {
+                        setBikeCustomMode(true);
+                        setValue("bike_parking", "");
+                      } else {
+                        setBikeCustomMode(false);
+                        setValue("bike_parking", option);
+                      }
+                    }}
                     className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
-                      bikeParking === option
+                      bikeParking === option ||
+                      (bikeCustomMode && option === "4+")
                         ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
                         : "bg-white text-black hover:bg-gray-100 border"
                     }`}
@@ -1294,13 +1466,21 @@ export default function PropertyDetails({
                   </Button>
                 ))}
               </div>
-              {bikeParking === "4+" && (
+              {bikeCustomMode && (
                 <Input
                   type="number"
                   placeholder="Custom Bike Parking"
                   className="w-full sm:w-1/2"
+                  {...register("bike_parking", {
+                    validate: (value) =>
+                      !value || parseInt(value) > 4
+                        ? true
+                        : "Value must be greater than 4",
+                  })}
                   onChange={(e) =>
-                    setValue("customBikeParking", e.target.value)
+                    setValue("bike_parking", e.target.value, {
+                      shouldDirty: true,
+                    })
                   }
                 />
               )}
@@ -1312,10 +1492,24 @@ export default function PropertyDetails({
                   <Button
                     key={option}
                     type="button"
-                    variant={openParking === option ? "default" : "outline"}
-                    onClick={() => setValue("openParking", option)}
+                    variant={
+                      openParking === option ||
+                      (openCustomMode && option === "4+")
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() => {
+                      if (option === "4+") {
+                        setOpenCustomMode(true);
+                        setValue("open_parking", "");
+                      } else {
+                        setOpenCustomMode(false);
+                        setValue("open_parking", option);
+                      }
+                    }}
                     className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
-                      openParking === option
+                      openParking === option ||
+                      (openCustomMode && option === "4+")
                         ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
                         : "bg-white text-black hover:bg-gray-100 border"
                     }`}
@@ -1324,13 +1518,21 @@ export default function PropertyDetails({
                   </Button>
                 ))}
               </div>
-              {openParking === "4+" && (
+              {openCustomMode && (
                 <Input
                   type="number"
                   placeholder="Custom Open Parking"
                   className="w-full sm:w-1/2"
+                  {...register("open_parking", {
+                    validate: (value) =>
+                      !value || parseInt(value) > 4
+                        ? true
+                        : "Value must be greater than 4",
+                  })}
                   onChange={(e) =>
-                    setValue("customOpenParking", e.target.value)
+                    setValue("open_parking", e.target.value, {
+                      shouldDirty: true,
+                    })
                   }
                 />
               )}
@@ -1405,21 +1607,24 @@ export default function PropertyDetails({
               <span className="text-red-500">*</span>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-              {["Yes", "No"].map((val) => (
-                <Button
-                  key={val}
-                  type="button"
-                  variant="outline"
-                  onClick={() => setValue("servantRoom", val)}
-                  className={`px-6 sm:px-8 py-3 capitalize ${
-                    servantRoom === val
-                      ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
-                      : "bg-white text-black hover:bg-gray-100 border"
-                  }`}
-                >
-                  {val}
-                </Button>
-              ))}
+              {["Yes", "No"].map((val) => {
+                const mappedValue = val === "Yes" ? "1" : "0";
+                return (
+                  <Button
+                    key={val}
+                    type="button"
+                    variant="outline"
+                    onClick={() => setValue("servent_room", mappedValue)}
+                    className={`px-6 sm:px-8 py-3 capitalize ${
+                      servantRoom === mappedValue
+                        ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                        : "bg-white text-black hover:bg-gray-100 border"
+                    }`}
+                  >
+                    {val}
+                  </Button>
+                );
+              })}
             </div>
           </div>
         )}

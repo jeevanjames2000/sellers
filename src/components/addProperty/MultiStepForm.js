@@ -19,6 +19,7 @@ import { useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import useFetchAndSetProperty from "../services/useFetchAndSetProperty";
 import { submitBasicDetails } from "../services/submitBasicDetails";
+import { submitPropertyDetails } from "../services/submitPropertyDetails";
 const steps = [
   { label: "Basic Details", component: BasicDetails },
   { label: "Property Details", component: PropertyDetails },
@@ -30,6 +31,10 @@ export default function MultiStepForm() {
   const dispatch = useDispatch();
   const [propertyId, setPropertyId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [places, setPlaces] = useState([]);
+  const [fac, setFac] = useState([]);
+  console.log("fac: ", fac);
+
   const searchParams = useSearchParams();
   const router = useRouter();
   useEffect(() => {
@@ -45,39 +50,74 @@ export default function MultiStepForm() {
     methods.reset
   );
   const onNext = async () => {
+    const isValid = await methods.trigger();
+    if (!isValid) {
+      console.error("Please fill all required fields");
+      return;
+    }
+    setIsSubmitting(true);
+    const formData = methods.getValues();
+    const userInfo = JSON.parse(localStorage.getItem("userDetails")) || {};
     if (currentStep === 0) {
-      const isValid = await methods.trigger();
-      if (!isValid) {
-        toast.error("Please fill all required fields");
-        return;
-      }
-      setIsSubmitting(true);
-      const basicData = methods.getValues();
-      const userInfo = JSON.parse(localStorage.getItem("userDetails")) || {};
-      // const { success, data } = await submitBasicDetails(
-      //   {
-      //     propertyType: basicData.property_in,
-      //     lookingTo: basicData.property_for,
-      //     transactionType: basicData.transaction_type,
-      //     unique_property_id: propertyId,
-      //   },
-      //   dispatch,
-      //   userInfo
-      // );
+      const { success, data, message } = await submitBasicDetails(
+        {
+          propertyType: formData.property_in,
+          lookingTo: formData.property_for,
+          transactionType: formData.transaction_type,
+          unique_property_id: propertyId,
+        },
+        dispatch,
+        userInfo
+      );
       setIsSubmitting(false);
-      // if (success) {
-      //   setPropertyId(data.unique_property_id);
-      //   methods.reset({
-      //     ...methods.getValues(),
-      //     ...data,
-      //     property_id: data.property_id,
-      //     unique_property_id: data.unique_property_id,
-      //     updated_date: data.updated_date,
-      //     user_type: data.user_type,
-      //   });
-      // } else {
-      //   toast.error(`Failed to create property: ${data.message}`);
-      // }
+      if (success) {
+        setPropertyId(propertyId);
+        methods.reset({
+          ...formData,
+          ...data,
+          property_id: data.property_id,
+          unique_property_id: data.unique_property_id,
+          updated_date: data.updated_date,
+          user_type: data.user_type,
+        });
+        const stepKey = steps[currentStep + 1].label
+          .toLowerCase()
+          .replace(/\s/g, "");
+        setCurrentStep((prev) => prev + 1);
+        router.replace(
+          `/addProperty?active_step=${stepKey}&status=inprogress&property_id=${data.unique_property_id}`
+        );
+      } else {
+      }
+    } else if (currentStep === 1) {
+      const { success, data, message } = await submitPropertyDetails(
+        formData,
+        dispatch,
+        userInfo,
+        places,
+        fac
+      );
+      setIsSubmitting(false);
+      if (success) {
+        setPropertyId(propertyId);
+        methods.reset({
+          ...formData,
+          ...data,
+          property_id: propertyId,
+          unique_property_id: propertyId,
+        });
+        const stepKey = steps[currentStep + 1].label
+          .toLowerCase()
+          .replace(/\s/g, "");
+        setCurrentStep((prev) => prev + 1);
+        router.replace(
+          `/addProperty?active_step=${stepKey}&status=inprogress&property_id=${propertyId}`
+        );
+      } else {
+        console.error(`Failed to submit property details: ${message}`);
+      }
+    } else {
+      setIsSubmitting(false);
       const stepKey = steps[currentStep + 1].label
         .toLowerCase()
         .replace(/\s/g, "");
@@ -85,12 +125,10 @@ export default function MultiStepForm() {
       router.replace(
         `/addProperty?active_step=${stepKey}&status=inprogress&property_id=${propertyId}`
       );
-    } else {
-      setCurrentStep((prev) => prev + 1);
     }
   };
   const onBack = () => setCurrentStep((prev) => prev - 1);
-  const onSubmit = (data) => console.log("Final Submit:", data);
+  const onSubmit = (data) => {};
   const CurrentComponent = steps[currentStep].component;
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
   const handleRoute = () => {
@@ -228,6 +266,10 @@ export default function MultiStepForm() {
                     property={property}
                     setProperty={setProperty}
                     unique_property_id={propertyId}
+                    places={places}
+                    setPlaces={setPlaces}
+                    setFac={setFac}
+                    fac={fac}
                   />
                 </div>
                 <div className="flex justify-between pt-6 border-t">
@@ -247,7 +289,7 @@ export default function MultiStepForm() {
                       <Button
                         type="button"
                         onClick={onNext}
-                        disabled={isSubmitting} // Disable during submission
+                        disabled={isSubmitting}
                         className="px-8 bg-[#1D3A76] hover:bg-blue-800"
                       >
                         {isSubmitting
