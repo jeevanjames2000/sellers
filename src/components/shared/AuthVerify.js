@@ -20,7 +20,7 @@ function Authuserverify({ children }) {
     if (isHydrated) {
 
       if (!token && !user) {
-        window.location.href = "/login"; 
+        window.location.href = "/loginotp"; 
       } else {
         setIsLoading(false);
       }

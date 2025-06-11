@@ -35,20 +35,18 @@ const Mainnavigation = ({ toggleSidebar, isMobile = false }) => {
   const isActive = (path) => pathname === path;
 
 const handleLogout = () => {
-  setIsLoadingEffect(true);
-  dispatch(clearLogin()); 
-  dispatch(clearSignup()); 
-  localStorage.removeItem("userToken");
-  localStorage.removeItem("userDetails");
-  window.history.pushState(null, document.title, "/login");
-  window.onpopstate = () => {
-    window.history.pushState(null, document.title, "/login");
-    router.push("/login");
+   
+    dispatch(clearLogin());
+    dispatch(clearSignup());
+    localStorage.removeItem("userToken");
+    localStorage.removeItem("userDetails");
+
+    
+    router.replace("/loginotp");
+
+   
+    if (isMobile && toggleSidebar) toggleSidebar();
   };
-  router.replace("/login");
-  setIsLoadingEffect(false);
-  if (isMobile && toggleSidebar) toggleSidebar();
-};
 
   const navigationItems = [
     { href: "/dashboard", label: "Dashboard", icon: Home },

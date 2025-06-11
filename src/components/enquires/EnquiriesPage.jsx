@@ -175,7 +175,7 @@ const EnquiriesPage = ({ activeTab }) => {
                         className="flex-1 bg-[#1D3A76] text-white  transition-all duration-200 font-semibold py-3 cursor-pointer"
                         onClick={handleViewContacted}
                       >
-                        View Contacted
+                         Contacted
                       </Button>
                     </div>
                   </div>
