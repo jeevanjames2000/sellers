@@ -54,37 +54,37 @@ export default function MultiStepForm() {
       setIsSubmitting(true);
       const basicData = methods.getValues();
       const userInfo = JSON.parse(localStorage.getItem("userDetails")) || {};
-      const { success, data } = await submitBasicDetails(
-        {
-          propertyType: basicData.property_in,
-          lookingTo: basicData.property_for,
-          transactionType: basicData.transaction_type,
-          unique_property_id: propertyId,
-        },
-        dispatch,
-        userInfo
-      );
+      // const { success, data } = await submitBasicDetails(
+      //   {
+      //     propertyType: basicData.property_in,
+      //     lookingTo: basicData.property_for,
+      //     transactionType: basicData.transaction_type,
+      //     unique_property_id: propertyId,
+      //   },
+      //   dispatch,
+      //   userInfo
+      // );
       setIsSubmitting(false);
-      if (success) {
-        setPropertyId(data.unique_property_id);
-        methods.reset({
-          ...methods.getValues(),
-          ...data,
-          property_id: data.property_id,
-          unique_property_id: data.unique_property_id,
-          updated_date: data.updated_date,
-          user_type: data.user_type,
-        });
-        const stepKey = steps[currentStep + 1].label
-          .toLowerCase()
-          .replace(/\s/g, "");
-        router.replace(
-          `/addProperty?active_step=${stepKey}&status=inprogress&property_id=${data.unique_property_id}`
-        );
-        setCurrentStep((prev) => prev + 1);
-      } else {
-        toast.error(`Failed to create property: ${data.message}`);
-      }
+      // if (success) {
+      //   setPropertyId(data.unique_property_id);
+      //   methods.reset({
+      //     ...methods.getValues(),
+      //     ...data,
+      //     property_id: data.property_id,
+      //     unique_property_id: data.unique_property_id,
+      //     updated_date: data.updated_date,
+      //     user_type: data.user_type,
+      //   });
+      // } else {
+      //   toast.error(`Failed to create property: ${data.message}`);
+      // }
+      const stepKey = steps[currentStep + 1].label
+        .toLowerCase()
+        .replace(/\s/g, "");
+      setCurrentStep((prev) => prev + 1);
+      router.replace(
+        `/addProperty?active_step=${stepKey}&status=inprogress&property_id=${propertyId}`
+      );
     } else {
       setCurrentStep((prev) => prev + 1);
     }

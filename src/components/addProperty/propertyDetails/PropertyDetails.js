@@ -249,21 +249,35 @@ export default function PropertyDetails({
     }
   };
 
+  const normalizeAreaUnit = (unit) => {
+    const mapping = {
+      "sq.ft": "Sq.ft",
+      "sq.yd": "Sq.yd",
+      acres: "Acres",
+      sq: "Sq.ft", // fallback for `sq.`
+    };
+    return mapping[unit?.toLowerCase()] || "Sq.ft";
+  };
+
   useEffect(() => {
-    let defaultUnit = areaUnit?.toLowerCase();
+    let defaultUnit = areaUnit;
     if (
       ["Apartment", "Independent Villa", "Independent House"].includes(
         propertySubtype
       )
     ) {
-      defaultUnit = "sq.ft";
+      defaultUnit = "Sq.ft";
     } else if (propertySubtype === "Plot") {
-      defaultUnit = "sq.yd";
+      defaultUnit = "Sq.yd";
     } else if (propertySubtype === "Land") {
       defaultUnit = "Acres";
+    } else {
+      // Normalize if it exists in other cases
+      defaultUnit = normalizeAreaUnit(areaUnit);
     }
     setValue("area_units", defaultUnit);
-  }, [propertySubtype, setValue]);
+  }, [propertySubtype, areaUnit, setValue]);
+
   useEffect(() => {
     if (property && property.id) {
       Object.entries(property).forEach(([key, value]) => {
@@ -701,7 +715,7 @@ export default function PropertyDetails({
         <div className="space-y-2">
           <Label>Area units</Label>
           <Select
-            value={areaUnit}
+            value={normalizeAreaUnit(areaUnit)}
             onValueChange={(value) => setValue("area_units", value)}
           >
             <SelectTrigger className="w-full bg-white">
