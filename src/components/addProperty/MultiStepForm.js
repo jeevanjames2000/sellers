@@ -1,3 +1,4 @@
+// components/MultiStepForm.jsx
 "use client";
 import { useForm, FormProvider } from "react-hook-form";
 import { useEffect, useState } from "react";
@@ -20,6 +21,9 @@ import { useDispatch } from "react-redux";
 import useFetchAndSetProperty from "../services/useFetchAndSetProperty";
 import { submitBasicDetails } from "../services/submitBasicDetails";
 import { submitPropertyDetails } from "../services/submitPropertyDetails";
+import { submitAddress } from "../services/submitAddress";
+import { submitPhotosVideos } from "../services/submitPhotosVideos";
+
 const steps = [
   { label: "Basic Details", component: BasicDetails },
   { label: "Property Details", component: PropertyDetails },
@@ -27,28 +31,39 @@ const steps = [
   { label: "Property Photos", component: Photos },
   { label: "Review", component: Review },
 ];
+
 export default function MultiStepForm() {
   const dispatch = useDispatch();
   const [propertyId, setPropertyId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [places, setPlaces] = useState([]);
   const [fac, setFac] = useState([]);
-  console.log("fac: ", fac);
-
   const searchParams = useSearchParams();
   const router = useRouter();
+
   useEffect(() => {
     const idFromURL = searchParams.get("property_id");
     if (idFromURL) {
       setPropertyId(idFromURL);
     }
   }, [searchParams]);
-  const methods = useForm({ mode: "onChange" });
+
+  const methods = useForm({
+    mode: "onChange",
+    defaultValues: {
+      photo: null,
+      video: null,
+      floorPlans: null,
+      featuredImageIndex: null,
+    },
+  });
+
   const [currentStep, setCurrentStep] = useState(0);
   const { property, setProperty } = useFetchAndSetProperty(
     propertyId,
     methods.reset
   );
+
   const onNext = async () => {
     const isValid = await methods.trigger();
     if (!isValid) {
@@ -58,6 +73,8 @@ export default function MultiStepForm() {
     setIsSubmitting(true);
     const formData = methods.getValues();
     const userInfo = JSON.parse(localStorage.getItem("userDetails")) || {};
+    const user_id = userInfo.user_id;
+
     if (currentStep === 0) {
       const { success, data, message } = await submitBasicDetails(
         {
@@ -71,7 +88,7 @@ export default function MultiStepForm() {
       );
       setIsSubmitting(false);
       if (success) {
-        setPropertyId(propertyId);
+        setPropertyId(data.unique_property_id);
         methods.reset({
           ...formData,
           ...data,
@@ -88,6 +105,7 @@ export default function MultiStepForm() {
           `/addProperty?active_step=${stepKey}&status=inprogress&property_id=${data.unique_property_id}`
         );
       } else {
+        console.error(`Failed to submit basic details: ${message}`);
       }
     } else if (currentStep === 1) {
       const { success, data, message } = await submitPropertyDetails(
@@ -116,6 +134,79 @@ export default function MultiStepForm() {
       } else {
         console.error(`Failed to submit property details: ${message}`);
       }
+    } else if (currentStep === 2) {
+      const { success, data, message } = await submitAddress(
+        formData,
+        dispatch,
+        userInfo
+      );
+      setIsSubmitting(false);
+      if (success) {
+        methods.reset({
+          ...formData,
+          ...data,
+          property_id: propertyId,
+          unique_property_id: propertyId,
+        });
+        const stepKey = steps[currentStep + 1].label
+          .toLowerCase()
+          .replace(/\s/g, "");
+        setCurrentStep((prev) => prev + 1);
+        router.replace(
+          `/addProperty?active_step=${stepKey}&status=inprogress&property_id=${propertyId}`
+        );
+      } else {
+        console.error(`Failed to submit address: ${message}`);
+      }
+    } else if (currentStep === 3) {
+      const { photo, video, featuredImageIndex } = formData;
+      console.log("featuredImageIndex: ", featuredImageIndex);
+      const photoFiles = photo
+        ? Array.from(photo).map((file, index) => ({
+            file,
+            id: formData.photoFiles?.[index]?.id || null,
+          }))
+        : [];
+      console.log("photoFiles: ", photoFiles);
+      const videoFiles = video
+        ? Array.from(video).map((file, index) => ({
+            file,
+            id: formData.videoFiles?.[index]?.id || null,
+            type: "video",
+          }))
+        : [];
+
+      const { success, data, message } = await submitPhotosVideos(
+        user_id,
+        propertyId,
+        photoFiles,
+        videoFiles,
+        featuredImageIndex
+      );
+      setIsSubmitting(false);
+      if (success) {
+        methods.reset({
+          ...formData,
+          photo: null,
+          video: null,
+          floorPlans: null,
+          featuredImageIndex: null,
+          photoFiles: null,
+          videoFiles: null,
+          ...data,
+          property_id: propertyId,
+          unique_property_id: propertyId,
+        });
+        const stepKey = steps[currentStep + 1].label
+          .toLowerCase()
+          .replace(/\s/g, "");
+        setCurrentStep((prev) => prev + 1);
+        router.replace(
+          `/addProperty?active_step=${stepKey}&status=inprogress&property_id=${propertyId}`
+        );
+      } else {
+        console.error(`Failed to submit photos/videos: ${message}`);
+      }
     } else {
       setIsSubmitting(false);
       const stepKey = steps[currentStep + 1].label
@@ -127,19 +218,24 @@ export default function MultiStepForm() {
       );
     }
   };
+
   const onBack = () => setCurrentStep((prev) => prev - 1);
   const onSubmit = (data) => {};
+
   const CurrentComponent = steps[currentStep].component;
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
+
   const handleRoute = () => {
     router.push("/dashboard");
   };
+
   useEffect(() => {
     if (!propertyId) return;
     const stepKey = steps[currentStep].label.toLowerCase().replace(/\s/g, "");
     const newSearch = `?active_step=${stepKey}&status=inprogress&property_id=${propertyId}`;
     router.replace(`/addProperty${newSearch}`);
   }, [currentStep, propertyId, router]);
+
   return (
     <div className="min-h-screen bg-gray-50 p-2 w-full">
       <FormProvider {...methods}>

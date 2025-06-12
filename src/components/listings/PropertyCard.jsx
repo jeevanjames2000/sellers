@@ -14,7 +14,9 @@ import {
   Building,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import config from "../api/config";
+import { uniq } from "lodash";
+import axios from "axios";
 const PropertyCard = ({
   id,
   title,
@@ -36,6 +38,8 @@ const PropertyCard = ({
   monthly_rent,
   occupancy,
   available_from,
+  user_id,
+  fetchProperties,
 }) => {
   const router = useRouter();
   const formatToIndianCurrency = (value) => {
@@ -65,7 +69,6 @@ const PropertyCard = ({
       ? parseInt(value.toString())
       : parseFloat(value.toString()).toFixed(2).replace(/\.00$/, "");
   };
-
   const getBHKDisplay = () => {
     if (propertyIn === "Commercial") {
       return propertySubType || "N/A";
@@ -87,7 +90,6 @@ const PropertyCard = ({
     }
     return propertySubType || "N/A";
   };
-
   const getPriceDisplay = () => {
     if (propertyFor === "Rent") {
       return monthly_rent
@@ -96,7 +98,6 @@ const PropertyCard = ({
     }
     return price ? `₹ ${formatToIndianCurrency(price)}` : "N/A";
   };
-
   const getOccupancyDisplay = () => {
     if (["Plot", "Land"].includes(propertySubType)) {
       return "";
@@ -110,14 +111,29 @@ const PropertyCard = ({
   const handleEdit = () => {
     router.push(`/addProperty?property_id=${id}`);
   };
-
   const handleViewContacted = () => {
-    
-
-    
     router.push(`/enquiry/contact-details`);
   };
-
+  const handleDelete = async (user_id, unique_property_id) => {
+    try {
+      const response = await axios.post(
+        `${config.api_url}/property/deleteProperty`,
+        {
+          user_id,
+          unique_property_id,
+        }
+      );
+      if (response.data?.status === "success") {
+        alert("Property deleted successfully");
+        fetchProperties();
+      } else {
+        alert("Failed to delete property: " + response.data.message);
+      }
+    } catch (error) {
+      console.error("Delete property error:", error);
+      alert("Something went wrong while deleting the property.");
+    }
+  };
   return (
     <CustomCard className="group overflow-hidden hover:shadow-2xl transition-all duration-500 bg-white border-0 shadow-lg hover:scale-[1.02] transform">
       <CardContent className="p-0">
@@ -147,7 +163,6 @@ const PropertyCard = ({
                   {status}
                 </Badge>
               </div>
-
               <div className="absolute bottom-1 left-4">
                 <Badge
                   variant="outline"
@@ -239,6 +254,9 @@ const PropertyCard = ({
                 </Button>
                 <Button
                   variant="outline"
+                  onClick={() => {
+                    handleDelete(user_id, id);
+                  }}
                   className="border-2 cursor-pointer border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-medium rounded-lg transition-all"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />

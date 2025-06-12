@@ -1,3 +1,4 @@
+// components/Photos.jsx
 "use client";
 import { useFormContext } from "react-hook-form";
 import { useEffect, useRef, useState } from "react";
@@ -6,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Upload, Image, Video, X, Bookmark } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { submitPhotosVideos } from "../services/submitPhotosVideos";
+
 const Propertyapi = axios.create({
   baseURL: "https://api.meetowner.in/",
   headers: {
@@ -14,47 +17,45 @@ const Propertyapi = axios.create({
     }`,
   },
 });
-export default function Photos({ property, unique_property_id }) {
-  console.log("property.image:", property?.image);
-  const { register, setValue, watch } = useFormContext();
+
+export default function Photos({ property, unique_property_id, onNext }) {
+  const { register, setValue, watch, reset } = useFormContext();
   const photoInputRef = useRef(null);
   const videoInputRef = useRef(null);
   const floorPlanInputRef = useRef(null);
   const [photoPreviews, setPhotoPreviews] = useState([]);
-  console.log("photoPreviews: ", photoPreviews);
   const [photoFiles, setPhotoFiles] = useState([]);
   const [videoPreviews, setVideoPreviews] = useState([]);
   const [videoFiles, setVideoFiles] = useState([]);
   const [floorPlanPreviews, setFloorPlanPreviews] = useState([]);
   const [floorPlanFiles, setFloorPlanFiles] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
-  const [featuredImageIndex, setFeaturedImageIndex] = useState(null);
-  const [featuredImage, setFeaturedImage] = useState("");
-  console.log("featuredImageIndex: ", featuredImageIndex);
   const [isLoading, setIsLoading] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessages, setErrorMessages] = useState(null);
-  const photos = watch("photos");
-  const videos = watch("videos");
+
+  const photo = watch("photo");
+  const video = watch("video");
   const floorPlans = watch("floorPlans");
+  const featuredImageIndex = watch("featuredImageIndex");
+
   useEffect(() => {
     const user = localStorage.getItem("userDetails");
-    console.log("Raw userDetails:", user);
     if (user) {
       try {
         const parsedUser = JSON.parse(user);
-        console.log("Parsed userInfo:", parsedUser);
         setUserInfo(parsedUser);
       } catch (error) {
         console.error("Failed to parse userDetails:", error);
         toast.error("Failed to load user information");
       }
     } else {
-      console.warn("No userDetails found in localStorage");
       toast.error("Please log in to continue");
     }
   }, []);
+
   const user_id = userInfo?.user_id || null;
+
   useEffect(() => {
     return () => {
       photoPreviews.forEach((url) => {
@@ -68,20 +69,28 @@ export default function Photos({ property, unique_property_id }) {
       });
     };
   }, [photoPreviews, videoPreviews, floorPlanPreviews]);
+
   useEffect(() => {
-    if (photos && photos.length > 0) {
-      const newFiles = Array.from(photos).map((file) => ({
+    if (photo && photo.length > 0) {
+      const newFiles = Array.from(photo).map((file) => ({
         file,
         id: null,
         url: URL.createObjectURL(file),
       }));
       setPhotoFiles((prev) => [...prev, ...newFiles]);
       setPhotoPreviews((prev) => [...prev, ...newFiles.map((f) => f.url)]);
+      setValue("photo", null, { shouldValidate: true });
+      if (featuredImageIndex === null) {
+        setValue("featuredImageIndex", photoFiles.length, {
+          shouldValidate: true,
+        });
+      }
     }
-  }, [photos]);
+  }, [photo, setValue, photoFiles.length, featuredImageIndex]);
+
   useEffect(() => {
-    if (videos && videos.length > 0) {
-      const newFiles = Array.from(videos).map((file) => ({
+    if (video && video.length > 0) {
+      const newFiles = Array.from(video).map((file) => ({
         file,
         id: null,
         url: URL.createObjectURL(file),
@@ -89,8 +98,10 @@ export default function Photos({ property, unique_property_id }) {
       }));
       setVideoFiles((prev) => [...prev, ...newFiles]);
       setVideoPreviews((prev) => [...prev, ...newFiles.map((f) => f.url)]);
+      setValue("video", null, { shouldValidate: true });
     }
-  }, [videos]);
+  }, [video, setValue]);
+
   useEffect(() => {
     if (floorPlans && floorPlans.length > 0) {
       const newFiles = Array.from(floorPlans).map((file) => ({
@@ -100,8 +111,10 @@ export default function Photos({ property, unique_property_id }) {
       }));
       setFloorPlanFiles((prev) => [...prev, ...newFiles]);
       setFloorPlanPreviews((prev) => [...prev, ...newFiles.map((f) => f.url)]);
+      setValue("floorPlans", null, { shouldValidate: true });
     }
-  }, [floorPlans]);
+  }, [floorPlans, setValue]);
+
   const getPropertyPhotos = async () => {
     if (!user_id || !unique_property_id) {
       console.log("Skipping getPropertyPhotos", {
@@ -112,11 +125,9 @@ export default function Photos({ property, unique_property_id }) {
     }
     setIsLoading(true);
     try {
-      console.log("Calling getPropertyPhotos");
       const response = await Propertyapi.get("property/getpropertyphotos", {
         params: { unique_property_id, user_id },
       });
-      console.log("getPropertyPhotos response:", response.data);
       if (response.data.status === "error") {
         setErrorMessages({ message: response.data.message });
         setErrorModalOpen(true);
@@ -124,48 +135,40 @@ export default function Photos({ property, unique_property_id }) {
       }
       if (response.status === 200) {
         const images = response.data.images || [];
-        const photoData = images.map((image) => ({
+        const featuredImage = response.data.featuredImage;
+        let photoData = images.map((image) => ({
           id: image.id,
           url: image.url,
           file: null,
         }));
-        let previews = [];
-        let files = [];
-        let featuredIndex = null;
-        if (property?.image) {
-          // Prioritize property.image
-          files = [{ id: null, url: property.image, file: null }, ...photoData];
-          previews = [property.image, ...images.map((img) => img.url)];
-          featuredIndex = 0;
-        } else {
-          // Use API's featuredImage
-          files = photoData;
-          previews = images.map((image) => image.url);
-          const apiFeaturedIndex =
-            parseInt(response.data.featuredImageIndex) || 0;
-          if (
-            apiFeaturedIndex >= 0 &&
-            apiFeaturedIndex < images.length &&
-            images[apiFeaturedIndex]?.url === response.data.featuredImage
-          ) {
-            featuredIndex = apiFeaturedIndex;
-          } else {
-            const foundIndex = images.findIndex(
-              (img) => img.url === response.data.featuredImage
-            );
-            featuredIndex =
-              foundIndex !== -1 ? foundIndex : images.length > 0 ? 0 : null;
-          }
-        }
-        setPhotoFiles(files);
-        setPhotoPreviews(previews);
-        setFeaturedImageIndex(featuredIndex);
-        console.log(
-          "Set featuredImageIndex:",
-          featuredIndex,
-          "Previews:",
-          previews
+        let previews = images.map((image) => image.url);
+        let featuredIndex = parseInt(response.data.featuredImageIndex) || 0;
+
+        // Deduplicate featuredImage
+        const isFeaturedInImages = images.some(
+          (img) => img.url === featuredImage
         );
+        if (!isFeaturedInImages && featuredImage) {
+          photoData = [
+            { id: null, url: featuredImage, file: null },
+            ...photoData,
+          ];
+          previews = [featuredImage, ...previews];
+          featuredIndex = 0;
+        } else if (isFeaturedInImages) {
+          const foundIndex = images.findIndex(
+            (img) => img.url === featuredImage
+          );
+          featuredIndex = foundIndex !== -1 ? foundIndex : featuredIndex;
+        }
+
+        if (featuredIndex >= photoData.length) {
+          featuredIndex = photoData.length > 0 ? 0 : null;
+        }
+
+        setPhotoFiles(photoData);
+        setPhotoPreviews(previews);
+        setValue("featuredImageIndex", featuredIndex, { shouldValidate: true });
       }
     } catch (error) {
       console.error("getPropertyPhotos error:", error);
@@ -175,6 +178,7 @@ export default function Photos({ property, unique_property_id }) {
       setIsLoading(false);
     }
   };
+
   const getPropertyVideos = async () => {
     if (!user_id || !unique_property_id) {
       console.log("Skipping getPropertyVideos", {
@@ -185,11 +189,9 @@ export default function Photos({ property, unique_property_id }) {
     }
     setIsLoading(true);
     try {
-      console.log("Calling getPropertyVideos");
       const response = await Propertyapi.get("property/getpropertyvideos", {
         params: { unique_property_id, user_id },
       });
-      console.log("getPropertyVideos response:", response.data);
       if (response.data.status === "error") {
         setErrorMessages({ message: response.data.message });
         setErrorModalOpen(true);
@@ -200,15 +202,15 @@ export default function Photos({ property, unique_property_id }) {
         const videoFilesData = videos.map((video) => ({
           id: video.id,
           url: video.url,
-          type: video.type,
           file: null,
         }));
         setVideoFiles(videoFilesData);
         const videoBlobs = await Promise.all(
           videos.map(async (video) => {
             try {
-              const res = await fetch(video.url, { mode: "cors" });
-              if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+              const res = await fetch(video.url);
+              if (!res.ok?.blob)
+                throw new Error(`HTTP error! Status: ${res.status}`);
               const blob = await res.blob();
               return URL.createObjectURL(blob);
             } catch (error) {
@@ -227,6 +229,7 @@ export default function Photos({ property, unique_property_id }) {
       setIsLoading(false);
     }
   };
+
   const getPropertyFloorPlans = async () => {
     if (!user_id || !unique_property_id) {
       console.log("Skipping getPropertyFloorPlans", {
@@ -237,11 +240,9 @@ export default function Photos({ property, unique_property_id }) {
     }
     setIsLoading(true);
     try {
-      console.log("Calling getPropertyFloorPlans");
       const response = await Propertyapi.get("property/getfloorplansphotos", {
         params: { unique_property_id, user_id },
       });
-      console.log("getPropertyFloorPlans response:", response.data);
       if (response.data.status === "error") {
         setErrorMessages({ message: response.data.message });
         setErrorModalOpen(true);
@@ -266,18 +267,11 @@ export default function Photos({ property, unique_property_id }) {
       setIsLoading(false);
     }
   };
-  useEffect(() => {
-    console.log("useEffect for APIs", { user_id, unique_property_id });
-    if (user_id && unique_property_id) {
-      getPropertyPhotos();
-      getPropertyVideos();
-      getPropertyFloorPlans();
-    }
-  }, [user_id, unique_property_id]);
+
   const deletePropertyImage = async (photo_id) => {
     setIsLoading(true);
     try {
-      const response = await Propertyapi.post("property/photos/delete", {
+      const response = await Propertyapi.post("property/deletepropertyphoto", {
         photo_id,
         user_id,
         unique_property_id,
@@ -287,20 +281,21 @@ export default function Photos({ property, unique_property_id }) {
         setErrorModalOpen(true);
         return;
       }
-      toast.success("Photo removed successfully");
+      toast.success("Photo deleted successfully");
       getPropertyPhotos();
     } catch (error) {
-      console.error("Delete photo error:", error);
+      console.error("Delete property image error:", error);
       setErrorMessages({ message: error.message });
       setErrorModalOpen(true);
     } finally {
       setIsLoading(false);
     }
   };
+
   const deletePropertyVideo = async (video_id) => {
     setIsLoading(true);
     try {
-      const response = await Propertyapi.post("property/videos/delete", {
+      const response = await Propertyapi.post("property/deletepropertyvideo", {
         video_id,
         user_id,
         unique_property_id,
@@ -310,21 +305,22 @@ export default function Photos({ property, unique_property_id }) {
         setErrorModalOpen(true);
         return;
       }
-      toast.success("Video removed successfully");
+      toast.success("Video deleted successfully");
       getPropertyVideos();
     } catch (error) {
-      console.error("Delete video error:", error);
+      console.error("Delete property video error:", error);
       setErrorMessages({ message: error.message });
       setErrorModalOpen(true);
     } finally {
       setIsLoading(false);
     }
   };
+
   const deletePropertyFloorPlan = async (image_id) => {
     setIsLoading(true);
     try {
-      const response = await Propertyapi.post("property/floorplans/delete", {
-        photo_id: image_id,
+      const response = await Propertyapi.post("property/deletefloorplanphoto", {
+        image_id,
         user_id,
         unique_property_id,
       });
@@ -333,7 +329,7 @@ export default function Photos({ property, unique_property_id }) {
         setErrorModalOpen(true);
         return;
       }
-      toast.success("Floor plan removed successfully");
+      toast.success("Floor plan deleted successfully");
       getPropertyFloorPlans();
     } catch (error) {
       console.error("Delete floor plan error:", error);
@@ -343,31 +339,17 @@ export default function Photos({ property, unique_property_id }) {
       setIsLoading(false);
     }
   };
-  const updateFeaturedImage = async (photo_id) => {
-    setIsLoading(true);
-    try {
-      const response = await Propertyapi.post("property/photos/set-featured", {
-        photo_id,
-        user_id,
-        unique_property_id,
-      });
-      if (response.data.status === "error") {
-        setErrorMessages({ message: response.data.message });
-        setErrorModalOpen(true);
-        return;
-      }
-      toast.success("Featured image updated successfully");
+
+  useEffect(() => {
+    if (user_id && unique_property_id) {
       getPropertyPhotos();
-    } catch (error) {
-      console.error("Update featured image error:", error);
-      setErrorMessages({ message: error.message });
-      setErrorModalOpen(true);
-    } finally {
-      setIsLoading(false);
+      getPropertyVideos();
+      getPropertyFloorPlans();
     }
-  };
+  }, [user_id, unique_property_id]);
+
   const removeFile = (field, index) => () => {
-    if (field === "photos") {
+    if (field === "photo") {
       const file = photoFiles[index];
       if (file?.id) {
         deletePropertyImage(file.id);
@@ -375,10 +357,13 @@ export default function Photos({ property, unique_property_id }) {
       }
       setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
       setPhotoPreviews((prev) => prev.filter((_, i) => i !== index));
-      if (featuredImageIndex === index) setFeaturedImageIndex(null);
+      if (featuredImageIndex === index)
+        setValue("featuredImageIndex", null, { shouldValidate: true });
       else if (featuredImageIndex > index)
-        setFeaturedImageIndex(featuredImageIndex - 1);
-    } else if (field === "videos") {
+        setValue("featuredImageIndex", featuredImageIndex - 1, {
+          shouldValidate: true,
+        });
+    } else if (field === "video") {
       const file = videoFiles[index];
       if (file?.id) {
         deletePropertyVideo(file.id);
@@ -403,75 +388,91 @@ export default function Photos({ property, unique_property_id }) {
       setValue(field, dataTransfer.files, { shouldValidate: true });
     }
   };
+
   const handleFeaturedImageChange = (index) => {
-    setFeaturedImageIndex(index);
-    const file = photoFiles[index];
-    if (file?.id) {
-      updateFeaturedImage(file.id);
+    setValue("featuredImageIndex", index, { shouldValidate: true });
+  };
+
+  const handleFileChange = (field) => (e) => {
+    const files = e.target.files;
+    if (files) {
+      const maxSize = field === "video" ? 30 * 1024 * 1024 : 10 * 1024 * 1024;
+      const allowedExtensions =
+        field === "video"
+          ? [".mp4", ".avi", ".mov", ".flv", ".wmv"]
+          : [".jpg", ".jpeg", ".png", ".gif"];
+      for (const file of files) {
+        const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+        if (!allowedExtensions.includes(ext)) {
+          toast.error(`${file.name} has an unsupported format`);
+          return;
+        }
+        if (file.size > maxSize) {
+          toast.error(
+            `${file.name} exceeds ${
+              field === "video" ? "30MB" : "10MB"
+            } size limit`
+          );
+          return;
+        }
+      }
+      setValue(field, files, { shouldValidate: true });
     }
   };
-  const handleSubmit = async () => {
+
+  const handleNextStep = async () => {
     if (!photoPreviews.length) {
       toast.error("Please upload at least one photo");
       return;
     }
-    if (featuredImageIndex === null) {
-      toast.error("Please select a featured image");
+    if (
+      featuredImageIndex === null ||
+      featuredImageIndex >= photoFiles.length
+    ) {
+      toast.error("Please select a valid featured image");
       return;
     }
     setIsLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("user_id", user_id);
-      formData.append("unique_property_id", unique_property_id);
-      photoFiles.forEach((file) => {
-        if (file.file) {
-          formData.append("photos", file.file);
-        }
-      });
-      videoFiles.forEach((file) => {
-        if (file.file) {
-          formData.append("videos", file.file);
-          formData.append("video_type", file.type);
-        }
-      });
-      floorPlanFiles.forEach((file) => {
-        if (file.file) {
-          formData.append("floor_plans", file.file);
-        }
-      });
-      const response = await Propertyapi.post(
-        "property/photos-videos/upload",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
+      console.log("Submitting photoFiles:", photoFiles);
+      console.log("Submitting featuredImageIndex:", featuredImageIndex);
+      const { success, data, message } = await submitPhotosVideos(
+        user_id,
+        unique_property_id,
+        photoFiles,
+        videoFiles,
+        featuredImageIndex
       );
-      if (response.data.status === "error") {
-        setErrorMessages({ message: response.data.message });
+      if (success) {
+        toast.success("Photos and videos uploaded successfully");
+        reset({
+          photo: null,
+          video: null,
+          floorPlans: null,
+          featuredImageIndex: null,
+        });
+        setPhotoFiles([]);
+        setPhotoPreviews([]);
+        setVideoFiles([]);
+        setVideoPreviews([]);
+        setFloorPlanFiles([]);
+        setFloorPlanPreviews([]);
+        onNext();
+      } else {
+        setErrorMessages({ message });
         setErrorModalOpen(true);
-        return;
       }
-      toast.success("Files uploaded successfully");
-      getPropertyPhotos();
-      getPropertyVideos();
-      getPropertyFloorPlans();
     } catch (error) {
-      console.error("Submit error:", error);
+      console.error("Upload error:", error);
       setErrorMessages({ message: error.message });
       setErrorModalOpen(true);
     } finally {
       setIsLoading(false);
     }
   };
-  const handleClickUpload = (ref) => () => ref.current?.click();
-  const handleFileChange = (field) => (e) => {
-    const files = e.target.files;
-    if (files) {
-      setValue(field, files, { shouldValidate: true });
-    }
-  };
+
   const closeErrorModal = () => setErrorModalOpen(false);
+
   return (
     <div>
       <div className="space-y-10 max-w-5xl mx-auto">
@@ -479,13 +480,13 @@ export default function Photos({ property, unique_property_id }) {
           <div className="space-y-2">
             <Label className="text-lg font-medium">Property Photos</Label>
             <p className="text-sm text-muted-foreground">
-              Upload high-quality photos of your property. The first photo will
-              be used as the main image.
+              Upload high-quality photos of your property. Select one as the
+              featured image.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div
-              onClick={handleClickUpload(photoInputRef)}
+              onClick={() => photoInputRef.current?.click()}
               className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50 transition"
             >
               <div className="space-y-4">
@@ -500,21 +501,21 @@ export default function Photos({ property, unique_property_id }) {
                   </p>
                 </div>
                 <p className="text-xs text-gray-400">
-                  Supported formats: JPG, JPEG, PNG (Max 10MB each)
+                  Supported formats: JPG, JPEG, PNG, GIF (Max 10MB each)
                 </p>
               </div>
               <input
-                {...register("photos")}
+                {...register("photo")}
                 type="file"
                 ref={photoInputRef}
-                accept="image/png, image/jpeg, image/jpg"
+                accept="image/png,image/jpeg,image/jpg,image/gif"
                 multiple
                 className="hidden"
-                onChange={handleFileChange("photos")}
+                onChange={handleFileChange("photo")}
               />
             </div>
             <div
-              onClick={handleClickUpload(videoInputRef)}
+              onClick={() => videoInputRef.current?.click()}
               className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50 transition"
             >
               <div className="space-y-4">
@@ -529,17 +530,17 @@ export default function Photos({ property, unique_property_id }) {
                   </p>
                 </div>
                 <p className="text-xs text-gray-400">
-                  Supported format: MP4 (Max 30MB each)
+                  Supported formats: MP4, AVI, MOV, FLV, WMV (Max 30MB each)
                 </p>
               </div>
               <input
-                {...register("videos")}
+                {...register("video")}
                 type="file"
                 ref={videoInputRef}
-                accept="video/mp4"
+                accept="video/mp4,video/avi,video/mov,video/flv,video/wmv"
                 multiple
                 className="hidden"
-                onChange={handleFileChange("videos")}
+                onChange={handleFileChange("video")}
               />
             </div>
           </div>
@@ -549,13 +550,13 @@ export default function Photos({ property, unique_property_id }) {
                 <div
                   key={idx}
                   className="relative group rounded-md overflow-hidden"
-                  style={{ zIndex: 1 }} // Ensure hover events are captured
+                  style={{ zIndex: 1 }}
                 >
                   <img
                     src={url}
                     alt={`Photo Preview ${idx}`}
                     className={`object-cover w-full h-40 rounded-md ${
-                      featuredImageIndex == idx ? "ring-2 ring-blue-500" : ""
+                      featuredImageIndex === idx ? "ring-2 ring-green-500" : ""
                     }`}
                     crossOrigin="anonymous"
                     onError={() =>
@@ -566,13 +567,19 @@ export default function Photos({ property, unique_property_id }) {
                     size={20}
                     color="white"
                     className="absolute top-2 right-2 rounded-full bg-red-500 cursor-pointer z-10"
-                    onClick={removeFile("photos", idx)}
+                    onClick={removeFile("photo", idx)}
                   />
                   <div
-                    className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full transition-opacity duration-200 cursor-pointer flex items-center gap-1 z-10 group-hover:opacity-100 opacity-0"
+                    className={`absolute top-2 left-2 text-white text-xs px-2 py-1 rounded-full transition-opacity duration-200 cursor-pointer flex items-center gap-1 z-10 group-hover:opacity-100 ${
+                      featuredImageIndex === idx
+                        ? "bg-green-600 opacity-100"
+                        : "bg-blue-600 opacity-0"
+                    }`}
                     onClick={() => handleFeaturedImageChange(idx)}
                   >
-                    Set as Featured
+                    {featuredImageIndex === idx
+                      ? "Featured"
+                      : "Set as Featured"}
                     {featuredImageIndex === idx && <Bookmark size={15} />}
                   </div>
                 </div>
@@ -598,7 +605,7 @@ export default function Photos({ property, unique_property_id }) {
                     variant="destructive"
                     size="icon"
                     className="absolute top-2 right-2 rounded-full"
-                    onClick={removeFile("videos", idx)}
+                    onClick={removeFile("video", idx)}
                   >
                     <X className="w-2 h-2" />
                   </Button>
@@ -619,7 +626,7 @@ export default function Photos({ property, unique_property_id }) {
             </p>
           </div>
           <div
-            onClick={handleClickUpload(floorPlanInputRef)}
+            onClick={() => floorPlanInputRef.current?.click()}
             className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50 transition"
           >
             <div className="space-y-4">
@@ -634,14 +641,14 @@ export default function Photos({ property, unique_property_id }) {
                 </p>
               </div>
               <p className="text-xs text-gray-400">
-                Supported formats: JPG, JPEG, PNG (Max 10MB each)
+                Supported formats: JPG, JPEG, PNG, GIF (Max 10MB each)
               </p>
             </div>
             <input
               {...register("floorPlans")}
               type="file"
               ref={floorPlanInputRef}
-              accept="image/png, image/jpeg, image/jpg"
+              accept="image/png,image/jpeg,image/jpg,image/gif"
               multiple
               className="hidden"
               onChange={handleFileChange("floorPlans")}
@@ -675,6 +682,9 @@ export default function Photos({ property, unique_property_id }) {
             )}
           </div>
         </div>
+        <Button onClick={handleNextStep} disabled={isLoading} className="mt-6">
+          {isLoading ? "Uploading..." : "Next"}
+        </Button>
       </div>
       {errorModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">

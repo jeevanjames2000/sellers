@@ -82,6 +82,7 @@ export const submitPropertyDetails = async (
       user_id: userInfo?.user_id,
       unique_property_id: formData?.unique_property_id,
       total_places_around_property: places.map((place) => ({
+        place_id: place.place_id,
         place: place.place,
         distance: parseFloat(place.distance),
       })),

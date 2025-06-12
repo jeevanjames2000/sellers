@@ -37,6 +37,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useState } from "react";
 import { formatCurrencyInWords } from "@/components/shared/formatCurrencyInWords";
 import { useSelector } from "react-redux";
+import config from "@/components/api/config";
 export default function PropertyDetails({
   property,
   setProperty,
@@ -46,12 +47,12 @@ export default function PropertyDetails({
   fac,
   setFac,
 }) {
+  console.log("places: ", places);
   const { register, watch, setValue, getValues } = useFormContext();
   const formValues = watch();
   const propertySubtype = watch("sub_type");
   const commercialSubType = watch("sub_type");
   const isRent = formValues?.property_for === "Rent";
-  console.log("isRent: ", isRent);
   const isSell = formValues?.property_for === "Sell";
   const securityDeposit = watch("security_deposit");
   const lockinPeriod = watch("lock_in");
@@ -105,9 +106,13 @@ export default function PropertyDetails({
     setValue("nearbyPlace", "");
     setValue("distanceFromProperty", "");
   };
-  const handleDelete = (index) => {
-    setPlaces((prev) => prev.filter((_, i) => i !== index));
+  const handleDelete = async (placeid) => {
+    await deleteAroundProperty(placeid, property.unique_property_id);
+
+    const updatedPlaces = places.filter((p) => p.place_id !== placeid);
+    setPlaces(updatedPlaces);
   };
+
   const propertySubtypes = [
     { id: "Apartment", label: "Apartment", icon: Building },
     { id: "Independent House", label: "Independent House", icon: Home },
@@ -286,7 +291,6 @@ export default function PropertyDetails({
         rawValue: property?.balconies,
       },
     ];
-
     config.forEach(({ value, key, setCustom, rawValue }) => {
       const numericValue = parseInt(value);
       const numericRawValue = parseInt(rawValue);
@@ -311,7 +315,6 @@ export default function PropertyDetails({
     property,
     setValue,
   ]);
-
   const formatFieldValue = (key, value) => {
     const intVal = parseInt(value);
     switch (key) {
@@ -330,7 +333,7 @@ export default function PropertyDetails({
       case "bike_parking":
       case "car_parking":
       case "open_parking":
-        return !isNaN(intVal) ? `${intVal}` : "0"; // Preserve numeric value
+        return !isNaN(intVal) ? `${intVal}` : "0";
       default:
         return value;
     }
@@ -346,7 +349,6 @@ export default function PropertyDetails({
   };
   useEffect(() => {
     let defaultUnit;
-
     if (
       ["Apartment", "Independent Villa", "Independent House"].includes(
         propertySubtype
@@ -358,12 +360,10 @@ export default function PropertyDetails({
     } else if (propertySubtype === "Land") {
       defaultUnit = "Acres";
     } else {
-      defaultUnit = "Sq.ft"; // fallback default
+      defaultUnit = "Sq.ft";
     }
-
     setValue("area_units", defaultUnit);
-  }, [propertySubtype]); // ✅ remove areaUnit
-
+  }, [propertySubtype]);
   useEffect(() => {
     if (property && property.id) {
       Object.entries(property).forEach(([key, value]) => {
@@ -373,12 +373,40 @@ export default function PropertyDetails({
     }
     if (property?.around_places?.length) {
       const mappedPlaces = property.around_places.map((place) => ({
+        place_id: place.id,
         place: place.title.trim(),
         distance: parseInt(place.distance),
       }));
       setPlaces(mappedPlaces);
     }
   }, [property, setValue]);
+  const deleteAroundProperty = async (placeid, unique_property_id) => {
+    try {
+      const res = await fetch(
+        `https://api.meetowner.in/property/deleteplacesaroundproperty`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            placeid,
+            unique_property_id,
+          }),
+        }
+      );
+
+      const data = await res.json();
+      if (res.ok) {
+        console.log("Place deleted successfully:", data);
+      } else {
+        console.error("Failed to delete place:", data);
+      }
+    } catch (error) {
+      console.error("Error deleting place:", error);
+    }
+  };
+
   return (
     <div className="space-y-8 sm:space-y-2 gap-4">
       {!shouldShowCommercialSubTypes && (
@@ -723,7 +751,6 @@ export default function PropertyDetails({
           </Select>
         </div>
       )}
-
       {isRent && (
         <>
           {shouldShowLifts && (
@@ -1314,7 +1341,7 @@ export default function PropertyDetails({
             </Label>
             <Input
               type="number"
-              {...register("plotNo", {
+              {...register("plot_number", {
                 required: "Plot Number is required",
               })}
               placeholder="Plot No"
@@ -1579,7 +1606,7 @@ export default function PropertyDetails({
             </div>
           </div>
           <div className="space-y-2 mt-4">
-            {places.map(({ place, distance }, index) => (
+            {places.map(({ place, distance, place_id }, index) => (
               <div
                 key={index}
                 className="flex flex-col sm:flex-row justify-between items-start sm:items-center border p-3 rounded gap-2"
@@ -1593,7 +1620,7 @@ export default function PropertyDetails({
                   </span>
                   <Trash
                     className="cursor-pointer text-red-500 hover:text-red-700 w-4 h-4 sm:w-5 sm:h-5"
-                    onClick={() => handleDelete(index)}
+                    onClick={() => handleDelete(place_id)}
                   />
                 </div>
               </div>

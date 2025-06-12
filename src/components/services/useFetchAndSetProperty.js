@@ -15,7 +15,16 @@ export default function useFetchAndSetProperty(unique_property_id, resetForm) {
         console.log("propertyData: ", propertyData);
         if (propertyData) {
           setProperty(propertyData);
-          resetForm(propertyData);
+          const mappedPlaces =
+            propertyData.around_places?.map((place) => ({
+              place_id: place.id,
+              place: place.title.trim(),
+              distance: parseInt(place.distance),
+            })) || [];
+          resetForm({
+            ...propertyData,
+            total_places_around_property: mappedPlaces,
+          });
         }
       } catch (err) {
         console.error("Failed to fetch property details:", err);
