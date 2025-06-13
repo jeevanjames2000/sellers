@@ -1,29 +1,26 @@
 import axios from "axios";
 import config from "../api/config";
 import { setPropertyDetails } from "@/store/slices/addPropertySlice/propertyDetailsSlice";
-
 export const submitPropertyDetails = async (
   formData,
   dispatch,
   userInfo,
   places,
-  fac // this is now the only source for facilities
+  fac
 ) => {
-  console.log(
-    "formData in submitPropertyDetails:",
-    JSON.stringify(formData, null, 2)
-  );
-  console.log("places in submitPropertyDetails:", places);
-  console.log("fac (facilities):", fac);
-
+  console.log("formData: ", formData);
   try {
-    // Use fac directly, ensuring it's a clean, comma-separated string
     const formattedFacilities = Array.isArray(fac)
       ? fac
           .filter((item) => item && facilitiesOptions.includes(item))
           .join(", ")
       : "";
-
+    const newPlaces = places
+      .filter((place) => !place.place_id)
+      .map((place) => ({
+        place: place.place,
+        distance: parseFloat(place.distance),
+      }));
     const payload = {
       sub_type: formData.sub_type,
       land_sub_type: formData.land_sub_type,
@@ -48,7 +45,7 @@ export const submitPropertyDetails = async (
       maintenance: formData.maintenance,
       security_deposit: formData.security_deposit,
       lock_in: formData.lock_in,
-      brokerageCharge: formData.brokerageCharge,
+      brokerage_charge: formData.brokerage_charge,
       types: formData.types,
       area_units: formData.area_units,
       builtup_area: formData.builtup_area,
@@ -69,7 +66,7 @@ export const submitPropertyDetails = async (
       unit_flat_house_no: formData.unit_flat_house_no,
       plot_number: formData.plot_number,
       business_types: formData.suitable,
-      zone_types: formData.zone_types,
+      zone_types: formData.zoneType,
       investor_property: formData.investor_property,
       loan_facility: formData.loan_facility,
       facing: formData.facing,
@@ -81,22 +78,14 @@ export const submitPropertyDetails = async (
       google_address: formData.google_address,
       user_id: userInfo?.user_id,
       unique_property_id: formData?.unique_property_id,
-      total_places_around_property: places.map((place) => ({
-        place_id: place.place_id,
-        place: place.place,
-        distance: parseFloat(place.distance),
-      })),
+      total_places_around_property: newPlaces,
+      under_construction: formData?.under_construction,
     };
-
-    // Remove undefined or null keys
     Object.keys(payload).forEach((key) => {
       if (payload[key] === undefined || payload[key] === null) {
         delete payload[key];
       }
     });
-
-    console.log("Final payload:", JSON.stringify(payload, null, 2));
-
     const response = await axios.post(
       `${config.api_url}/property/v1/addPropertyDetails`,
       payload,
@@ -106,11 +95,33 @@ export const submitPropertyDetails = async (
         },
       }
     );
-
     const { status, property, message } = response.data;
     if (status === "success") {
-      dispatch(setPropertyDetails(property));
-      return { success: true, data: property };
+      let updatedPlaces = [...places];
+      if (property && Array.isArray(property.around_places)) {
+        updatedPlaces = places.map((place) => {
+          if (!place.place_id) {
+            const serverPlace = property.around_places.find(
+              (sp) => sp.title === place.place && sp.distance === place.distance
+            );
+            return serverPlace ? { ...place, place_id: serverPlace.id } : place;
+          }
+          return place;
+        });
+      } else {
+        console.warn(
+          "No around_places found in response, keeping existing places."
+        );
+      }
+      const updatedProperty = {
+        ...property,
+        around_places: updatedPlaces,
+      };
+      dispatch(setPropertyDetails(updatedProperty));
+      return {
+        success: true,
+        data: updatedProperty,
+      };
     } else {
       return { success: false, message };
     }
@@ -125,7 +136,6 @@ export const submitPropertyDetails = async (
     };
   }
 };
-
 const facilitiesOptions = [
   "Lift",
   "CCTV",

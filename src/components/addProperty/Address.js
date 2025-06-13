@@ -38,8 +38,6 @@ export default function Address({ property }) {
     locality: selectedLocality,
   } = useSelector((store) => store.address);
   const locality = watch("locality");
-  console.log("selectedLocality:", selectedLocality);
-  console.log("locality (form):", locality);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [localityInput, setLocalityInput] = useState(
@@ -53,7 +51,6 @@ export default function Address({ property }) {
     try {
       const res = await fetch("https://api.meetowner.in/api/v1/getAllStates");
       const data = await res.json();
-      console.log("Fetched states:", data);
       setStates(data);
     } catch (error) {
       console.error("Error fetching states:", error);
@@ -64,7 +61,6 @@ export default function Address({ property }) {
       try {
         const res = await fetch(`https://api.meetowner.in/api/v1/getAllCities`);
         const data = await res.json();
-        console.log("Fetched cities:", data);
         setCities(data);
         if (property?.city_id) {
           const matchedCity = data.find(
@@ -88,14 +84,12 @@ export default function Address({ property }) {
         `https://api.meetowner.in/api/v1/search?city=${city}&query=${query}`
       );
       const data = await res.json();
-      console.log("Fetched localities:", data);
       setLocalitySuggestions(data || []);
     } catch (error) {
       console.error("Error fetching localities:", error);
     }
   }, []);
   useEffect(() => {
-    console.log("Property:", property);
     fetchStates();
     if (property?.state_id) {
       dispatch(setState(property.state_id));

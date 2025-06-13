@@ -32,9 +32,7 @@ const ListingsPage = () => {
     statusFilter,
   } = useSelector((state) => state.search);
   const initialPage = parseInt(searchParams.get("page")) || 1;
-  console.log("initial page:", initialPage);
   const [currentPage, setCurrentPage] = useState(initialPage);
-  console.log("current page:", currentPage);
   const [properties, setProperties] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -69,7 +67,6 @@ const ListingsPage = () => {
         userId = null;
       }
     } else {
-      console.log("No userDetails found in localStorage");
       userId = null;
     }
     try {
@@ -90,7 +87,6 @@ const ListingsPage = () => {
         city_id: "",
         user_id: userId,
       };
-      console.log("API call with page:", currentPage);
       const url = new URL(`${config.api_url}/listings/v1/getAllListingsByType`);
       Object.keys(queryParams).forEach((key) => {
         if (queryParams[key] !== null && queryParams[key] !== "") {

@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import config from "../api/config";
 export default function useFetchAndSetProperty(unique_property_id, resetForm) {
-  console.log("unique_property_id: ", unique_property_id);
   const [property, setProperty] = useState(null);
   useEffect(() => {
     const getPropertyDetails = async () => {
@@ -12,7 +11,6 @@ export default function useFetchAndSetProperty(unique_property_id, resetForm) {
           `${config.api_url}/listings/v1/getSinleProperty?unique_property_id=${unique_property_id}`
         );
         const propertyData = res.data.property;
-        console.log("propertyData: ", propertyData);
         if (propertyData) {
           setProperty(propertyData);
           const mappedPlaces =
