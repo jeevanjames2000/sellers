@@ -42,19 +42,10 @@ function Photoswrapper({ setCurrentStep }) {
         const parsedUser = JSON.parse(user);
         setUserInfo(parsedUser);
       } catch (error) {
-        console.error("Failed to parse userDetails:", error);
-        toast.error({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load user information",
-        });
+        toast.error("Failed to parse userDetails");
       }
     } else {
-      toast.error({
-        variant: "destructive",
-        title: "Error",
-        description: "Please log in to continue",
-      });
+      toast.error("Please log in to continue");
     }
   }, []);
   const handleFileUpload = (event) => {
@@ -64,11 +55,7 @@ function Photoswrapper({ setCurrentStep }) {
       (file) => !allowedExtensions.test(file.name)
     );
     if (invalidFiles.length > 0) {
-      toast.error({
-        variant: "destructive",
-        title: "Error",
-        description: "Please upload only jpg, jpeg, png, gif files",
-      });
+      toast.error("Please upload only jpg, jpeg, png, gif files");
       return;
     }
     const validFiles = uploadedFiles.filter(
@@ -78,11 +65,7 @@ function Photoswrapper({ setCurrentStep }) {
       (file) => file.size > 10 * 1024 * 1024
     );
     if (oversizedFiles.length > 0) {
-      toast.error({
-        variant: "destructive",
-        title: "Error",
-        description: "Some files were not uploaded because they exceed 10MB",
-      });
+      toast.error("Some files were not uploaded because they exceed 10MB");
     }
     const filesWithImageId = validFiles.map((file) => ({
       file,
@@ -129,10 +112,7 @@ function Photoswrapper({ setCurrentStep }) {
         return;
       }
       getPropertyPhotos();
-      toast.success({
-        title: "Success",
-        description: "Image removed successfully",
-      });
+      toast.success("Image removed successfully");
     } catch (error) {
       setErrorMessages({ message: error.message });
       setErrorModalOpen(true);
@@ -146,11 +126,7 @@ function Photoswrapper({ setCurrentStep }) {
       (file) => !allowedExtensions.test(file.name)
     );
     if (invalidFiles.length > 0) {
-      toast.error({
-        variant: "destructive",
-        title: "Error",
-        description: "Please upload only mp4 files",
-      });
+      toast.error("Please upload only mp4 files");
       return;
     }
     const validFiles = uploadedFiles.filter(
@@ -160,12 +136,9 @@ function Photoswrapper({ setCurrentStep }) {
       (file) => file.size > 30 * 1024 * 1024
     );
     if (oversizedFiles.length > 0) {
-      toast.error({
-        variant: "destructive",
-        title: "Error",
-        description:
-          "Some video files were not uploaded because they exceed 30MB",
-      });
+      toast.error(
+        "Some video files were not uploaded because they exceed 30MB"
+      );
     }
     const filesWithVideoType = validFiles.map((file) => ({
       file,
@@ -210,10 +183,7 @@ function Photoswrapper({ setCurrentStep }) {
         return;
       }
       getPropertyVideos();
-      toast.success({
-        title: "Success",
-        description: "Video removed successfully",
-      });
+      toast.success("Video removed successfully");
     } catch (error) {
       setErrorMessages({ message: error.message });
       setErrorModalOpen(true);
@@ -227,11 +197,7 @@ function Photoswrapper({ setCurrentStep }) {
       (file) => !allowedExtensions.test(file.name)
     );
     if (invalidFiles.length > 0) {
-      toast.error({
-        variant: "destructive",
-        title: "Error",
-        description: "Please upload only jpg, jpeg, png, gif files",
-      });
+      toast.error("Please upload only jpg, jpeg, png, gif files");
       return;
     }
     const validFiles = uploadedFiles.filter(
@@ -241,11 +207,7 @@ function Photoswrapper({ setCurrentStep }) {
       (file) => file.size > 10 * 1024 * 1024
     );
     if (oversizedFiles.length > 0) {
-      toast.error({
-        variant: "destructive",
-        title: "Error",
-        description: "Some files were not uploaded because they exceed 10MB",
-      });
+      toast.error("Some files were not uploaded because they exceed 10MB");
     }
     const filesWithImageId = validFiles.map((file) => ({
       file,
@@ -284,10 +246,7 @@ function Photoswrapper({ setCurrentStep }) {
         return;
       }
       getPropertyFloorPlans();
-      toast.success({
-        title: "Success",
-        description: "Floorplan removed successfully",
-      });
+      toast.success("Floorplan removed successfully");
     } catch (error) {
       setErrorMessages({ message: error.message });
       setErrorModalOpen(true);
@@ -321,10 +280,7 @@ function Photoswrapper({ setCurrentStep }) {
         setIsLoadingEffect(false);
         return;
       }
-      toast.success({
-        title: "Success",
-        description: "Photos uploaded successfully",
-      });
+      toast.success("Photos uploaded successfully");
       setIsLoadingEffect(false);
     } catch (error) {
       setErrorMessages({
@@ -358,10 +314,7 @@ function Photoswrapper({ setCurrentStep }) {
         setIsLoadingEffect(false);
         return;
       }
-      toast.success({
-        title: "Success",
-        description: "Floorplans uploaded successfully",
-      });
+      toast.success("Floorplans uploaded successfully");
       setIsLoadingEffect(false);
     } catch (error) {
       setErrorMessages({
@@ -376,20 +329,12 @@ function Photoswrapper({ setCurrentStep }) {
     setIsLoadingEffect(true);
     if (previews.length === 0) {
       setIsLoadingEffect(false);
-      toast.error({
-        variant: "destructive",
-        title: "Error",
-        description: "Please upload at least one Property photo",
-      });
+      toast.error("Please upload at least one Property photo");
       return;
     }
     if (featuredIndex === null || featuredIndex === -1) {
       setIsLoadingEffect(false);
-      toast.error({
-        variant: "destructive",
-        title: "Error",
-        description: "Please select a featured image",
-      });
+      toast.error("Please select a featured image");
       return;
     }
     await submitPhotosVideos(data);

@@ -1,6 +1,41 @@
 import axios from "axios";
 import config from "../api/config";
 import { setPropertyDetails } from "@/store/slices/addPropertySlice/propertyDetailsSlice";
+
+const transformValuesForDb = (data) => {
+  const transformField = (key, value) => {
+    switch (key) {
+      case "security_deposit":
+      case "lock_in":
+        if (!value || value === "None") return "0.00";
+        const match = value.match(/(\d+)/);
+        return match ? `${parseInt(match[1])}.00` : "0.00";
+      case "brokerage_charge":
+        if (!value || value === "None") return "0.00";
+        return value === "15 Days"
+          ? "15.00"
+          : value === "30 Days"
+          ? "30.00"
+          : "0.00";
+      default:
+        return value;
+    }
+  };
+
+  return Object.keys(data).reduce((acc, key) => {
+    const backendKey =
+      key === "security_deposit"
+        ? "securityDeposit"
+        : key === "brokerage_charge"
+        ? "brokerageCharge"
+        : key;
+    return {
+      ...acc,
+      [backendKey]: transformField(key, data[key]),
+    };
+  }, {});
+};
+
 export const submitPropertyDetails = async (
   formData,
   dispatch,
@@ -8,7 +43,7 @@ export const submitPropertyDetails = async (
   places,
   fac
 ) => {
-  console.log("formData: ", formData);
+  console.log("Form data before transformation:", formData);
   try {
     const formattedFacilities = Array.isArray(fac)
       ? fac
@@ -21,71 +56,69 @@ export const submitPropertyDetails = async (
         place: place.place,
         distance: parseFloat(place.distance),
       }));
+    const transformedData = transformValuesForDb(formData);
     const payload = {
-      sub_type: formData.sub_type,
-      land_sub_type: formData.land_sub_type,
-      rera_approved: formData.rera_approved,
-      occupancy: formData.occupancy,
-      bedrooms: formData.bedrooms,
-      bathroom: formData.bathroom,
-      balconies: formData.balconies,
-      furnished_status: formData.furnished_status,
-      passenger_lifts: formData.passenger_lifts,
-      service_lifts: formData.service_lifts,
-      stair_cases: formData.stair_cases,
-      private_parking: formData.private_parking,
-      public_parking: formData.public_parking,
-      private_washrooms: formData.private_washrooms,
-      public_washrooms: formData.public_washrooms,
-      available_from: formData.available_from
-        ? new Date(formData.available_from).toISOString().split("T")[0]
+      sub_type: transformedData.sub_type,
+      land_sub_type: transformedData.land_sub_type,
+      rera_approved: transformedData.rera_approved,
+      occupancy: transformedData.occupancy,
+      bedrooms: transformedData.bedrooms,
+      bathroom: transformedData.bathroom,
+      pantry_room: transformedData.pantry_room,
+      balconies: transformedData.balconies,
+      furnished_status: transformedData.furnished_status,
+      passenger_lifts: transformedData.passenger_lifts,
+      service_lifts: transformedData.service_lifts,
+      stair_cases: transformedData.stair_cases,
+      private_parking: transformedData.private_parking,
+      public_parking: transformedData.public_parking,
+      private_washrooms: transformedData.private_washrooms,
+      public_washrooms: transformedData.public_washrooms,
+      available_from: transformedData.available_from
+        ? new Date(transformedData.available_from).toISOString().split("T")[0]
         : null,
-      property_age: formData.property_age,
-      monthly_rent: formData.monthly_rent,
-      maintenance: formData.maintenance,
-      security_deposit: formData.security_deposit,
-      lock_in: formData.lock_in,
-      brokerage_charge: formData.brokerage_charge,
-      types: formData.types,
-      area_units: formData.area_units,
-      builtup_area: formData.builtup_area,
-      carpet_area: formData.carpet_area,
-      length_area: formData.length_area,
-      width_area: formData.width_area,
-      plot_area: formData.plot_area,
-      total_project_area: formData.total_project_area,
-      total_project_area_type: formData.total_project_area_type,
-      pent_house: formData.pent_house,
-      builtup_unit: formData.builtup_unit,
-      unit_cost_type: formData.unit_cost_type,
-      property_cost: formData.property_cost,
-      property_cost_type: formData.property_cost_type,
-      possession_status: formData.possession_status,
-      ownership_type: formData.ownership_type,
+      property_age: transformedData.property_age,
+      monthly_rent: transformedData.monthly_rent,
+      maintenance: transformedData.maintenance,
+      securityDeposit: transformedData.securityDeposit,
+      lock_in: transformedData.lock_in,
+      brokerageCharge: transformedData.brokerageCharge,
+      types: transformedData.types,
+      area_units: transformedData.area_units,
+      builtup_area: transformedData.builtup_area,
+      carpet_area: transformedData.carpet_area,
+      length_area: transformedData.length_area,
+      width_area: transformedData.width_area,
+      plot_area: transformedData.plot_area,
+      total_project_area: transformedData.total_project_area,
+      total_project_area_type: transformedData.total_project_area_type,
+      pent_house: transformedData.pent_house,
+      builtup_unit: transformedData.builtup_unit,
+      unit_cost_type: transformedData.unit_cost_type,
+      property_cost: transformedData.property_cost,
+      property_cost_type: transformedData.property_cost_type,
+      possession_status: transformedData.possession_status,
+      ownership_type: transformedData.ownership_type,
       facilities: formattedFacilities || null,
-      unit_flat_house_no: formData.unit_flat_house_no,
-      plot_number: formData.plot_number,
-      business_types: formData.suitable,
-      zone_types: formData.zoneType,
-      investor_property: formData.investor_property,
-      loan_facility: formData.loan_facility,
-      facing: formData.facing,
-      car_parking: formData.car_parking,
-      bike_parking: formData.bike_parking,
-      open_parking: formData.open_parking,
-      servant_room: formData.servant_room,
-      description: formData.description,
-      google_address: formData.google_address,
+      unit_flat_house_no: transformedData.unit_flat_house_no,
+      plot_number: transformedData.plot_number,
+      business_types: transformedData.suitable,
+      zone_types: transformedData.zone_types,
+      investor_property: transformedData.investor_property,
+      loan_facility: transformedData.loan_facility,
+      facing: transformedData.facing,
+      car_parking: transformedData.car_parking,
+      bike_parking: transformedData.bike_parking,
+      open_parking: transformedData.open_parking,
+      servant_room: transformedData.servant_room,
+      description: transformedData.description,
+      google_address: transformedData.google_address,
       user_id: userInfo?.user_id,
-      unique_property_id: formData?.unique_property_id,
+      unique_property_id: transformedData?.unique_property_id,
       total_places_around_property: newPlaces,
-      under_construction: formData?.under_construction,
+      under_construction: transformedData?.under_construction,
     };
-    Object.keys(payload).forEach((key) => {
-      if (payload[key] === undefined || payload[key] === null) {
-        delete payload[key];
-      }
-    });
+    console.log("Payload sent to backend:", payload);
     const response = await axios.post(
       `${config.api_url}/property/v1/addPropertyDetails`,
       payload,

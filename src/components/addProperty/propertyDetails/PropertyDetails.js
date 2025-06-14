@@ -1,3 +1,4 @@
+"use client";
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,7 +38,15 @@ export default function PropertyDetails({
   fac,
   setFac,
 }) {
-  const { register, watch, setValue, getValues } = useFormContext();
+  console.log("property: ", property);
+  const {
+    register,
+    watch,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useFormContext();
+  console.log("errors: ", errors);
   const formValues = watch();
   const propertySubtype = watch("sub_type");
   const isRent = formValues?.property_for === "Rent";
@@ -54,6 +63,13 @@ export default function PropertyDetails({
   const [constructionEndDate, setConstructionEndDate] = useState(
     watch("under_construction") ? new Date(watch("under_construction")) : null
   );
+  console.log("security_deposit: ", watch("security_deposit"));
+
+  useEffect(() => {
+    if (isCommercial && !propertySubtype && !property?.sub_type) {
+      setValue("sub_type", "Office", { shouldValidate: true });
+    }
+  }, [isCommercial, propertySubtype, property, setValue]);
   const handleConstructionEndDateChange = (selectedDates) => {
     const dateObj = selectedDates[0];
     let formatted = null;
@@ -64,7 +80,10 @@ export default function PropertyDetails({
       formatted = `${year}-${month}-${day}`;
     }
     setConstructionEndDate(dateObj || null);
-    setValue("under_construction", formatted, { shouldDirty: true });
+    setValue("under_construction", formatted, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
   };
   const watchedFields = {
     security_deposit: watch("security_deposit"),
@@ -104,10 +123,11 @@ export default function PropertyDetails({
     public_washrooms: watch("public_washrooms"),
     unit_flat_house_no: watch("unit_flat_house_no"),
     plot_number: watch("plot_number"),
-    zoneType: watch("zoneType"),
+    zone_types: watch("zone_types"),
     suitable: watch("suitable"),
     pantry_room: watch("pantry_room"),
   };
+
   const fieldVisibility = {
     ...(isResidential &&
       isSell && {
@@ -244,7 +264,7 @@ export default function PropertyDetails({
           ownership_type: true,
           facilities: true,
           unit_flat_house_no: true,
-          zoneType: true,
+          zone_types: true,
           loan_facility: true,
           facing: true,
           car_parking: true,
@@ -321,7 +341,7 @@ export default function PropertyDetails({
           property_cost: true,
           ownership_type: true,
           unit_flat_house_no: true,
-          zoneType: true,
+          zone_types: true,
           loan_facility: true,
           facing: true,
           car_parking: true,
@@ -518,7 +538,7 @@ export default function PropertyDetails({
           total_project_area: true,
           facilities: true,
           unit_flat_house_no: true,
-          zoneType: true,
+          zone_types: true,
           facing: true,
           car_parking: true,
           bike_parking: true,
@@ -595,7 +615,7 @@ export default function PropertyDetails({
           plot_area: true,
           total_project_area: true,
           unit_flat_house_no: true,
-          zoneType: true,
+          zone_types: true,
           facing: true,
           car_parking: true,
           bike_parking: true,
@@ -750,7 +770,7 @@ export default function PropertyDetails({
     "Single Men",
     "Single Women",
   ];
-  const zoneTypeOptions = [
+  const zone_typesOptions = [
     "Industrial",
     "Commercial",
     "Special Economic Zone",
@@ -959,7 +979,9 @@ export default function PropertyDetails({
       formatted = `${year}-${month}-${day}`;
     }
     setStartDate(dateObj || null);
-    setValue("available_from", formatted || null);
+    setValue("available_from", formatted || null, { shouldValidate: true });
+    setValue("possession_status", "Ready To Move In");
+    setValue("occupancy", "Ready To Move In");
   };
   return (
     <div className="space-y-8 sm:space-y-2 gap-4">
@@ -977,7 +999,9 @@ export default function PropertyDetails({
                 <Button
                   key={type.id}
                   type="button"
-                  onClick={() => setValue("sub_type", type.id)}
+                  onClick={() =>
+                    setValue("sub_type", type.id, { shouldValidate: true })
+                  }
                   className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
                     isSelected
                       ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -992,6 +1016,17 @@ export default function PropertyDetails({
               );
             })}
           </div>
+          <input
+            type="hidden"
+            {...register("sub_type", {
+              required: "Property Sub Type is required",
+            })}
+          />
+          {errors.sub_type && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.sub_type.message}
+            </p>
+          )}
         </div>
       )}
       {isCommercial && (
@@ -1008,7 +1043,9 @@ export default function PropertyDetails({
                 <Button
                   key={type.id}
                   type="button"
-                  onClick={() => setValue("sub_type", type.id)}
+                  onClick={() =>
+                    setValue("sub_type", type.id, { shouldValidate: true })
+                  }
                   className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
                     isSelected
                       ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -1023,6 +1060,17 @@ export default function PropertyDetails({
               );
             })}
           </div>
+          <input
+            type="hidden"
+            {...register("sub_type", {
+              required: "Commercial Sub Type is required",
+            })}
+          />
+          {errors.sub_type && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.sub_type.message}
+            </p>
+          )}
         </div>
       )}
       {isFieldVisible("land_sub_type") && (
@@ -1039,7 +1087,9 @@ export default function PropertyDetails({
                 <Button
                   key={type.id}
                   type="button"
-                  onClick={() => setValue("land_sub_type", type.id)}
+                  onClick={() =>
+                    setValue("land_sub_type", type.id, { shouldValidate: true })
+                  }
                   className={`h-16 sm:h-20 p-1 w-auto flex flex-col items-center justify-center space-y-1 text-xs text-center break-words ${
                     isSelected
                       ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -1054,23 +1104,34 @@ export default function PropertyDetails({
               );
             })}
           </div>
+          <input
+            type="hidden"
+            {...register("land_sub_type", {
+              required: "Land Sub Type is required",
+            })}
+          />
+          {errors.land_sub_type && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.land_sub_type.message}
+            </p>
+          )}
         </div>
       )}
       {isFieldVisible("rera_approved") && (
         <div className="w-full sm:w-3/4 md:w-1/2 space-y-2">
-          <Label>
-            <div className="flex items-center gap-1">
-              <span>Rera Approved</span>
-              <span className="text-red-500">*</span>
-            </div>
-          </Label>
+          <div className="flex items-center gap-2">
+            <Label>Rera Approved</Label>
+            <span className="text-red-500">*</span>
+          </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             {["Yes", "No"].map((val) => (
               <Button
                 key={val}
                 type="button"
                 variant="outline"
-                onClick={() => setValue("rera_approved", val)}
+                onClick={() =>
+                  setValue("rera_approved", val, { shouldValidate: true })
+                }
                 className={`px-6 sm:px-8 py-3 capitalize ${
                   watchedFields.rera_approved === val
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -1081,6 +1142,17 @@ export default function PropertyDetails({
               </Button>
             ))}
           </div>
+          <input
+            type="hidden"
+            {...register("rera_approved", {
+              required: "Rera Approved is required",
+            })}
+          />
+          {errors.rera_approved && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.rera_approved.message}
+            </p>
+          )}
         </div>
       )}
       {isFieldVisible("occupancy") && (
@@ -1095,7 +1167,7 @@ export default function PropertyDetails({
                 key={status}
                 type="button"
                 onClick={() => {
-                  setValue("occupancy", status);
+                  setValue("occupancy", status, { shouldValidate: true });
                   if (status !== "Under Construction") {
                     setValue("under_construction", null);
                     setConstructionEndDate(null);
@@ -1111,17 +1183,43 @@ export default function PropertyDetails({
               </Button>
             ))}
           </div>
+          <input
+            type="hidden"
+            {...register("occupancy", {
+              required: "Construction Status is required",
+            })}
+          />
+          {errors.occupancy && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.occupancy.message}
+            </p>
+          )}
           {watchedFields.occupancy === "Under Construction" && (
             <div className="space-y-2 mt-4">
-              <Label>
-                Possession End Date <span className="text-red-500">*</span>
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label>Possession End Date</Label>
+                <span className="text-red-500">*</span>
+              </div>
               <DatePicker
                 id="constructionEndDate"
                 onChange={handleConstructionEndDateChange}
                 defaultDate={constructionEndDate}
                 placeholder="Select possession end date"
               />
+              <input
+                type="hidden"
+                {...register("under_construction", {
+                  required:
+                    watchedFields.occupancy === "Under Construction"
+                      ? "Possession End Date is required"
+                      : false,
+                })}
+              />
+              {errors.under_construction && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.under_construction.message}
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -1136,37 +1234,50 @@ export default function PropertyDetails({
           <div className="grid grid-cols-1 lg:grid-cols-3 mb-4 gap-4 sm:gap-6">
             {isFieldVisible("passenger_lifts") && (
               <div className="space-y-2">
-                <Label>
-                  Passenger Lifts <span className="text-red-500">*</span>
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label>Passenger Lifts</Label>
+                  <span className="text-red-500">*</span>
+                </div>
                 <Input
                   {...register("passenger_lifts", {
-                    required: "Passenger lifts is required",
+                    required: "Passenger Lifts is required",
                   })}
                   placeholder="Enter Passenger lifts"
                   className="w-full"
                 />
+                {errors.passenger_lifts && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.passenger_lifts.message}
+                  </p>
+                )}
               </div>
             )}
             {isFieldVisible("service_lifts") && (
               <div className="space-y-2">
-                <Label>
-                  Service Lifts <span className="text-red-500">*</span>
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label>Service Lifts</Label>
+                  <span className="text-red-500">*</span>
+                </div>
                 <Input
                   {...register("service_lifts", {
-                    required: "Service lifts is required",
+                    required: "Service Lifts is required",
                   })}
                   placeholder="Enter Service lifts"
                   className="w-full"
                 />
+                {errors.service_lifts && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.service_lifts.message}
+                  </p>
+                )}
               </div>
             )}
             {isFieldVisible("stair_cases") && (
               <div className="space-y-2">
-                <Label>
-                  Stair Cases <span className="text-red-500">*</span>
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label>Stair Cases</Label>
+                  <span className="text-red-500">*</span>
+                </div>
                 <Input
                   {...register("stair_cases", {
                     required: "Stair Cases is required",
@@ -1174,6 +1285,11 @@ export default function PropertyDetails({
                   placeholder="Enter Stair cases"
                   className="w-full"
                 />
+                {errors.stair_cases && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.stair_cases.message}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -1188,30 +1304,42 @@ export default function PropertyDetails({
           <div className="grid grid-cols-1 lg:grid-cols-2 mb-4 gap-4 sm:gap-6">
             {isFieldVisible("private_parking") && (
               <div className="space-y-2">
-                <Label>
-                  Private Parking <span className="text-red-500">*</span>
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label>Private Parking</Label>
+                  <span className="text-red-500">*</span>
+                </div>
                 <Input
                   {...register("private_parking", {
-                    required: "Private parking is required",
+                    required: "Private Parking is required",
                   })}
                   placeholder="Enter Private parking"
                   className="w-full"
                 />
+                {errors.private_parking && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.private_parking.message}
+                  </p>
+                )}
               </div>
             )}
             {isFieldVisible("public_parking") && (
               <div className="space-y-2">
-                <Label>
-                  Public Parking <span className="text-red-500">*</span>
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label>Public Parking</Label>
+                  <span className="text-red-500">*</span>
+                </div>
                 <Input
                   {...register("public_parking", {
-                    required: "Public parking is required",
+                    required: "Public Parking is required",
                   })}
                   placeholder="Enter Public parking"
                   className="w-full"
                 />
+                {errors.public_parking && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.public_parking.message}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -1226,30 +1354,42 @@ export default function PropertyDetails({
           <div className="grid grid-cols-1 lg:grid-cols-2 mb-4 gap-4 sm:gap-6">
             {isFieldVisible("private_washrooms") && (
               <div className="space-y-2">
-                <Label>
-                  Private Washrooms <span className="text-red-500">*</span>
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label>Private Washrooms</Label>
+                  <span className="text-red-500">*</span>
+                </div>
                 <Input
                   {...register("private_washrooms", {
-                    required: "Private washrooms is required",
+                    required: "Private Washrooms is required",
                   })}
                   placeholder="Enter Private washrooms"
                   className="w-full"
                 />
+                {errors.private_washrooms && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.private_washrooms.message}
+                  </p>
+                )}
               </div>
             )}
             {isFieldVisible("public_washrooms") && (
               <div className="space-y-2">
-                <Label>
-                  Public Washrooms <span className="text-red-500">*</span>
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label>Public Washrooms</Label>
+                  <span className="text-red-500">*</span>
+                </div>
                 <Input
                   {...register("public_washrooms", {
-                    required: "Public washrooms is required",
+                    required: "Public Washrooms is required",
                   })}
                   placeholder="Enter Public washrooms"
                   className="w-full"
                 />
+                {errors.public_washrooms && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.public_washrooms.message}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -1379,10 +1519,10 @@ export default function PropertyDetails({
                 onClick={() => {
                   if (option === "4+") {
                     setBalconyCustom(true);
-                    setValue("balconies", "");
+                    setValue("balconies", "", { shouldValidate: true });
                   } else {
                     setBalconyCustom(false);
-                    setValue("balconies", option);
+                    setValue("balconies", option, { shouldValidate: true });
                   }
                 }}
                 className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
@@ -1396,19 +1536,32 @@ export default function PropertyDetails({
               </Button>
             ))}
           </div>
+          <input
+            type="hidden"
+            {...register("balconies", { required: "Balcony is required" })}
+          />
+          {errors.balconies && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.balconies.message}
+            </p>
+          )}
           {balconyCustom && (
             <Input
               type="number"
               placeholder="Enter Custom Balcony"
               className="w-full sm:w-1/2"
               {...register("balconies", {
+                required: "Balcony is required",
                 validate: (value) =>
                   !value || parseInt(value) > 4
                     ? true
                     : "Value must be greater than 4",
               })}
               onChange={(e) =>
-                setValue("balconies", e.target.value, { shouldDirty: true })
+                setValue("balconies", e.target.value, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
               }
             />
           )}
@@ -1425,7 +1578,9 @@ export default function PropertyDetails({
               <Button
                 key={option}
                 type="button"
-                onClick={() => setValue("furnished_status", option)}
+                onClick={() =>
+                  setValue("furnished_status", option, { shouldValidate: true })
+                }
                 className={`px-4 sm:px-6 py-3 ${
                   watchedFields.furnished_status === option
                     ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -1436,6 +1591,17 @@ export default function PropertyDetails({
               </Button>
             ))}
           </div>
+          <input
+            type="hidden"
+            {...register("furnished_status", {
+              required: "Furnish Type is required",
+            })}
+          />
+          {errors.furnished_status && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.furnished_status.message}
+            </p>
+          )}
         </div>
       )}
       {isFieldVisible("property_age") && (
@@ -1460,46 +1626,69 @@ export default function PropertyDetails({
       )}
       {isFieldVisible("available_from") && (
         <div className="space-y-2">
-          <Label>
-            Available from <span className="text-red-500">*</span>
-          </Label>
+          <div className="flex items-center gap-2">
+            <Label>Available from</Label>
+            <span className="text-red-500">*</span>
+          </div>
           <DatePicker
             id="startDate"
             onChange={handleStartDateChange}
             defaultDate={startDate}
             placeholder="Select start date"
           />
+          <input
+            type="hidden"
+            {...register("available_from", {
+              required: "Available from is required",
+            })}
+          />
+          {errors.available_from && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.available_from.message}
+            </p>
+          )}
         </div>
       )}
       {(isFieldVisible("monthly_rent") || isFieldVisible("maintenance")) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 sm:gap-6">
           {isFieldVisible("monthly_rent") && (
             <div className="space-y-2">
-              <Label>
-                Monthly Rent <span className="text-red-500">*</span>
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label>Monthly Rent</Label>
+                <span className="text-red-500">*</span>
+              </div>
               <Input
                 {...register("monthly_rent", {
-                  required: "Monthly rent is required",
+                  required: "Monthly Rent is required",
                 })}
                 placeholder="Monthly Rent"
                 className="w-full"
               />
+              {errors.monthly_rent && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.monthly_rent.message}
+                </p>
+              )}
             </div>
           )}
           {isFieldVisible("maintenance") && (
             <div className="space-y-2">
-              <Label>
-                Maintenance Charge (per Month){" "}
+              <div className="flex items-center gap-2">
+                <Label>Maintenance Charge (per Month)</Label>
                 <span className="text-red-500">*</span>
-              </Label>
+              </div>
               <Input
                 {...register("maintenance", {
-                  required: "Maintenance charge is required",
+                  required: "Maintenance Charge is required",
                 })}
                 placeholder="Maintenance Charge"
                 className="w-full"
               />
+              {errors.maintenance && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.maintenance.message}
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -1530,10 +1719,17 @@ export default function PropertyDetails({
               <span className="text-red-500">*</span>
             </div>
             <Input
-              {...register("builtup_area")}
+              {...register("builtup_area", {
+                required: "Built-up Area is required",
+              })}
               placeholder="Built-up Area"
               className="w-full"
             />
+            {errors.builtup_area && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.builtup_area.message}
+              </p>
+            )}
           </div>
         )}
         {isFieldVisible("carpet_area") && (
@@ -1584,7 +1780,9 @@ export default function PropertyDetails({
             </div>
             <div className="flex items-center border rounded-md overflow-hidden">
               <Input
-                {...register("total_project_area")}
+                {...register("total_project_area", {
+                  required: "Total Project Area is required",
+                })}
                 placeholder="Enter Total Project Area"
                 className="flex-1 border-none focus:ring-0 focus:outline-none px-3"
               />
@@ -1604,6 +1802,11 @@ export default function PropertyDetails({
                 </SelectContent>
               </Select>
             </div>
+            {errors.total_project_area && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.total_project_area.message}
+              </p>
+            )}
           </div>
         )}
         {isFieldVisible("builtup_unit") && (
@@ -1618,7 +1821,9 @@ export default function PropertyDetails({
                   ₹
                 </span>
                 <Input
-                  {...register("builtup_unit")}
+                  {...register("builtup_unit", {
+                    required: "Unit Cost is required",
+                  })}
                   placeholder="Unit Cost"
                   className="pl-8 border-none focus:ring-0 focus:outline-none w-full"
                 />
@@ -1637,6 +1842,11 @@ export default function PropertyDetails({
                 </SelectContent>
               </Select>
             </div>
+            {errors.builtup_unit && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.builtup_unit.message}
+              </p>
+            )}
           </div>
         )}
         {isFieldVisible("property_cost") && (
@@ -1647,7 +1857,9 @@ export default function PropertyDetails({
             </div>
             <div className="flex items-center border rounded-md overflow-hidden">
               <Input
-                {...register("property_cost")}
+                {...register("property_cost", {
+                  required: "Property Cost is required",
+                })}
                 placeholder="Property Cost"
                 className="flex-1 border-none focus:ring-0 focus:outline-none px-3"
               />
@@ -1665,6 +1877,11 @@ export default function PropertyDetails({
                 </SelectContent>
               </Select>
             </div>
+            {errors.property_cost && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.property_cost.message}
+              </p>
+            )}
             {watchedFields.property_cost &&
               !isNaN(watchedFields.property_cost) && (
                 <p className="text-sm text-gray-500 italic mt-1">
@@ -1687,7 +1904,11 @@ export default function PropertyDetails({
                     key={val}
                     type="button"
                     variant="outline"
-                    onClick={() => setValue("pent_house", mappedValue)}
+                    onClick={() =>
+                      setValue("pent_house", mappedValue, {
+                        shouldValidate: true,
+                      })
+                    }
                     className={`px-6 sm:px-8 py-3 capitalize ${
                       watchedFields.pent_house === mappedValue
                         ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -1699,6 +1920,17 @@ export default function PropertyDetails({
                 );
               })}
             </div>
+            <input
+              type="hidden"
+              {...register("pent_house", {
+                required: "Pent House is required",
+              })}
+            />
+            {errors.pent_house && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.pent_house.message}
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -1708,13 +1940,17 @@ export default function PropertyDetails({
             <Label>Security Deposit</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
             {["1 Month", "2 Months", "3 Months"].map((item) => (
               <Button
                 key={item}
                 type="button"
                 variant="outline"
-                onClick={() => setValue("security_deposit", item)}
+                onClick={() =>
+                  setValue("security_deposit", item, {
+                    shouldValidate: true,
+                  })
+                }
                 className={`px-4 sm:px-6 py-3 capitalize ${
                   watchedFields.security_deposit === item
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -1725,6 +1961,17 @@ export default function PropertyDetails({
               </Button>
             ))}
           </div>
+          <input
+            type="hidden"
+            {...register("security_deposit", {
+              required: "Security Deposit is required",
+            })}
+          />
+          {errors.security_deposit && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.security_deposit.message}
+            </p>
+          )}
         </div>
       )}
       {isFieldVisible("lock_in") && (
@@ -1733,13 +1980,18 @@ export default function PropertyDetails({
             <Label>Lock in period</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
             {["1 Month", "2 Months", "3 Months"].map((item) => (
               <Button
                 key={item}
                 type="button"
                 variant="outline"
-                onClick={() => setValue("lock_in", item)}
+                onClick={() =>
+                  setValue("lock_in", item, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
                 className={`px-4 sm:px-6 py-3 capitalize ${
                   watchedFields.lock_in === item
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -1750,6 +2002,17 @@ export default function PropertyDetails({
               </Button>
             ))}
           </div>
+          <input
+            type="hidden"
+            {...register("lock_in", {
+              required: "Lock in period is required",
+            })}
+          />
+          {errors.lock_in && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.lock_in.message}
+            </p>
+          )}
         </div>
       )}
       {isFieldVisible("brokerage_charge") && (
@@ -1764,7 +2027,12 @@ export default function PropertyDetails({
                 key={item}
                 type="button"
                 variant="outline"
-                onClick={() => setValue("brokerage_charge", item)}
+                onClick={() =>
+                  setValue("brokerage_charge", item, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  })
+                }
                 className={`px-4 sm:px-6 py-3 capitalize ${
                   watchedFields.brokerage_charge === item
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -1775,6 +2043,17 @@ export default function PropertyDetails({
               </Button>
             ))}
           </div>
+          <input
+            type="hidden"
+            {...register("brokerage_charge", {
+              required: "Brokerage Charge is required",
+            })}
+          />
+          {errors.brokerage_charge && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.brokerage_charge.message}
+            </p>
+          )}
         </div>
       )}
       {isFieldVisible("types") && (
@@ -1789,7 +2068,9 @@ export default function PropertyDetails({
                 key={item}
                 type="button"
                 variant="outline"
-                onClick={() => setValue("types", item)}
+                onClick={() =>
+                  setValue("types", item, { shouldValidate: true })
+                }
                 className={`px-3 sm:px-6 py-3 text-xs sm:text-sm capitalize ${
                   watchedFields.types === item
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -1800,21 +2081,32 @@ export default function PropertyDetails({
               </Button>
             ))}
           </div>
+          <input
+            type="hidden"
+            {...register("types", {
+              required: "Preferred Tenant Type is required",
+            })}
+          />
+          {errors.types && (
+            <p className="text-red-500 text-sm mt-1">{errors.types.message}</p>
+          )}
         </div>
       )}
       {isFieldVisible("ownership_type") && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Label>Ownership</Label>
+            <Label>Ownership Type</Label>
             <span className="text-red-500">*</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
             {ownershipOptions.map((item) => (
               <Button
                 key={item}
                 type="button"
                 variant="outline"
-                onClick={() => setValue("ownership_type", item)}
+                onClick={() =>
+                  setValue("ownership_type", item, { shouldValidate: true })
+                }
                 className={`px-3 sm:px-6 py-3 text-xs sm:text-sm capitalize ${
                   watchedFields.ownership_type === item
                     ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
@@ -1825,15 +2117,26 @@ export default function PropertyDetails({
               </Button>
             ))}
           </div>
+          <input
+            type="hidden"
+            {...register("ownership_type", {
+              required: "Ownership Type is required",
+            })}
+          />
+          {errors.ownership_type && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.ownership_type.message}
+            </p>
+          )}
         </div>
       )}
       {isFieldVisible("facilities") && (
-        <div className="space-y-4 mb-10">
-          <Label className="text-base sm:text-lg font-medium">Facilities</Label>
-          <p className="text-xs sm:text-sm text-gray-600">
-            Available facilities in the property
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Label>Facilities</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             {facilitiesOptions.map((facility) => (
               <div key={facility} className="flex items-center space-x-2">
                 <Checkbox
@@ -1842,206 +2145,78 @@ export default function PropertyDetails({
                   onCheckedChange={(checked) =>
                     handleFacilityChange(facility, checked)
                   }
-                  className={`border-gray-500 data-[state=checked]:bg-[#1D3A76] data-[state=checked]:border-[#1D3A76]`}
                 />
                 <label
                   htmlFor={facility}
-                  className="text-xs sm:text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
                   {facility}
                 </label>
               </div>
             ))}
           </div>
-        </div>
-      )}
-      {isFieldVisible("possession_status") && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Label>Possession Status</Label>
-            <span className="text-red-500">*</span>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            {isRent
-              ? ["Ready To Move In", "Available From"]
-              : ["Immediate", "Future"].map((status) => (
-                  <Button
-                    key={status}
-                    type="button"
-                    variant="outline"
-                    onClick={() => setValue("possession_status", status)}
-                    className={`px-4 sm:px-6 py-3 capitalize ${
-                      watchedFields.possession_status === status
-                        ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
-                        : "bg-white text-black hover:bg-gray-100 border"
-                    }`}
-                  >
-                    {status}
-                  </Button>
-                ))}
-          </div>
-        </div>
-      )}
-      {isFieldVisible("investor_property") && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Label>Investor Property</Label>
-            <span className="text-red-500">*</span>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            {["Yes", "No"].map((val) => {
-              const mappedValue = val === "Yes" ? "1" : "0";
-              return (
-                <Button
-                  key={val}
-                  type="button"
-                  variant="outline"
-                  onClick={() => setValue("investor_property", mappedValue)}
-                  className={`px-6 sm:px-8 py-3 capitalize ${
-                    watchedFields.investor_property === mappedValue
-                      ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
-                      : "bg-white text-black hover:bg-gray-100 border"
-                  }`}
-                >
-                  {val}
-                </Button>
-              );
+          <input
+            type="hidden"
+            {...register("facilities", {
+              required: "At least one facility is required",
+              validate: (value) =>
+                value.trim() !== "" || "At least one facility is required",
             })}
-          </div>
+          />
+          {errors.facilities && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.facilities.message}
+            </p>
+          )}
         </div>
       )}
-      {isFieldVisible("loan_facility") && (
+      {isFieldVisible("facing") && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Label>Loan Facility</Label>
-            <span className="text-red-500">*</span>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            {["Yes", "No"].map((val) => {
-              const mappedValue = val === "Yes" ? "1" : "0";
-              return (
-                <Button
-                  key={val}
-                  type="button"
-                  variant="outline"
-                  onClick={() => setValue("loan_facility", mappedValue)}
-                  className={`px-6 sm:px-8 py-3 capitalize ${
-                    watchedFields.loan_facility === mappedValue
-                      ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
-                      : "bg-white text-black hover:bg-gray-100 border"
-                  }`}
-                >
-                  {val}
-                </Button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-      <div className="space-y-4 sm:space-y-6">
-        <h3 className="text-base sm:text-lg font-medium">
-          Add Additional Details
-        </h3>
-        {isFieldVisible("facing") && (
-          <div className="space-y-4">
             <Label>Facing</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-4">
-              {facingOptions.map((option) => (
-                <Button
-                  key={option}
-                  type="button"
-                  variant={
-                    watchedFields.facing === option ? "default" : "outline"
-                  }
-                  onClick={() => setValue("facing", option)}
-                  className={`px-3 sm:px-8 py-3 text-xs sm:text-sm capitalize ${
-                    watchedFields.facing === option
-                      ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
-                      : "bg-white text-black hover:bg-gray-100 border"
-                  }`}
-                >
-                  {option}
-                </Button>
-              ))}
-            </div>
+            <span className="text-red-500">*</span>
           </div>
-        )}
-        {isFieldVisible("unit_flat_house_no") && (
-          <div className="space-y-2">
-            <Label>
-              Flat No <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="text"
-              {...register("unit_flat_house_no", {
-                required: "Flat Number is required",
-              })}
-              placeholder="Flat No"
-              className="w-1/2"
-            />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+            {facingOptions.map((option) => (
+              <Button
+                key={option}
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  setValue("facing", option, { shouldValidate: true })
+                }
+                className={`px-4 sm:px-6 py-3 capitalize ${
+                  watchedFields.facing === option
+                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                    : "bg-white text-black hover:bg-gray-100 border"
+                }`}
+              >
+                {option}
+              </Button>
+            ))}
           </div>
-        )}
-        {isFieldVisible("plot_number") && (
-          <div className="space-y-2">
-            <Label>
-              Plot No <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="number"
-              {...register("plot_number", {
-                required: "Plot Number is required",
-              })}
-              placeholder="Plot No"
-              className="w-1/2"
-            />
-          </div>
-        )}
-        {(isFieldVisible("zoneType") || isFieldVisible("suitable")) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {isFieldVisible("zoneType") && (
-              <div className="space-y-2">
-                <Label>Zone Type</Label>
-                <Select onValueChange={(value) => setValue("zoneType", value)}>
-                  <SelectTrigger className="w-full bg-white">
-                    <SelectValue placeholder="Select zone" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {zoneTypeOptions.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {isFieldVisible("suitable") && (
-              <div className="space-y-2">
-                <Label>Suitable</Label>
-                <Select onValueChange={(value) => setValue("suitable", value)}>
-                  <SelectTrigger className="w-full bg-white">
-                    <SelectValue placeholder="Select Suitable" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {suitableOptions.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-        )}
-        {(isFieldVisible("car_parking") ||
-          isFieldVisible("bike_parking") ||
-          isFieldVisible("open_parking")) && (
-          <>
+          <input
+            type="hidden"
+            {...register("facing", { required: "Facing is required" })}
+          />
+          {errors.facing && (
+            <p className="text-red-500 text-sm mt-1">{errors.facing.message}</p>
+          )}
+        </div>
+      )}
+      {(isFieldVisible("car_parking") ||
+        isFieldVisible("bike_parking") ||
+        isFieldVisible("open_parking")) && (
+        <div className="space-y-4">
+          <Label>Parking</Label>
+          <div className="space-y-6">
             {isFieldVisible("car_parking") && (
-              <div className="space-y-4">
-                <Label>Car Parking</Label>
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label>Car Parking</Label>
+                  <span className="text-red-500">*</span>
+                </div>
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 sm:gap-4">
                   {parkingOptions.map((option) => (
                     <Button
                       key={option}
@@ -2055,10 +2230,12 @@ export default function PropertyDetails({
                       onClick={() => {
                         if (option === "4+") {
                           setCarCustomMode(true);
-                          setValue("car_parking", "");
+                          setValue("car_parking", "", { shouldValidate: true });
                         } else {
                           setCarCustomMode(false);
-                          setValue("car_parking", option);
+                          setValue("car_parking", option, {
+                            shouldValidate: true,
+                          });
                         }
                       }}
                       className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
@@ -2072,12 +2249,24 @@ export default function PropertyDetails({
                     </Button>
                   ))}
                 </div>
+                <input
+                  type="hidden"
+                  {...register("car_parking", {
+                    required: "Car Parking is required",
+                  })}
+                />
+                {errors.car_parking && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.car_parking.message}
+                  </p>
+                )}
                 {carCustomMode && (
                   <Input
                     type="number"
                     placeholder="Enter custom car parking"
-                    className="w-full sm:w-1/2"
+                    className="w-full sm:w-1/2 mt-2"
                     {...register("car_parking", {
+                      required: "Car Parking is required",
                       validate: (value) =>
                         !value || parseInt(value) > 4
                           ? true
@@ -2086,6 +2275,7 @@ export default function PropertyDetails({
                     onChange={(e) =>
                       setValue("car_parking", e.target.value, {
                         shouldDirty: true,
+                        shouldValidate: true,
                       })
                     }
                   />
@@ -2093,9 +2283,12 @@ export default function PropertyDetails({
               </div>
             )}
             {isFieldVisible("bike_parking") && (
-              <div className="space-y-4">
-                <Label>Bike Parking</Label>
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label>Bike Parking</Label>
+                  <span className="text-red-500">*</span>
+                </div>
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 sm:gap-4">
                   {parkingOptions.map((option) => (
                     <Button
                       key={option}
@@ -2109,10 +2302,14 @@ export default function PropertyDetails({
                       onClick={() => {
                         if (option === "4+") {
                           setBikeCustomMode(true);
-                          setValue("bike_parking", "");
+                          setValue("bike_parking", "", {
+                            shouldValidate: true,
+                          });
                         } else {
                           setBikeCustomMode(false);
-                          setValue("bike_parking", option);
+                          setValue("bike_parking", option, {
+                            shouldValidate: true,
+                          });
                         }
                       }}
                       className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
@@ -2126,12 +2323,24 @@ export default function PropertyDetails({
                     </Button>
                   ))}
                 </div>
+                <input
+                  type="hidden"
+                  {...register("bike_parking", {
+                    required: "Bike Parking is required",
+                  })}
+                />
+                {errors.bike_parking && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.bike_parking.message}
+                  </p>
+                )}
                 {bikeCustomMode && (
                   <Input
                     type="number"
-                    placeholder="Custom Bike Parking"
-                    className="w-full sm:w-1/2"
+                    placeholder="Enter custom bike parking"
+                    className="w-full sm:w-1/2 mt-2"
                     {...register("bike_parking", {
+                      required: "Bike Parking is required",
                       validate: (value) =>
                         !value || parseInt(value) > 4
                           ? true
@@ -2140,6 +2349,7 @@ export default function PropertyDetails({
                     onChange={(e) =>
                       setValue("bike_parking", e.target.value, {
                         shouldDirty: true,
+                        shouldValidate: true,
                       })
                     }
                   />
@@ -2147,9 +2357,12 @@ export default function PropertyDetails({
               </div>
             )}
             {isFieldVisible("open_parking") && (
-              <div className="space-y-4">
-                <Label>Open Parking</Label>
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label>Open Parking</Label>
+                  <span className="text-red-500">*</span>
+                </div>
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 sm:gap-4">
                   {parkingOptions.map((option) => (
                     <Button
                       key={option}
@@ -2163,10 +2376,14 @@ export default function PropertyDetails({
                       onClick={() => {
                         if (option === "4+") {
                           setOpenCustomMode(true);
-                          setValue("open_parking", "");
+                          setValue("open_parking", "", {
+                            shouldValidate: true,
+                          });
                         } else {
                           setOpenCustomMode(false);
-                          setValue("open_parking", option);
+                          setValue("open_parking", option, {
+                            shouldValidate: true,
+                          });
                         }
                       }}
                       className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
@@ -2180,12 +2397,24 @@ export default function PropertyDetails({
                     </Button>
                   ))}
                 </div>
+                <input
+                  type="hidden"
+                  {...register("open_parking", {
+                    required: "Open Parking is required",
+                  })}
+                />
+                {errors.open_parking && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.open_parking.message}
+                  </p>
+                )}
                 {openCustomMode && (
                   <Input
                     type="number"
                     placeholder="Enter custom open parking"
-                    className="w-full sm:w-1/2"
+                    className="w-full sm:w-1/2 mt-2"
                     {...register("open_parking", {
+                      required: "Open Parking is required",
                       validate: (value) =>
                         !value || parseInt(value) > 4
                           ? true
@@ -2194,170 +2423,426 @@ export default function PropertyDetails({
                     onChange={(e) =>
                       setValue("open_parking", e.target.value, {
                         shouldDirty: true,
+                        shouldValidate: true,
                       })
                     }
                   />
                 )}
               </div>
             )}
-          </>
-        )}
-        {isFieldVisible("around_places") && (
-          <div className="space-y-4">
-            <Label className="text-base sm:text-lg font-medium">
-              Around This Property
-            </Label>
-            <p className="text-xs sm:text-sm text-gray-600">
-              Add details about places near this property
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <div className="space-y-2">
-                <Label>Place</Label>
+          </div>
+        </div>
+      )}
+      import toast from "react-hot-toast";
+      {isFieldVisible("around_places") && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Label>Nearby Places</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="space-y-2">
+              <Label>Place</Label>
+              <Input
+                {...register("nearbyPlace")}
+                placeholder="Enter place"
+                className="w-full"
+              />
+              {}
+            </div>
+            <div className="space-y-2">
+              <Label>Distance from Property</Label>
+              <div className="flex items-center border rounded-md overflow-hidden">
                 <Input
-                  {...register("nearbyPlace")}
-                  placeholder="Eg: School, Hospital"
-                  className="w-full"
+                  {...register("distanceFromProperty")}
+                  placeholder="Enter distance"
+                  className="flex-1 border-none focus:ring-0 focus:outline-none px-3"
                 />
-              </div>
-              <div className="space-y-2">
-                <Label>Distance from Property</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    {...register("distanceFromProperty")}
-                    placeholder="Enter distance"
-                    className="w-full"
-                  />
-                  <Select
-                    value={unit}
-                    onValueChange={(value) => setUnit(value)}
-                    className="w-24"
-                  >
-                    <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="M" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="M">Meters</SelectItem>
-                      <SelectItem value="KM">Kilometers</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="flex items-end">
-                <Button
-                  type="button"
-                  onClick={handleAdd}
-                  className="w-full sm:w-auto bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+                <Select
+                  value={unit}
+                  onValueChange={setUnit}
+                  className="border-l px-3 h-full w-24"
                 >
-                  Add Place
-                </Button>
+                  <SelectTrigger className="border-l px-3 h-full w-24">
+                    <SelectValue placeholder="Unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="M">Meters</SelectItem>
+                    <SelectItem value="KM">Kilometers</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {}
+            </div>
+            <div className="flex items-end">
+              <Button
+                type="button"
+                onClick={handleAdd}
+                className="w-full sm:w-auto bg-[#1D3A76] hover:bg-[#1D3A76]"
+              >
+                Add
+              </Button>
+            </div>
+          </div>
+          {places.length > 0 && (
+            <div className="mt-4">
+              <Label className="mb-4">Around this property</Label>
+              <div className="space-y-2">
+                {places.map((place, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center border p-2 rounded-md"
+                  >
+                    <span>
+                      {place.place} ({formatDistance(place.distance)})
+                    </span>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(place.place_id)}
+                    >
+                      <Trash className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
-            {places.length > 0 && (
-              <div className="mt-4">
-                <Label className="text-sm font-medium">Added Places</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-                  {places.map((place, index) => (
-                    <div
-                      key={place.place_id || index}
-                      className="flex items-center justify-between p-2 border rounded-md"
-                    >
-                      <div>
-                        <p className="text-sm font-medium">{place.place}</p>
-                        <p className="text-xs text-gray-500">
-                          {formatDistance(place.distance)}
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => handleDelete(place.place_id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+          )}
+          <input
+            type="hidden"
+            {...register("places", {
+              validate: () =>
+                places.length > 0 || "At least one nearby place is required",
+            })}
+          />
+          {errors.places && (
+            <p className="text-red-500 text-sm mt-1">{errors.places.message}</p>
+          )}
+        </div>
+      )}
+      {isFieldVisible("servant_room") && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Label>Servant Room</Label>
+            <span className="text-red-500">*</span>
           </div>
-        )}
-        {(isFieldVisible("servant_room") || isFieldVisible("pantry_room")) && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            {isFieldVisible("servant_room") && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Label>Servant Room</Label>
-                  <span className="text-red-500">*</span>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                  {["Yes", "No"].map((val) => {
-                    const mappedValue = val === "Yes" ? "1" : "0";
-                    return (
-                      <Button
-                        key={val}
-                        type="button"
-                        variant="outline"
-                        onClick={() => setValue("servant_room", mappedValue)}
-                        className={`px-6 sm:px-8 py-3 capitalize ${
-                          watchedFields.servant_room === mappedValue
-                            ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
-                            : "bg-white text-black hover:bg-gray-100 border"
-                        }`}
-                      >
-                        {val}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-            {isFieldVisible("pantry_room") && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Label>Pantry Room</Label>
-                  <span className="text-red-500">*</span>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                  {["Yes", "No"].map((val) => {
-                    const mappedValue = val === "Yes" ? "1" : "0";
-                    return (
-                      <Button
-                        key={val}
-                        type="button"
-                        variant="outline"
-                        onClick={() => setValue("pantry_room", mappedValue)}
-                        className={`px-6 sm:px-8 py-3 capitalize ${
-                          watchedFields.pantry_room === mappedValue
-                            ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
-                            : "bg-white text-black hover:bg-gray-100 border"
-                        }`}
-                      >
-                        {val}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+            {["Yes", "No"].map((val) => (
+              <Button
+                key={val}
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  setValue("servant_room", val, { shouldValidate: true })
+                }
+                className={`px-6 sm:px-8 py-3 capitalize ${
+                  watchedFields.servant_room === val
+                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                    : "bg-white text-black hover:bg-gray-100 border"
+                }`}
+              >
+                {val}
+              </Button>
+            ))}
           </div>
-        )}
-        {isFieldVisible("description") && (
-          <div className="space-y-2">
-            <Label>
-              Description <span className="text-red-500">*</span>
-            </Label>
-            <Textarea
-              {...register("description", {
-                required: "Description is required",
-              })}
-              placeholder="Enter property description"
-              className="w-full h-32"
-            />
+          <input
+            type="hidden"
+            {...register("servant_room", {
+              required: "Servant Room is required",
+            })}
+          />
+          {errors.servant_room && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.servant_room.message}
+            </p>
+          )}
+        </div>
+      )}
+      {isFieldVisible("pantry_room") && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Label>Pantry Room</Label>
+            <span className="text-red-500">*</span>
           </div>
-        )}
-      </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+            {["Yes", "No"].map((val) => (
+              <Button
+                key={val}
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  setValue("pantry_room", val, { shouldValidate: true })
+                }
+                className={`px-6 sm:px-8 py-3 capitalize ${
+                  watchedFields.pantry_room === val
+                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                    : "bg-white text-black hover:bg-gray-100 border"
+                }`}
+              >
+                {val}
+              </Button>
+            ))}
+          </div>
+          <input
+            type="hidden"
+            {...register("pantry_room", {
+              required: "Pantry Room is required",
+            })}
+          />
+          {errors.pantry_room && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.pantry_room.message}
+            </p>
+          )}
+        </div>
+      )}
+      {isFieldVisible("investor_property") && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Label>Investor Property</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+            {["Yes", "No"].map((val) => (
+              <Button
+                key={val}
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  setValue("investor_property", val, { shouldValidate: true })
+                }
+                className={`px-6 sm:px-8 py-3 capitalize ${
+                  watchedFields.investor_property === val
+                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                    : "bg-white text-black hover:bg-gray-100 border"
+                }`}
+              >
+                {val}
+              </Button>
+            ))}
+          </div>
+          <input
+            type="hidden"
+            {...register("investor_property", {
+              required: "Investor Property is required",
+            })}
+          />
+          {errors.investor_property && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.investor_property.message}
+            </p>
+          )}
+        </div>
+      )}
+      {isFieldVisible("loan_facility") && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Label>Loan Facility</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+            {["Yes", "No"].map((val) => (
+              <Button
+                key={val}
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  setValue("loan_facility", val, { shouldValidate: true })
+                }
+                className={`px-6 sm:px-8 py-3 capitalize ${
+                  watchedFields.loan_facility === val
+                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                    : "bg-white text-black hover:bg-gray-100 border"
+                }`}
+              >
+                {val}
+              </Button>
+            ))}
+          </div>
+          <input
+            type="hidden"
+            {...register("loan_facility", {
+              required: "Loan Facility is required",
+            })}
+          />
+          {errors.loan_facility && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.loan_facility.message}
+            </p>
+          )}
+        </div>
+      )}
+      {isFieldVisible("unit_flat_house_no") && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Label>Unit/Flat/House No</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <Input
+            {...register("unit_flat_house_no", {
+              required: "Unit/Flat/House No is required",
+            })}
+            placeholder="Enter Unit/Flat/House No"
+            className="w-full"
+          />
+          {errors.unit_flat_house_no && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.unit_flat_house_no.message}
+            </p>
+          )}
+        </div>
+      )}
+      {isFieldVisible("plot_number") && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Label>Plot Number</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <Input
+            {...register("plot_number", {
+              required: "Plot Number is required",
+            })}
+            placeholder="Enter Plot Number"
+            className="w-full"
+          />
+          {errors.plot_number && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.plot_number.message}
+            </p>
+          )}
+        </div>
+      )}
+      {isFieldVisible("zone_types") && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Label>Zone Type</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
+            {zone_typesOptions.map((item) => (
+              <Button
+                key={item}
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  setValue("zone_types", item, { shouldValidate: true })
+                }
+                className={`px-3 sm:px-6 py-3 text-xs sm:text-sm capitalize ${
+                  watchedFields.zone_types === item
+                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                    : "bg-white text-black hover:bg-gray-100 border"
+                }`}
+              >
+                {item}
+              </Button>
+            ))}
+          </div>
+          <input
+            type="hidden"
+            {...register("zone_types", { required: "Zone Type is required" })}
+          />
+          {errors.zone_types && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.zone_types.message}
+            </p>
+          )}
+        </div>
+      )}
+      {isFieldVisible("suitable") && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Label>Suitable For</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
+            {suitableOptions.map((item) => (
+              <Button
+                key={item}
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  setValue("suitable", item, { shouldValidate: true })
+                }
+                className={`px-3 sm:px-6 py-3 text-xs sm:text-sm capitalize ${
+                  watchedFields.suitable === item
+                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                    : "bg-white text-black hover:bg-gray-100 border"
+                }`}
+              >
+                {item}
+              </Button>
+            ))}
+          </div>
+          <input
+            type="hidden"
+            {...register("suitable", { required: "Suitable For is required" })}
+          />
+          {errors.suitable && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.suitable.message}
+            </p>
+          )}
+        </div>
+      )}
+      {isFieldVisible("possession_status") && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Label>Possession Status</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+            {["Immediate", "Within 3 Months", "Within 6 Months"].map((val) => (
+              <Button
+                key={val}
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  setValue("possession_status", val, { shouldValidate: true })
+                }
+                className={`px-6 sm:px-8 py-3 capitalize ${
+                  watchedFields.possession_status === val
+                    ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                    : "bg-white text-black hover:bg-gray-100 border"
+                }`}
+              >
+                {val}
+              </Button>
+            ))}
+          </div>
+          <input
+            type="hidden"
+            {...register("possession_status", {
+              required: "Possession Status is required",
+            })}
+          />
+          {errors.possession_status && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.possession_status.message}
+            </p>
+          )}
+        </div>
+      )}
+      {isFieldVisible("description") && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Label>Description</Label>
+            <span className="text-red-500">*</span>
+          </div>
+          <Textarea
+            {...register("description", {
+              required: "Description is required",
+            })}
+            placeholder="Enter property description"
+            className="w-full h-32"
+          />
+          {errors.description && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.description.message}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

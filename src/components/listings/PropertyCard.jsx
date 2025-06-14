@@ -42,6 +42,7 @@ const PropertyCard = ({
   available_from,
   user_id,
   fetchProperties,
+  setCurrentStep,
 }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -111,8 +112,15 @@ const PropertyCard = ({
     return occupancy || "N/A";
   };
   const showFurnishedStatus = !["Plot", "Land"].includes(propertySubType);
+
   const handleEdit = () => {
-    router.push(`/addProperty?status=inprogress&property_id=${id}`);
+    console.log("clicked");
+    if (setCurrentStep) {
+      setCurrentStep(0);
+    }
+    router.push(
+      `/addProperty?active_step=basicdetails&status=inprogress&property_id=${id}`
+    );
   };
   const handleViewContacted = () => {
     router.push(`/enquiry/contact-details`);
@@ -120,7 +128,7 @@ const PropertyCard = ({
   const handleDelete = async () => {
     try {
       const response = await axios.post(
-        `${config.api_url}/property/deleteProperty222`,
+        `${config.api_url}/property/deleteProperty`,
         {
           user_id,
           unique_property_id: id,

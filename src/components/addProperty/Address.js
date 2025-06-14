@@ -24,6 +24,7 @@ import {
   setLocality,
   setState,
 } from "@/store/slices/addPropertySlice/addressSlice";
+
 export default function Address({ property }) {
   const {
     register,
@@ -38,15 +39,15 @@ export default function Address({ property }) {
     locality: selectedLocality,
   } = useSelector((store) => store.address);
   const locality = watch("locality");
+  const totalFloors = watch("total_floors");
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
-  const [localityInput, setLocalityInput] = useState(
-    property?.location_id || ""
-  );
   const [localitySuggestions, setLocalitySuggestions] = useState([]);
+  const [localityInput, setLocalityInput] = useState("");
   const [openState, setOpenState] = useState(false);
   const [openCity, setOpenCity] = useState(false);
   const [openLocality, setOpenLocality] = useState(false);
+
   const fetchStates = useCallback(async () => {
     try {
       const res = await fetch("https://api.meetowner.in/api/v1/getAllStates");
@@ -56,54 +57,93 @@ export default function Address({ property }) {
       console.error("Error fetching states:", error);
     }
   }, []);
-  const fetchCities = useCallback(
-    async (state) => {
-      try {
-        const res = await fetch(`https://api.meetowner.in/api/v1/getAllCities`);
-        const data = await res.json();
-        setCities(data);
-        if (property?.city_id) {
-          const matchedCity = data.find(
-            (city) => city.city.toLowerCase() === property.city_id.toLowerCase()
-          );
-          if (matchedCity) {
-            dispatch(setCity(matchedCity.city));
-            setValue("city_id", matchedCity.city, { shouldValidate: true });
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching cities:", error);
-      }
-    },
-    [property, dispatch, setValue]
-  );
-  const fetchLocalities = useCallback(async (city, query) => {
-    if (!city) return;
+
+  const fetchCities = useCallback(async (state = null) => {
     try {
-      const res = await fetch(
-        `https://api.meetowner.in/api/v1/search?city=${city}&query=${query}`
-      );
+      const url = state
+        ? `https://api.meetowner.in/api/v1/getAllCities?state=${encodeURIComponent(
+            state
+          )}`
+        : `https://api.meetowner.in/api/v1/getAllCities`;
+      const res = await fetch(url);
       const data = await res.json();
-      setLocalitySuggestions(data || []);
+      const activeCities = data
+        .filter((city) => city.status === "active")
+        .reduce((acc, city) => {
+          if (!acc.find((c) => c.city === city.city)) {
+            acc.push(city);
+          }
+          return acc;
+        }, []);
+      setCities(activeCities);
     } catch (error) {
-      console.error("Error fetching localities:", error);
+      console.error("Error fetching cities:", error);
+      setCities([]);
     }
   }, []);
+
+  const fetchLocalities = useCallback(
+    async (city, query) => {
+      if (!city || !query) {
+        setLocalitySuggestions([]);
+        return;
+      }
+      try {
+        const res = await fetch(
+          `https://api.meetowner.in/api/v1/search?city=${encodeURIComponent(
+            city
+          )}&query=${encodeURIComponent(query)}`
+        );
+        const data = await res.json();
+        // Ensure property?.location_id is included if not in API response
+        const suggestions = data || [];
+        if (
+          property?.location_id &&
+          !suggestions.find((item) => item.locality === property.location_id)
+        ) {
+          suggestions.unshift({ locality: property.location_id });
+        }
+        setLocalitySuggestions(suggestions);
+      } catch (error) {
+        console.error("Error fetching localities:", error);
+        setLocalitySuggestions([]);
+      }
+    },
+    [property?.location_id]
+  );
+
+  // Initialize form and state with property data
   useEffect(() => {
     fetchStates();
+
+    // Set state
     if (property?.state_id) {
       dispatch(setState(property.state_id));
-      fetchCities(property.state_id);
+      setValue("state_id", property.state_id, { shouldValidate: true });
     }
+
+    // Set city and fetch cities
+    if (property?.state_id || property?.city_id) {
+      fetchCities(property?.state_id || selectedState);
+    }
+
+    // Set city
     if (property?.city_id) {
       dispatch(setCity(property.city_id));
-      fetchLocalities(property.city_id, property?.location_id || "");
+      setValue("city_id", property.city_id, { shouldValidate: true });
     }
+
+    // Set locality
     if (property?.location_id) {
       dispatch(setLocality(property.location_id));
       setValue("locality", property.location_id, { shouldValidate: true });
       setLocalityInput(property.location_id);
+      if (property?.city_id) {
+        fetchLocalities(property.city_id, property.location_id);
+      }
     }
+
+    // Set other fields
     setValue("property_name", property?.property_name || "", {
       shouldValidate: true,
     });
@@ -114,17 +154,55 @@ export default function Address({ property }) {
     setValue("unit_flat_house_no", property?.unit_flat_house_no || "", {
       shouldValidate: true,
     });
-  }, [property, dispatch, setValue, fetchStates, fetchCities, fetchLocalities]);
+  }, [
+    property,
+    dispatch,
+    setValue,
+    fetchStates,
+    fetchCities,
+    fetchLocalities,
+    selectedState,
+  ]);
+
+  // Handle state changes
   useEffect(() => {
     if (selectedState) {
       setValue("state_id", selectedState, { shouldValidate: true });
       fetchCities(selectedState);
+      if (selectedState !== property?.state_id) {
+        dispatch(setCity(""));
+        setValue("city_id", "", { shouldValidate: true });
+        dispatch(setLocality(""));
+        setValue("locality", "", { shouldValidate: true });
+        setLocalityInput("");
+        setLocalitySuggestions([]);
+      }
+    } else {
+      fetchCities();
+      dispatch(setCity(""));
+      setValue("city_id", "", { shouldValidate: true });
+      dispatch(setLocality(""));
+      setValue("locality", "", { shouldValidate: true });
+      setLocalityInput("");
     }
-  }, [selectedState, setValue, fetchCities]);
+  }, [selectedState, setValue, fetchCities, dispatch, property?.state_id]);
+
+  // Handle city changes
   useEffect(() => {
     if (selectedCity) {
       setValue("city_id", selectedCity, { shouldValidate: true });
-      fetchLocalities(selectedCity, localityInput || selectedLocality || "");
+      if (selectedCity !== property?.city_id) {
+        dispatch(setLocality(""));
+        setValue("locality", "", { shouldValidate: true });
+        setLocalityInput("");
+        setLocalitySuggestions([]);
+      }
+      if (localityInput || selectedLocality || property?.location_id) {
+        fetchLocalities(
+          selectedCity,
+          localityInput || selectedLocality || property?.location_id || ""
+        );
+      }
     } else {
       setLocalitySuggestions([]);
       dispatch(setLocality(""));
@@ -138,13 +216,18 @@ export default function Address({ property }) {
     setValue,
     fetchLocalities,
     dispatch,
+    property?.city_id,
+    property?.location_id,
   ]);
+
+  // Handle locality changes
   useEffect(() => {
     if (selectedLocality) {
       setValue("locality", selectedLocality, { shouldValidate: true });
       setLocalityInput(selectedLocality);
     }
   }, [selectedLocality, setValue]);
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -153,7 +236,9 @@ export default function Address({ property }) {
         </Label>
         <input
           type="hidden"
-          {...register("state_id", { required: "State is required" })}
+          {...register("state_id", {
+            required: "Please select a state",
+          })}
         />
         <Popover open={openState} onOpenChange={setOpenState}>
           <PopoverTrigger asChild>
@@ -167,14 +252,14 @@ export default function Address({ property }) {
               <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0 max-h-50" align="start">
+          <PopoverContent className="w-full p-0 max-h-[50vh]" align="start">
             <Command>
               <CommandInput placeholder="Search states…" />
               <CommandEmpty>No state found.</CommandEmpty>
               <CommandList>
-                {states.map((state, id) => (
+                {states.map((state) => (
                   <CommandItem
-                    key={id}
+                    key={state.state}
                     value={state.state}
                     onSelect={() => {
                       dispatch(setState(state.state));
@@ -206,7 +291,9 @@ export default function Address({ property }) {
         </Label>
         <input
           type="hidden"
-          {...register("city_id", { required: "City is required" })}
+          {...register("city_id", {
+            required: "Please select a city",
+          })}
         />
         <Popover open={openCity} onOpenChange={setOpenCity}>
           <PopoverTrigger asChild>
@@ -220,7 +307,7 @@ export default function Address({ property }) {
               <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0 max-h-50" align="start">
+          <PopoverContent className="w-full p-0 max-h-[50vh]" align="start">
             <Command>
               <CommandInput placeholder="Search cities…" />
               <CommandEmpty>No city found.</CommandEmpty>
@@ -257,7 +344,9 @@ export default function Address({ property }) {
         </Label>
         <input
           type="hidden"
-          {...register("locality", { required: "Locality is required" })}
+          {...register("locality", {
+            required: "Please select a locality",
+          })}
         />
         <Popover open={openLocality} onOpenChange={setOpenLocality}>
           <PopoverTrigger asChild>
@@ -267,11 +356,14 @@ export default function Address({ property }) {
               aria-expanded={openLocality}
               className="w-full justify-between"
             >
-              {selectedLocality || locality || "Select locality"}
+              {localityInput ||
+                selectedLocality ||
+                locality ||
+                "Select Locality"}
               <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0 max-h-50" align="start">
+          <PopoverContent className="w-full p-0 max-h-[50vh]" align="start">
             <Command>
               <CommandInput
                 placeholder="Search localities"
@@ -285,13 +377,12 @@ export default function Address({ property }) {
               />
               <CommandEmpty>No locality found.</CommandEmpty>
               <CommandList>
-                {localitySuggestions.map((item, id) => (
+                {localitySuggestions.map((item) => (
                   <CommandItem
-                    key={id}
+                    key={item.locality}
                     value={item.locality}
                     onSelect={() => {
                       dispatch(setLocality(item.locality));
-                      setLocalityInput(item.locality);
                       setOpenLocality(false);
                     }}
                   >
@@ -321,8 +412,12 @@ export default function Address({ property }) {
         <Input
           {...register("property_name", {
             required: "Property name is required",
+            minLength: {
+              value: 2,
+              message: "Property name must be at least 2 characters",
+            },
           })}
-          placeholder="Search Projects"
+          placeholder="Enter property/project name"
         />
         {errors.property_name && (
           <p className="text-red-500 text-sm">{errors.property_name.message}</p>
@@ -331,21 +426,19 @@ export default function Address({ property }) {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>
-            Flat No.{" "}
-            <span
-              className="text-red-
-500"
-            >
-              *
-            </span>
+            Flat No. <span className="text-red-500">*</span>
           </Label>
           <Input
             {...register("unit_flat_house_no", {
               required: "Flat number is required",
+              minLength: {
+                value: 1,
+                message: "Flat number must be at least 1 character",
+              },
             })}
-            placeholder="Flat No."
+            placeholder="Enter flat number"
           />
-          {errors.unit_flat_house && (
+          {errors.unit_flat_house_no && (
             <p className="text-red-500 text-sm">
               {errors.unit_flat_house_no.message}
             </p>
@@ -359,12 +452,14 @@ export default function Address({ property }) {
             type="number"
             {...register("floors", {
               required: "Floor number is required",
-              max: {
-                value: 100,
-                message: "Floor number cannot exceed 100",
-              },
+              min: { value: 0, message: "Floor number cannot be negative" },
+              max: { value: 100, message: "Floor number cannot exceed 100" },
+              validate: (value) =>
+                !totalFloors ||
+                parseInt(value) <= parseInt(totalFloors) ||
+                "Floor number cannot exceed total floors",
             })}
-            placeholder="Floor No."
+            placeholder="Enter floor number"
           />
           {errors.floors && (
             <p className="text-red-500 text-sm">{errors.floors.message}</p>
@@ -379,12 +474,10 @@ export default function Address({ property }) {
           type="number"
           {...register("total_floors", {
             required: "Total floors is required",
-            max: {
-              value: 100,
-              message: "Total floors cannot exceed 100",
-            },
+            min: { value: 1, message: "Total floors must be at least 1" },
+            max: { value: 100, message: "Total floors cannot exceed 100" },
           })}
-          placeholder="Total Floors"
+          placeholder="Enter total floors"
         />
         {errors.total_floors && (
           <p className="text-red-500 text-sm">{errors.total_floors.message}</p>
