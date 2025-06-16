@@ -133,19 +133,32 @@ export default function Address({ property }) {
           fetchLocalities(property.city_id, property.location_id);
         }
       }
-      setValue("property_name", property?.property_name || "", {
-        shouldValidate: true,
-      });
-      setValue("floors", property?.floors || "", { shouldValidate: true });
-      setValue("total_floors", property?.total_floors || "", {
-        shouldValidate: true,
-      });
-      setValue("unit_flat_house_no", property?.unit_flat_house_no || "", {
-        shouldValidate: true,
-      });
+      // Only set non-empty values to avoid triggering required errors
+      if (property.property_name) {
+        setValue("property_name", property.property_name, {
+          shouldValidate: true,
+        });
+      }
+      if (property.builder_name) {
+        setValue("builder_name", property.builder_name, {
+          shouldValidate: true,
+        });
+      }
+      if (property.floors) {
+        setValue("floors", property.floors, { shouldValidate: true });
+      }
+      if (property.total_floors) {
+        setValue("total_floors", property.total_floors, {
+          shouldValidate: true,
+        });
+      }
+      if (property.unit_flat_house_no) {
+        setValue("unit_flat_house_no", property.unit_flat_house_no, {
+          shouldValidate: true,
+        });
+      }
     }
   }, [property, dispatch, setValue, fetchStates, fetchCities, fetchLocalities]);
-
   useEffect(() => {
     if (selectedState) {
       fetchCities(selectedState);
@@ -370,6 +383,24 @@ export default function Address({ property }) {
         />
         {errors.property_name && (
           <p className="text-red-500 text-sm">{errors.property_name.message}</p>
+        )}
+      </div>
+      <div className="space-y-2">
+        <Label>
+          Builder Name <span className="text-red-500">*</span>
+        </Label>
+        <Input
+          {...register("builder_name", {
+            required: "Builder name is required",
+            minLength: {
+              value: 2,
+              message: "Builder name must be at least 2 characters",
+            },
+          })}
+          placeholder="Enter Builder name"
+        />
+        {errors.builder_name && (
+          <p className="text-red-500 text-sm">{errors.builder_name.message}</p>
         )}
       </div>
       <div className="grid grid-cols-2 gap-4">
