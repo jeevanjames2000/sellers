@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import {
   Phone,
   Mail,
   Eye,
+  ExternalLink,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Loading } from "@/lib/loader";
@@ -37,10 +38,8 @@ import {
 import { fetchAllCities } from "@/store/slices/places";
 import EnquiryFilterBar from "@/components/shared/EnquiryFilterBar";
 import { PaginationWrapper } from "@/components/enquires/PaginationWrapper";
-
-export default function ContactedDetails() {
+function ContactedDetailsContent({ initialPage }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const { results, resultsLoading, resultsError } = useSelector(
     (state) => state.enquiries
@@ -48,61 +47,50 @@ export default function ContactedDetails() {
   const { cities, citiesLoading, citiesError } = useSelector(
     (state) => state.places
   );
-
-  // State for search, pagination, and filters
   const [searchTerm, setSearchTerm] = useState("");
   const itemsPerPage = 10;
-  const initialPage = parseInt(searchParams.get("page")) || 1;
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [visibleContacts, setVisibleContacts] = useState(new Set());
   const [cityFilter, setCityFilter] = useState("");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [selectedState, setSelectedState] = useState("");
-
-  
-
   const fetchActivity = async () => {
-       const storedUser = localStorage.getItem('userDetails');
-        let userId;
-        if (storedUser) {
-            try {
-              const parsedUser = JSON.parse(storedUser);
-              userId = parsedUser.user_id;
-            } catch (error) {
-              console.error('Error parsing userDetails from localStorage:', error);
-              userId = null;
-            }
-          } else {
-            console.log('No userDetails found in localStorage');
-            userId = null;
-          }
-      
-          if (!userId) {
-            dispatch(setError('User ID not found. Please log in again.'));
-            return;
-          }
-      dispatch(setResultsLoading());
+    const storedUser = localStorage.getItem("userDetails");
+    let userId;
+    if (storedUser) {
       try {
-        const response = await fetch(
-          `https://api.meetowner.in/enquiry/v1/getPropertyEnquiries?user_id=${userId}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch property activity");
-        }
-        const data = await response.json();
-        dispatch(setActivity({ results: data.formattedResults || [] }));
-      } catch (err) {
-        dispatch(setResultsError(err.message));
+        const parsedUser = JSON.parse(storedUser);
+        userId = parsedUser.user_id;
+      } catch (error) {
+        console.error("Error parsing userDetails from localStorage:", error);
+        userId = null;
       }
+    } else {
+      console.log("No userDetails found in localStorage");
+      userId = null;
+    }
+    if (!userId) {
+      dispatch(setResultsError("User ID not found. Please log in again."));
+      return;
+    }
+    dispatch(setResultsLoading());
+    try {
+      const response = await fetch(
+        `https://api.meetowner.in/enquiry/v1/getPropertyEnquiries?user_id=${userId}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch property activity");
+      }
+      const data = await response.json();
+      dispatch(setActivity({ results: data.formattedResults || [] }));
+    } catch (err) {
+      dispatch(setResultsError(err.message));
+    }
   };
-
   useEffect(() => {
-  
     fetchActivity();
   }, [dispatch]);
-
-  // Fetch cities when selectedState changes
   useEffect(() => {
     if (selectedState) {
       dispatch(fetchAllCities({ state: selectedState }));
@@ -110,66 +98,49 @@ export default function ContactedDetails() {
       dispatch(fetchAllCities());
     }
   }, [dispatch, selectedState]);
-
-  // Update URL with current page
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (currentPage === 1) {
-      params.delete("page");
-    } else {
-      params.set("page", currentPage);
-    }
-    router.replace(`?${params.toString()}`, { scroll: false });
-  }, [currentPage, router, searchParams]);
-
-  // Filter results based on search term, city, and date range
   const filteredResults = results.filter((item) => {
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
       item.userDetails?.name?.toLowerCase().includes(searchLower) ||
       item.property_name?.toLowerCase().includes(searchLower) ||
       item.unique_property_id?.toLowerCase().includes(searchLower);
-
     const matchesCity = cityFilter
       ? item.city_id?.toLowerCase() === cityFilter.toLowerCase()
       : true;
-
     const itemDate = new Date(item.created_date);
     const matchesDate =
       (!startDate || itemDate >= new Date(startDate)) &&
       (!endDate || itemDate <= new Date(endDate));
-
     return matchesSearch && matchesCity && matchesDate;
   });
-
-  // Pagination logic
   const totalItems = filteredResults.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedData = filteredResults.slice(startIndex, endIndex);
-
-  // Ensure currentPage is valid
   useEffect(() => {
     if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
   }, [totalPages, currentPage]);
-
   const handlePageChange = (page) => {
     setCurrentPage(page);
+    const params = new URLSearchParams(window.location.search);
+    if (page === 1) {
+      params.delete("page");
+    } else {
+      params.set("page", page);
+    }
+    router.replace(`?${params.toString()}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
   const handleBack = () => {
     router.back();
   };
-
   const hideUserDetails = (id) => {
     if (!id) return "N/A";
     return `${id.slice(0, 3)}xxxxxxx`;
   };
-
   const toggleContactVisibility = (id) => {
     setVisibleContacts((prev) => {
       const newSet = new Set(prev);
@@ -181,7 +152,6 @@ export default function ContactedDetails() {
       return newSet;
     });
   };
-
   const handleClearFilters = () => {
     setSearchTerm("");
     setCityFilter("");
@@ -190,14 +160,15 @@ export default function ContactedDetails() {
     setSelectedState("");
     setCurrentPage(1);
   };
-
+  const handleViewDetails = (propertyId) => {
+    router.push(`/property/${propertyId}`);
+  };
   return (
     <div className="min-h-screen bg-[#f4f4f4]">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
+          {}
           <div className="hidden lg:block lg:col-span-1 space-y-6">
-            {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
               <Card className="bg-white shadow-lg border-0">
                 <CardContent className="p-6">
@@ -217,8 +188,6 @@ export default function ContactedDetails() {
                 </CardContent>
               </Card>
             </div>
-
-            {/* Quick Actions */}
             <CustomCard className="bg-white shadow-lg border-0 py-4">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold">
@@ -238,7 +207,7 @@ export default function ContactedDetails() {
                       <p className="font-medium text-green-800">
                         Export Reports
                       </p>
-                      <p className="text-xs text-wrap  text-green-600">
+                      <p className="text-xs text-wrap text-green-600">
                         Download detailed analytics
                       </p>
                     </div>
@@ -263,10 +232,9 @@ export default function ContactedDetails() {
               </CardContent>
             </CustomCard>
           </div>
-
-          {/* Main Content */}
+          {}
           <div className="lg:col-span-3">
-            <Card className="bg-white shadow-lg border-0 ">
+            <Card className="bg-white shadow-lg border-0">
               <CardHeader className="border-b border-gray-200 bg-gray-50 py-4">
                 <div className="flex flex-col space-y-4">
                   <CardTitle className="text-xl font-bold text-gray-900">
@@ -284,7 +252,6 @@ export default function ContactedDetails() {
                         className="w-full sm:w-64"
                       />
                       <div className="flex gap-2">
-                        
                         <Button
                           variant="outline"
                           onClick={handleBack}
@@ -315,7 +282,6 @@ export default function ContactedDetails() {
                   </div>
                 </div>
               </CardHeader>
-
               <CardContent className="p-0">
                 {resultsLoading || citiesLoading ? (
                   <div className="flex flex-col items-center justify-center py-16 text-gray-500">
@@ -350,18 +316,18 @@ export default function ContactedDetails() {
                             Enquiry Date
                           </TableHead>
                           <TableHead className="font-semibold text-gray-900">
-                            Property Id
+                            Property ID
                           </TableHead>
                           <TableHead className="font-semibold text-gray-900">
                             Property Name
                           </TableHead>
-                           <TableHead className="font-semibold text-gray-900">
+                          <TableHead className="font-semibold text-gray-900">
                             Property For
                           </TableHead>
-                           <TableHead className="font-semibold text-gray-900">
+                          <TableHead className="font-semibold text-gray-900">
                             Property Type
                           </TableHead>
-                           <TableHead className="font-semibold text-gray-900">
+                          <TableHead className="font-semibold text-gray-900">
                             Property In
                           </TableHead>
                           <TableHead className="font-semibold text-gray-900">
@@ -387,7 +353,7 @@ export default function ContactedDetails() {
                               <div className="flex items-center space-x-3">
                                 <div>
                                   <p className="font-semibold text-gray-900">
-                                    {item.userDetails.name || "Unknown"}
+                                    {item.userDetails?.name || "Unknown"}
                                   </p>
                                 </div>
                               </div>
@@ -397,14 +363,14 @@ export default function ContactedDetails() {
                                 <div className="flex items-center text-sm text-gray-600">
                                   <Mail className="w-4 h-4 mr-2 text-gray-400" />
                                   {visibleContacts.has(item.id)
-                                    ? item.userDetails.email || "N/A"
-                                    : hideUserDetails(item.userDetails.email)}
+                                    ? item.userDetails?.email || "N/A"
+                                    : hideUserDetails(item.userDetails?.email)}
                                 </div>
                                 <div className="flex items-center text-sm text-gray-600">
                                   <Phone className="w-4 h-4 mr-2 text-gray-400" />
                                   {visibleContacts.has(item.id)
-                                    ? item.userDetails.mobile || "N/A"
-                                    : hideUserDetails(item.userDetails.mobile)}
+                                    ? item.userDetails?.mobile || "N/A"
+                                    : hideUserDetails(item.userDetails?.mobile)}
                                 </div>
                               </div>
                             </TableCell>
@@ -436,11 +402,6 @@ export default function ContactedDetails() {
                                 {item.property_for || "N/A"}
                               </div>
                             </TableCell>
-                             <TableCell className="py-4">
-                              <div className="space-y-2">
-                                {item.property_in || "N/A"}
-                              </div>
-                            </TableCell>
                             <TableCell className="py-4">
                               <div className="space-y-2">
                                 {item.sub_type || "N/A"}
@@ -448,7 +409,15 @@ export default function ContactedDetails() {
                             </TableCell>
                             <TableCell className="py-4">
                               <div className="space-y-2">
-                                {item.city_id || "N/A"}
+                                {item.property_in || "N/A"}
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div className="space-y-2">
+                                {cities.find((city) => city.id === item.city_id)
+                                  ?.name ||
+                                  item.city_id ||
+                                  "N/A"}
                               </div>
                             </TableCell>
                             <TableCell className="py-4">
@@ -457,7 +426,9 @@ export default function ContactedDetails() {
                                   size="sm"
                                   variant="ghost"
                                   className="h-8 w-8 p-0"
-                                  onClick={() => toggleContactVisibility(item.id)}
+                                  onClick={() =>
+                                    toggleContactVisibility(item.id)
+                                  }
                                   aria-label={
                                     visibleContacts.has(item.id)
                                       ? "Hide contact details"
@@ -465,6 +436,18 @@ export default function ContactedDetails() {
                                   }
                                 >
                                   <Eye className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() =>
+                                    handleViewDetails(item.unique_property_id)
+                                  }
+                                  aria-label="View property details"
+                                  disabled={!item.unique_property_id}
+                                >
+                                  <ExternalLink className="w-4 h-4" />
                                 </Button>
                               </div>
                             </TableCell>
@@ -500,5 +483,29 @@ export default function ContactedDetails() {
         </div>
       </div>
     </div>
+  );
+}
+export default function ContactedDetails() {
+  const [initialPage, setInitialPage] = useState(1);
+  function SearchParamsWrapper({ setInitialPage }) {
+    const searchParams = useSearchParams();
+    useEffect(() => {
+      const page = parseInt(searchParams.get("page")) || 1;
+      setInitialPage(page);
+    }, [searchParams, setInitialPage]);
+    return null;
+  }
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#f4f4f4] flex items-center justify-center">
+          <Loading color="#1D37A6" />
+          <p className="text-lg ml-4">Loading contact details...</p>
+        </div>
+      }
+    >
+      <SearchParamsWrapper setInitialPage={setInitialPage} />
+      <ContactedDetailsContent initialPage={initialPage} />
+    </Suspense>
   );
 }

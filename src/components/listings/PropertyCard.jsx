@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CustomCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,11 @@ import {
   Building,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import config from "../api/config";
+import { uniq } from "lodash";
+import axios from "axios";
 
+import { ReusableAlertDialog } from "../shared/ReusableAlertDialog";
 const PropertyCard = ({
   id,
   title,
@@ -36,8 +40,12 @@ const PropertyCard = ({
   monthly_rent,
   occupancy,
   available_from,
+  user_id,
+  fetchProperties,
+  setCurrentStep,
 }) => {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const formatToIndianCurrency = (value) => {
     if (!value || isNaN(Number(value))) return "N/A";
     const numValue = parseFloat(value.toString());
@@ -65,7 +73,6 @@ const PropertyCard = ({
       ? parseInt(value.toString())
       : parseFloat(value.toString()).toFixed(2).replace(/\.00$/, "");
   };
-
   const getBHKDisplay = () => {
     if (propertyIn === "Commercial") {
       return propertySubType || "N/A";
@@ -87,7 +94,6 @@ const PropertyCard = ({
     }
     return propertySubType || "N/A";
   };
-
   const getPriceDisplay = () => {
     if (propertyFor === "Rent") {
       return monthly_rent
@@ -96,7 +102,6 @@ const PropertyCard = ({
     }
     return price ? `₹ ${formatToIndianCurrency(price)}` : "N/A";
   };
-
   const getOccupancyDisplay = () => {
     if (["Plot", "Land"].includes(propertySubType)) {
       return "";
@@ -107,17 +112,45 @@ const PropertyCard = ({
     return occupancy || "N/A";
   };
   const showFurnishedStatus = !["Plot", "Land"].includes(propertySubType);
+
   const handleEdit = () => {
-    router.push(`/addProperty?property_id=${id}`);
+    console.log("clicked");
+    if (setCurrentStep) {
+      setCurrentStep(0);
+    }
+    router.push(
+      `/addProperty?active_step=basicdetails&status=inprogress&property_id=${id}`
+    );
   };
-
   const handleViewContacted = () => {
-    
-
-    
     router.push(`/enquiry/contact-details`);
   };
+  const handleDelete = async () => {
+    try {
+      const response = await axios.post(
+        `${config.api_url}/property/deleteProperty`,
+        {
+          user_id,
+          unique_property_id: id,
+        }
+      );
+      if (response.data?.status === "success") {
+        alert("Property deleted successfully");
+        fetchProperties();
+      } else {
+        alert("Failed to delete property: " + response.data.message);
+      }
+    } catch (error) {
+      console.error("Delete property error:", error);
+      alert("Something went wrong while deleting the property.");
+    }
+  };
 
+  const handleConfirm = (confirmed) => {
+    if (confirmed) {
+      handleDelete();
+    }
+  };
   return (
     <CustomCard className="group overflow-hidden hover:shadow-2xl transition-all duration-500 bg-white border-0 shadow-lg hover:scale-[1.02] transform">
       <CardContent className="p-0">
@@ -147,7 +180,6 @@ const PropertyCard = ({
                   {status}
                 </Badge>
               </div>
-
               <div className="absolute bottom-1 left-4">
                 <Badge
                   variant="outline"
@@ -159,10 +191,9 @@ const PropertyCard = ({
               </div>
             </div>
           </div>
-          {}
+
           <div className="lg:col-span-3 px-2 py-2 lg:px-4 lg:py-2 flex flex-col justify-between">
             <div className="space-y-1">
-              {}
               <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-2">
                 <div className="flex-1">
                   <div className="flex items-center gap-1 mb-1">
@@ -204,7 +235,7 @@ const PropertyCard = ({
                   </div>
                 </div>
               </div>
-              {}
+
               <div className="space-y-1">
                 <div className="flex items-center text-gray-600">
                   <span className="text-sm">{location}</span>
@@ -227,7 +258,7 @@ const PropertyCard = ({
                 </div>
               </div>
             </div>
-            {}
+
             <div className="pt-2 space-y-2">
               <div className="grid grid-cols-2 gap-3">
                 <Button
@@ -237,13 +268,16 @@ const PropertyCard = ({
                   <Edit className="w-4 h-4 mr-2" />
                   Edit
                 </Button>
-                <Button
-                  variant="outline"
-                  className="border-2 cursor-pointer border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-medium rounded-lg transition-all"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </Button>
+                <ReusableAlertDialog
+                  message="This will permanently delete the property. Do you want to continue?"
+                  onResult={handleConfirm}
+                  trigger={
+                    <button className="border-2 cursor-pointer justify-center border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-medium rounded-lg transition-all px-3 py-1 flex items-center">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </button>
+                  }
+                />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <Button

@@ -1,3 +1,4 @@
+"use client";
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { useDispatch } from "react-redux";
@@ -14,19 +15,16 @@ import { setBasicDetails } from "@/store/slices/addPropertySlice/basicDetailsSli
 
 export default function BasicDetails({ property }) {
   const dispatch = useDispatch();
-  const { watch, setValue } = useFormContext();
+  const {
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext();
+
   const property_in = watch("property_in");
   const property_for = watch("property_for");
   const transaction_type = watch("transaction_type");
-
-  const handleSetTransactionType = (value) => {
-    setValue("transaction_type", value, { shouldValidate: true });
-    dispatch(
-      setBasicDetails({
-        transaction_type: value,
-      })
-    );
-  };
 
   const handleSetPropertyType = (key, value) => {
     setValue(key, value, { shouldValidate: true });
@@ -37,18 +35,31 @@ export default function BasicDetails({ property }) {
     );
   };
 
+  const handleSetTransactionType = (value) => {
+    setValue("transaction_type", value, { shouldValidate: true });
+    dispatch(
+      setBasicDetails({
+        transaction_type: value,
+      })
+    );
+  };
+
   useEffect(() => {
     if (property) {
       if (property.property_in) {
-        setValue("property_in", property.property_in);
+        setValue("property_in", property.property_in, { shouldValidate: true });
         dispatch(setBasicDetails({ property_in: property.property_in }));
       }
       if (property.property_for) {
-        setValue("property_for", property.property_for);
+        setValue("property_for", property.property_for, {
+          shouldValidate: true,
+        });
         dispatch(setBasicDetails({ property_for: property.property_for }));
       }
       if (property.transaction_type) {
-        setValue("transaction_type", property.transaction_type);
+        setValue("transaction_type", property.transaction_type, {
+          shouldValidate: true,
+        });
         dispatch(
           setBasicDetails({ transaction_type: property.transaction_type })
         );
@@ -63,6 +74,10 @@ export default function BasicDetails({ property }) {
           <Label className="text-lg font-medium">Property Type</Label>
           <span className="text-red-500">*</span>
         </div>
+        <input
+          type="hidden"
+          {...register("property_in", { required: "This field is required" })}
+        />
         <div className="flex gap-4">
           <Button
             type="button"
@@ -87,14 +102,22 @@ export default function BasicDetails({ property }) {
             Commercial
           </Button>
         </div>
+        {errors.property_in && (
+          <p className="text-red-500 text-sm">{errors.property_in.message}</p>
+        )}
       </div>
+
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Label className="text-lg font-medium">Looking To</Label>
           <span className="text-red-500">*</span>
         </div>
+        <input
+          type="hidden"
+          {...register("property_for", { required: "This field is required" })}
+        />
         <div className="flex gap-4">
-          {["Sell", "Rent", "PG/Co-living"].map((option) => (
+          {["Sell", "Rent"].map((option) => (
             <Button
               key={option}
               type="button"
@@ -109,13 +132,24 @@ export default function BasicDetails({ property }) {
             </Button>
           ))}
         </div>
+        {errors.property_for && (
+          <p className="text-red-500 text-sm">{errors.property_for.message}</p>
+        )}
       </div>
+
       {property_for === "Sell" && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Label className="text-lg font-medium">Transaction Type</Label>
             <span className="text-red-500">*</span>
           </div>
+          <input
+            type="hidden"
+            {...register("transaction_type", {
+              required:
+                property_for === "Sell" ? "This field is required" : false,
+            })}
+          />
           <Select
             value={transaction_type}
             onValueChange={(value) => handleSetTransactionType(value)}
@@ -128,6 +162,11 @@ export default function BasicDetails({ property }) {
               <SelectItem value="Resale">Resale</SelectItem>
             </SelectContent>
           </Select>
+          {errors.transaction_type && (
+            <p className="text-red-500 text-sm">
+              {errors.transaction_type.message}
+            </p>
+          )}
         </div>
       )}
     </div>

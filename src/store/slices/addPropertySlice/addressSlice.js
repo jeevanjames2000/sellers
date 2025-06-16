@@ -1,8 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
-  state: "",
-  city: "",
+  state_id: "",
+  city_id: "",
   locality: "",
+  unit_flat_house_no: "",
+  floors: "",
+  total_floors: "",
+  unique_property_id: "",
+  property_name: "",
+  plot_number: "",
 };
 const addressSlice = createSlice({
   name: "address",

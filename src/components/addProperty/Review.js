@@ -1,44 +1,6 @@
 import { useFormContext } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const basicDetailsKeys = ["propertyType", "lookingTo", "transactionType"];
-const propertyDetailsKeys = [
-  "propertySubtype",
-  "constructionStatus",
-  "bhk",
-  "bathroom",
-  "balcony",
-  "furnishType",
-  "ageOfProperty",
-  "areaUnit",
-  "builtupArea",
-  "carpetArea",
-  "totalProjectArea",
-  "unitCost",
-  "pentHouse",
-  "propertyCost",
-  "facilities",
-  "possessionStatus",
-  "investorProperty",
-  "loanFacility",
-  "facing",
-  "carParking",
-  "bikeParking",
-  "openParking",
-  "nearbyPlace",
-  "distanceFromProperty",
-  "servantRoom",
-  "propertyDescription",
-];
-const addressKeys = [
-  "state",
-  "city",
-  "locality",
-  "flatNumber",
-  "floorNumber",
-  "totalFloors",
-];
-const photoKeys = ["photos", "videos", "floorPlans"];
+import PropertyCard from "../listings/PropertyCard";
 
 const formatKey = (key) =>
   key
@@ -46,44 +8,8 @@ const formatKey = (key) =>
     .replace(/_/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
-const renderSection = (title, keys, formData) => {
-  const entries = keys
-    .map((key) => [key, formData[key]])
-    .filter(([_, value]) => value !== undefined && value !== "");
-
-  if (entries.length === 0) return null;
-
-  return (
-    <Card className="p-2">
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {entries.map(([key, value]) => {
-          let displayValue;
-          if (Array.isArray(value)) {
-            displayValue = value.length ? value.join(", ") : "Not specified";
-          } else if (typeof value === "boolean") {
-            displayValue = value ? "Yes" : "No";
-          } else {
-            displayValue = value;
-          }
-
-          return (
-            <div key={key} className="flex justify-between">
-              <span className="text-gray-600">{formatKey(key)}:</span>
-              <span className="font-medium text-right max-w-xs truncate">
-                {displayValue}
-              </span>
-            </div>
-          );
-        })}
-      </CardContent>
-    </Card>
-  );
-};
-
-export default function Review() {
+export default function Review({ property, setCurrentStep }) {
+  console.log("property: ", property);
   const { watch } = useFormContext();
 
   const formData = watch();
@@ -101,10 +27,41 @@ export default function Review() {
         </p>
       </div>
 
-      {renderSection("Basic Details", basicDetailsKeys, formData)}
-      {renderSection("Property Details", propertyDetailsKeys, formData)}
-      {renderSection("Address", addressKeys, formData)}
-      {renderSection("Photos & Media", photoKeys, formData)}
+      <PropertyCard
+        id={property.unique_property_id}
+        title={property.property_name}
+        price={property.property_cost || "N/A"}
+        bhk={property.bedrooms || "N/A"}
+        type={property.property_in}
+        status={
+          property.property_status === 1
+            ? "Approved"
+            : property.property_status === 0
+            ? "Review"
+            : "Rejected"
+        }
+        location={property.google_address || "N/A"}
+        facing={property.facing || null}
+        lastUpdated={property.updated_date || "N/A"}
+        expiryDate={property.expiry_date || "N/A"}
+        furnished_status={property.furnished_status || "N/A"}
+        enquiries={property.enquiries || 0}
+        favourites={property.favourites || 0}
+        image={
+          property.image
+            ? `https://api.meetowner.in/uploads/${property.image}`
+            : "https://placehold.co/400x300"
+        }
+        developer={property.user?.name || "N/A"}
+        propertyFor={property.property_for || "N/A"}
+        propertyType={property.property_in || "N/A"}
+        propertySubType={property.sub_type || "N/A"}
+        monthly_rent={property.monthly_rent || "N/A"}
+        occupancy={property.occupancy || "N/A"}
+        available_from={property.available_from || "N/A"}
+        user_id={property.user_id}
+        setCurrentStep={setCurrentStep}
+      />
     </div>
   );
 }
