@@ -25,12 +25,12 @@ import {
   setLocality,
   setState,
 } from "@/store/slices/addPropertySlice/addressSlice";
-
 export default function Address({ property }) {
   const {
     register,
     watch,
     setValue,
+    trigger,
     formState: { errors },
   } = useFormContext();
   const dispatch = useDispatch();
@@ -48,7 +48,16 @@ export default function Address({ property }) {
   const [openState, setOpenState] = useState(false);
   const [openCity, setOpenCity] = useState(false);
   const [openLocality, setOpenLocality] = useState(false);
-
+  const [isInteracting, setIsInteracting] = useState({
+    state_id: false,
+    city_id: false,
+    locality: false,
+    property_name: false,
+    builder_name: false,
+    unit_flat_house_no: false,
+    floors: false,
+    total_floors: false,
+  });
   const fetchStates = useCallback(async () => {
     try {
       const res = await fetch("https://api.meetowner.in/api/v1/getAllStates");
@@ -58,7 +67,6 @@ export default function Address({ property }) {
       console.error("Error fetching states:", error);
     }
   }, []);
-
   const fetchCities = useCallback(async (state = null) => {
     try {
       const url = state
@@ -82,7 +90,6 @@ export default function Address({ property }) {
       setCities([]);
     }
   }, []);
-
   const fetchLocalities = useCallback(
     debounce(async (city, query) => {
       if (!city || !query || query.length < 2) {
@@ -96,7 +103,6 @@ export default function Address({ property }) {
           )}&query=${encodeURIComponent(query)}`
         );
         const data = await res.json();
-        console.log("Locality API response:", data); // Debug API response
         const suggestions = data || [];
         if (
           property?.location_id &&
@@ -112,78 +118,95 @@ export default function Address({ property }) {
     }, 300),
     [property?.location_id]
   );
-
   useEffect(() => {
     fetchStates();
     if (property) {
+      const fieldsToValidate = [];
       if (property.state_id) {
         dispatch(setState(property.state_id));
-        setValue("state_id", property.state_id, { shouldValidate: true });
+        setValue("state_id", property.state_id);
         fetchCities(property.state_id);
+        fieldsToValidate.push("state_id");
       }
       if (property.city_id) {
         dispatch(setCity(property.city_id));
-        setValue("city_id", property.city_id, { shouldValidate: true });
+        setValue("city_id", property.city_id);
+        fieldsToValidate.push("city_id");
       }
       if (property.location_id) {
         dispatch(setLocality(property.location_id));
-        setValue("locality", property.location_id, { shouldValidate: true });
+        setValue("locality", property.location_id);
         setLocalityInput(property.location_id);
         if (property.city_id) {
           fetchLocalities(property.city_id, property.location_id);
         }
+        fieldsToValidate.push("locality");
       }
-      // Only set non-empty values to avoid triggering required errors
       if (property.property_name) {
-        setValue("property_name", property.property_name, {
-          shouldValidate: true,
-        });
+        setValue("property_name", property.property_name);
+        fieldsToValidate.push("property_name");
       }
       if (property.builder_name) {
-        setValue("builder_name", property.builder_name, {
-          shouldValidate: true,
-        });
+        setValue("builder_name", property.builder_name);
+        fieldsToValidate.push("builder_name");
       }
       if (property.floors) {
-        setValue("floors", property.floors, { shouldValidate: true });
+        setValue("floors", property.floors);
+        fieldsToValidate.push("floors");
       }
       if (property.total_floors) {
-        setValue("total_floors", property.total_floors, {
-          shouldValidate: true,
-        });
+        setValue("total_floors", property.total_floors);
+        fieldsToValidate.push("total_floors");
       }
       if (property.unit_flat_house_no) {
-        setValue("unit_flat_house_no", property.unit_flat_house_no, {
-          shouldValidate: true,
-        });
+        setValue("unit_flat_house_no", property.unit_flat_house_no);
+        fieldsToValidate.push("unit_flat_house_no");
+      }
+      if (fieldsToValidate.length > 0) {
+        trigger(fieldsToValidate);
       }
     }
-  }, [property, dispatch, setValue, fetchStates, fetchCities, fetchLocalities]);
+  }, [
+    property,
+    dispatch,
+    setValue,
+    trigger,
+    fetchStates,
+    fetchCities,
+    fetchLocalities,
+  ]);
   useEffect(() => {
     if (selectedState) {
       fetchCities(selectedState);
       if (selectedState !== property?.state_id) {
         dispatch(setCity(""));
-        setValue("city_id", "", { shouldValidate: true });
+        setValue("city_id", "");
         dispatch(setLocality(""));
-        setValue("locality", "", { shouldValidate: true });
+        setValue("locality", "");
         setLocalityInput("");
         setLocalitySuggestions([]);
+        trigger(["city_id", "locality"]);
       }
     } else {
       fetchCities();
     }
-  }, [selectedState, fetchCities, dispatch, setValue, property?.state_id]);
-
+  }, [
+    selectedState,
+    fetchCities,
+    dispatch,
+    setValue,
+    trigger,
+    property?.state_id,
+  ]);
   useEffect(() => {
     if (selectedCity && selectedCity !== property?.city_id) {
       dispatch(setLocality(""));
-      setValue("locality", "", { shouldValidate: true });
+      setValue("locality", "");
       setLocalityInput("");
       setLocalitySuggestions([]);
+      trigger("locality");
     }
-  }, [selectedCity, dispatch, setValue, property?.city_id]);
-
+  }, [selectedCity, dispatch, setValue, trigger, property?.city_id]);
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -219,6 +242,13 @@ export default function Address({ property }) {
                     value={state.state}
                     onSelect={() => {
                       dispatch(setState(state.state));
+                      setValue("state_id", state.state, {
+                        shouldValidate: true,
+                      });
+                      setIsInteracting((prev) => ({
+                        ...prev,
+                        state_id: false,
+                      }));
                       setOpenState(false);
                     }}
                   >
@@ -237,7 +267,7 @@ export default function Address({ property }) {
             </Command>
           </PopoverContent>
         </Popover>
-        {errors.state_id && (
+        {errors.state_id && !isInteracting.state_id && (
           <p className="text-red-500 text-sm">{errors.state_id.message}</p>
         )}
       </div>
@@ -274,6 +304,8 @@ export default function Address({ property }) {
                     value={city.city}
                     onSelect={() => {
                       dispatch(setCity(city.city));
+                      setValue("city_id", city.city, { shouldValidate: true });
+                      setIsInteracting((prev) => ({ ...prev, city_id: false }));
                       setOpenCity(false);
                     }}
                   >
@@ -290,7 +322,7 @@ export default function Address({ property }) {
             </Command>
           </PopoverContent>
         </Popover>
-        {errors.city_id && (
+        {errors.city_id && !isInteracting.city_id && (
           <p className="text-red-500 text-sm">{errors.city_id.message}</p>
         )}
       </div>
@@ -304,7 +336,18 @@ export default function Address({ property }) {
             required: "Please select a locality",
           })}
         />
-        <Popover open={openLocality} onOpenChange={setOpenLocality}>
+        <Popover
+          open={openLocality}
+          onOpenChange={(open) => {
+            setOpenLocality(open);
+            if (open) {
+              setIsInteracting((prev) => ({ ...prev, locality: true }));
+            } else {
+              setIsInteracting((prev) => ({ ...prev, locality: false }));
+              trigger("locality");
+            }
+          }}
+        >
           <PopoverTrigger asChild>
             <Button
               variant="outline"
@@ -326,6 +369,7 @@ export default function Address({ property }) {
                 value={localityInput}
                 onValueChange={(value) => {
                   setLocalityInput(value);
+                  setIsInteracting((prev) => ({ ...prev, locality: true }));
                   if (selectedCity && value.length >= 2) {
                     fetchLocalities(selectedCity, value);
                   } else {
@@ -347,6 +391,10 @@ export default function Address({ property }) {
                         });
                         setLocalityInput(item.locality);
                       }
+                      setIsInteracting((prev) => ({
+                        ...prev,
+                        locality: false,
+                      }));
                       setOpenLocality(false);
                     }}
                   >
@@ -363,7 +411,7 @@ export default function Address({ property }) {
             </Command>
           </PopoverContent>
         </Popover>
-        {errors.locality && (
+        {errors.locality && !isInteracting.locality && (
           <p className="text-red-500 text-sm">{errors.locality.message}</p>
         )}
       </div>
@@ -380,8 +428,15 @@ export default function Address({ property }) {
             },
           })}
           placeholder="Enter property/project name"
+          onFocus={() =>
+            setIsInteracting((prev) => ({ ...prev, property_name: true }))
+          }
+          onBlur={() => {
+            setIsInteracting((prev) => ({ ...prev, property_name: false }));
+            trigger("property_name");
+          }}
         />
-        {errors.property_name && (
+        {errors.property_name && !isInteracting.property_name && (
           <p className="text-red-500 text-sm">{errors.property_name.message}</p>
         )}
       </div>
@@ -398,8 +453,15 @@ export default function Address({ property }) {
             },
           })}
           placeholder="Enter Builder name"
+          onFocus={() =>
+            setIsInteracting((prev) => ({ ...prev, builder_name: true }))
+          }
+          onBlur={() => {
+            setIsInteracting((prev) => ({ ...prev, builder_name: false }));
+            trigger("builder_name");
+          }}
         />
-        {errors.builder_name && (
+        {errors.builder_name && !isInteracting.builder_name && (
           <p className="text-red-500 text-sm">{errors.builder_name.message}</p>
         )}
       </div>
@@ -417,8 +479,21 @@ export default function Address({ property }) {
               },
             })}
             placeholder="Enter flat number"
+            onFocus={() =>
+              setIsInteracting((prev) => ({
+                ...prev,
+                unit_flat_house_no: true,
+              }))
+            }
+            onBlur={() => {
+              setIsInteracting((prev) => ({
+                ...prev,
+                unit_flat_house_no: false,
+              }));
+              trigger("unit_flat_house_no");
+            }}
           />
-          {errors.unit_flat_house_no && (
+          {errors.unit_flat_house_no && !isInteracting.unit_flat_house_no && (
             <p className="text-red-500 text-sm">
               {errors.unit_flat_house_no.message}
             </p>
@@ -440,8 +515,15 @@ export default function Address({ property }) {
                 "Floor number cannot exceed total floors",
             })}
             placeholder="Enter floor number"
+            onFocus={() =>
+              setIsInteracting((prev) => ({ ...prev, floors: true }))
+            }
+            onBlur={() => {
+              setIsInteracting((prev) => ({ ...prev, floors: false }));
+              trigger("floors");
+            }}
           />
-          {errors.floors && (
+          {errors.floors && !isInteracting.floors && (
             <p className="text-red-500 text-sm">{errors.floors.message}</p>
           )}
         </div>
@@ -458,8 +540,15 @@ export default function Address({ property }) {
             max: { value: 100, message: "Total floors cannot exceed 100" },
           })}
           placeholder="Enter total floors"
+          onFocus={() =>
+            setIsInteracting((prev) => ({ ...prev, total_floors: true }))
+          }
+          onBlur={() => {
+            setIsInteracting((prev) => ({ ...prev, total_floors: false }));
+            trigger("total_floors");
+          }}
         />
-        {errors.total_floors && (
+        {errors.total_floors && !isInteracting.total_floors && (
           <p className="text-red-500 text-sm">{errors.total_floors.message}</p>
         )}
       </div>
