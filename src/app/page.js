@@ -1,4 +1,3 @@
-
 import SignupPage from "./signup/Page";
 
 export default function Home() {
@@ -6,8 +5,7 @@ export default function Home() {
     <>
       <div>
         <div className="flex flex-col  justify-center min-h-screen">
-          <SignupPage/>
-    
+          <SignupPage />
         </div>
       </div>
     </>

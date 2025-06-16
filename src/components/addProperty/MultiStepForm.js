@@ -189,6 +189,7 @@ export default function MultiStepForm() {
         dispatch,
         userInfo
       );
+      console.log("message: ", message);
       setIsSubmitting(false);
       if (success) {
         setPropertyId(data.unique_property_id);
@@ -206,7 +207,7 @@ export default function MultiStepForm() {
         );
         await proceedToNextStep(data.unique_property_id);
       } else {
-        toast.error("Failed to submit basic details");
+        toast.error(message || "Failed to submit basic details");
         setIsSubmitting(false);
       }
     } else if (currentStep === 1) {
@@ -217,6 +218,7 @@ export default function MultiStepForm() {
         places,
         fac
       );
+
       setIsSubmitting(false);
       if (success) {
         await getPropertyDetails();

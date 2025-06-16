@@ -739,6 +739,7 @@ export default function PropertyDetails({
     "Single Women",
   ];
   const zone_typesOptions = [
+    "IT Park",
     "Industrial",
     "Commercial",
     "Special Economic Zone",

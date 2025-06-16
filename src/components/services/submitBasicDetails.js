@@ -16,6 +16,7 @@ export const submitBasicDetails = async (formData, dispatch, userInfo) => {
       }
     );
     const { status, property, message } = response.data;
+    console.log(response.data);
     if (status === "success") {
       dispatch(setBasicDetails(property));
       return { success: true, data: property };
