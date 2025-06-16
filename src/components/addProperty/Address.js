@@ -90,10 +90,41 @@ export default function Address({ property }) {
       setCities([]);
     }
   }, []);
+  const fetchDefaultLocalities = useCallback(
+    async (city) => {
+      if (!city) {
+        setLocalitySuggestions([]);
+        return;
+      }
+      try {
+        const res = await fetch(
+          `https://api.meetowner.in/api/v1/search?city=${encodeURIComponent(
+            city
+          )}`
+        );
+        const data = await res.json();
+        const suggestions = data.slice(0, 10) || [];
+        if (
+          property?.location_id &&
+          !suggestions.find((item) => item.locality === property.location_id)
+        ) {
+          suggestions.unshift({ locality: property.location_id });
+        }
+        setLocalitySuggestions(suggestions);
+      } catch (error) {
+        console.error("Error fetching default localities:", error);
+        setLocalitySuggestions([]);
+      }
+    },
+    [property?.location_id]
+  );
   const fetchLocalities = useCallback(
     debounce(async (city, query) => {
-      if (!city || !query || query.length < 2) {
+      if (!city) {
         setLocalitySuggestions([]);
+        return;
+      }
+      if (query.length < 2) {
         return;
       }
       try {
@@ -132,6 +163,9 @@ export default function Address({ property }) {
         dispatch(setCity(property.city_id));
         setValue("city_id", property.city_id);
         fieldsToValidate.push("city_id");
+        if (!property.location_id) {
+          fetchDefaultLocalities(property.city_id);
+        }
       }
       if (property.location_id) {
         dispatch(setLocality(property.location_id));
@@ -174,6 +208,7 @@ export default function Address({ property }) {
     fetchStates,
     fetchCities,
     fetchLocalities,
+    fetchDefaultLocalities,
   ]);
   useEffect(() => {
     if (selectedState) {
@@ -205,8 +240,16 @@ export default function Address({ property }) {
       setLocalityInput("");
       setLocalitySuggestions([]);
       trigger("locality");
+      fetchDefaultLocalities(selectedCity);
     }
-  }, [selectedCity, dispatch, setValue, trigger, property?.city_id]);
+  }, [
+    selectedCity,
+    dispatch,
+    setValue,
+    trigger,
+    property?.city_id,
+    fetchDefaultLocalities,
+  ]);
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -372,8 +415,6 @@ export default function Address({ property }) {
                   setIsInteracting((prev) => ({ ...prev, locality: true }));
                   if (selectedCity && value.length >= 2) {
                     fetchLocalities(selectedCity, value);
-                  } else {
-                    setLocalitySuggestions([]);
                   }
                 }}
               />
