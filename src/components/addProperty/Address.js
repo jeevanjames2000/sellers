@@ -188,18 +188,24 @@ export default function Address({ property }) {
       }
       if (
         property.floors &&
-        ["Apartment", "Independent House", "Independent Villa"].includes(
-          subType
-        )
+        [
+          "Apartment",
+          "Independent House",
+          "Independent Villa",
+          "Others",
+        ].includes(subType)
       ) {
         setValue("floors", property.floors);
         fieldsToValidate.push("floors");
       }
       if (
         property.total_floors &&
-        ["Apartment", "Independent House", "Independent Villa"].includes(
-          subType
-        )
+        [
+          "Apartment",
+          "Independent House",
+          "Independent Villa",
+          "Others",
+        ].includes(subType)
       ) {
         setValue("total_floors", property.total_floors);
         fieldsToValidate.push("total_floors");
@@ -310,6 +316,7 @@ export default function Address({ property }) {
     "Retail Shop",
     "Showroom",
     "Warehouse",
+    "Others",
   ].includes(subType);
   const showTotalFloors = [
     "Apartment",
@@ -319,6 +326,7 @@ export default function Address({ property }) {
     "Retail Shop",
     "Showroom",
     "Warehouse",
+    "Others",
   ].includes(subType);
   return (
     <div className="space-y-6">
