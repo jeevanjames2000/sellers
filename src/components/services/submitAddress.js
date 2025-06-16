@@ -17,6 +17,7 @@ export const submitAddress = async (formData, dispatch) => {
         property_name: formData.property_name,
         plot_number: formData.plot_number,
         google_address: googleAddress,
+        builder_name: formData.builder_name,
       }
     );
     const { status, address, message } = response.data;

@@ -41,6 +41,8 @@ export default function Address({ property }) {
   } = useSelector((store) => store.address);
   const locality = watch("locality");
   const totalFloors = watch("total_floors");
+  const subType = property?.sub_type;
+  console.log("subType: ", subType);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [localitySuggestions, setLocalitySuggestions] = useState([]);
@@ -54,7 +56,8 @@ export default function Address({ property }) {
     locality: false,
     property_name: false,
     builder_name: false,
-    unit_flat_house_no: false,
+    plot_number: false,
+    villa_number: false,
     floors: false,
     total_floors: false,
   });
@@ -184,17 +187,31 @@ export default function Address({ property }) {
         setValue("builder_name", property.builder_name);
         fieldsToValidate.push("builder_name");
       }
-      if (property.floors) {
+      if (
+        property.floors &&
+        ["Apartment", "Independent House", "Independent Villa"].includes(
+          subType
+        )
+      ) {
         setValue("floors", property.floors);
         fieldsToValidate.push("floors");
       }
-      if (property.total_floors) {
+      if (
+        property.total_floors &&
+        ["Apartment", "Independent House", "Independent Villa"].includes(
+          subType
+        )
+      ) {
         setValue("total_floors", property.total_floors);
         fieldsToValidate.push("total_floors");
       }
-      if (property.unit_flat_house_no) {
-        setValue("unit_flat_house_no", property.unit_flat_house_no);
-        fieldsToValidate.push("unit_flat_house_no");
+      if (property.plot_number && subType === "Plot") {
+        setValue("plot_number", property.plot_number);
+        fieldsToValidate.push("plot_number");
+      }
+      if (property.villa_number && subType === "Independent Villa") {
+        setValue("villa_number", property.villa_number);
+        fieldsToValidate.push("villa_number");
       }
       if (fieldsToValidate.length > 0) {
         trigger(fieldsToValidate);
@@ -209,6 +226,7 @@ export default function Address({ property }) {
     fetchCities,
     fetchLocalities,
     fetchDefaultLocalities,
+    subType,
   ]);
   useEffect(() => {
     if (selectedState) {
@@ -250,6 +268,41 @@ export default function Address({ property }) {
     property?.city_id,
     fetchDefaultLocalities,
   ]);
+  const numberField = () => {
+    switch (subType) {
+      case "Plot":
+        return {
+          name: "plot_number",
+          label: "Plot Number",
+          placeholder: "Enter plot number",
+        };
+      case "Land":
+        return {
+          name: "plot_number",
+          label: "Plot Number",
+          placeholder: "Enter plot number",
+        };
+      case "Independent Villa":
+        return {
+          name: "villa_number",
+          label: "Villa Number",
+          placeholder: "Enter villa number",
+        };
+      default:
+        return null;
+    }
+  };
+  const showFloors = [
+    "Apartment",
+    "Independent House",
+    "Independent Villa",
+  ].includes(subType);
+  const showFloorNo = ["Apartment", "Independent House"].includes(subType);
+  const showTotalFloors = [
+    "Apartment",
+    "Independent House",
+    "Independent Villa",
+  ].includes(subType);
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -508,91 +561,149 @@ export default function Address({ property }) {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>
-            Flat No. <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            {...register("unit_flat_house_no", {
-              required: "Flat number is required",
-              minLength: {
-                value: 1,
-                message: "Flat number must be at least 1 character",
-              },
-            })}
-            placeholder="Enter flat number"
-            onFocus={() =>
-              setIsInteracting((prev) => ({
-                ...prev,
-                unit_flat_house_no: true,
-              }))
-            }
-            onBlur={() => {
-              setIsInteracting((prev) => ({
-                ...prev,
-                unit_flat_house_no: false,
-              }));
-              trigger("unit_flat_house_no");
-            }}
-          />
-          {errors.unit_flat_house_no && !isInteracting.unit_flat_house_no && (
-            <p className="text-red-500 text-sm">
-              {errors.unit_flat_house_no.message}
-            </p>
+          {numberField() && (
+            <div className="space-y-2">
+              <Label>
+                {numberField().label} <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                {...register(numberField().name, {
+                  required: `${numberField().label} is required`,
+                  minLength: {
+                    value: 1,
+                    message: `${
+                      numberField().label
+                    } must be at least 1 character`,
+                  },
+                })}
+                placeholder={numberField().placeholder}
+                onFocus={() =>
+                  setIsInteracting((prev) => ({
+                    ...prev,
+                    [numberField().name]: true,
+                  }))
+                }
+                onBlur={() => {
+                  setIsInteracting((prev) => ({
+                    ...prev,
+                    [numberField().name]: false,
+                  }));
+                  trigger(numberField().name);
+                }}
+              />
+              {errors[numberField().name] &&
+                !isInteracting[numberField().name] && (
+                  <p className="text-red-500 text-sm">
+                    {errors[numberField().name].message}
+                  </p>
+                )}
+            </div>
+          )}
+
+          {showFloors && (
+            <div className="space-y-2">
+              <Label>
+                Floor No. <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                type="number"
+                {...register("floors", {
+                  required: showFloors ? "Floor number is required" : false,
+                  min: showFloors
+                    ? { value: 0, message: "Floor number cannot be negative" }
+                    : undefined,
+                  max: showFloors
+                    ? { value: 100, message: "Floor number cannot exceed 100" }
+                    : undefined,
+                  validate: (value) =>
+                    !totalFloors ||
+                    !showTotalFloors ||
+                    parseInt(value) <= parseInt(totalFloors) ||
+                    "Floor number cannot exceed total floors",
+                })}
+                placeholder="Enter floor number"
+                onFocus={() =>
+                  setIsInteracting((prev) => ({ ...prev, floors: true }))
+                }
+                onBlur={() => {
+                  setIsInteracting((prev) => ({ ...prev, floors: false }));
+                  trigger("floors");
+                }}
+              />
+              {errors.floors && !isInteracting.floors && (
+                <p className="text-red-500 text-sm">{errors.floors.message}</p>
+              )}
+            </div>
           )}
         </div>
+        {showFloorNo && (
+          <div className="space-y-2">
+            <Label>
+              Flat No. <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              {...register("unit_flat_house_no", {
+                required: "Flat number is required",
+                minLength: {
+                  value: 1,
+                  message: "Flat number must be at least 1 character",
+                },
+              })}
+              placeholder="Enter flat number"
+              onFocus={() =>
+                setIsInteracting((prev) => ({
+                  ...prev,
+                  unit_flat_house_no: true,
+                }))
+              }
+              onBlur={() => {
+                setIsInteracting((prev) => ({
+                  ...prev,
+                  unit_flat_house_no: false,
+                }));
+                trigger("unit_flat_house_no");
+              }}
+            />
+            {errors.unit_flat_house_no && !isInteracting.unit_flat_house_no && (
+              <p className="text-red-500 text-sm">
+                {errors.unit_flat_house_no.message}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+      {showTotalFloors && (
         <div className="space-y-2">
           <Label>
-            Floor No. <span className="text-red-500">*</span>
+            Total Floors <span className="text-red-500">*</span>
           </Label>
           <Input
             type="number"
-            {...register("floors", {
-              required: "Floor number is required",
-              min: { value: 0, message: "Floor number cannot be negative" },
-              max: { value: 100, message: "Floor number cannot exceed 100" },
-              validate: (value) =>
-                !totalFloors ||
-                parseInt(value) <= parseInt(totalFloors) ||
-                "Floor number cannot exceed total floors",
+            {...register("total_floors", {
+              required: showTotalFloors ? "Total floors is required" : false,
+              min: showTotalFloors
+                ? { value: 1, message: "Total floors must be at least 1" }
+                : undefined,
+              max: showTotalFloors
+                ? { value: 100, message: "Total floors cannot exceed 100" }
+                : undefined,
             })}
-            placeholder="Enter floor number"
+            placeholder="Enter total floors"
             onFocus={() =>
-              setIsInteracting((prev) => ({ ...prev, floors: true }))
+              setIsInteracting((prev) => ({ ...prev, total_floors: true }))
             }
             onBlur={() => {
-              setIsInteracting((prev) => ({ ...prev, floors: false }));
-              trigger("floors");
+              setIsInteracting((prev) => ({ ...prev, total_floors: false }));
+              trigger("total_floors");
             }}
           />
-          {errors.floors && !isInteracting.floors && (
-            <p className="text-red-500 text-sm">{errors.floors.message}</p>
+          {errors.total_floors && !isInteracting.total_floors && (
+            <p className="text-red-500 text-sm">
+              {errors.total_floors.message}
+            </p>
           )}
         </div>
-      </div>
-      <div className="space-y-2">
-        <Label>
-          Total Floors <span className="text-red-500">*</span>
-        </Label>
-        <Input
-          type="number"
-          {...register("total_floors", {
-            required: "Total floors is required",
-            min: { value: 1, message: "Total floors must be at least 1" },
-            max: { value: 100, message: "Total floors cannot exceed 100" },
-          })}
-          placeholder="Enter total floors"
-          onFocus={() =>
-            setIsInteracting((prev) => ({ ...prev, total_floors: true }))
-          }
-          onBlur={() => {
-            setIsInteracting((prev) => ({ ...prev, total_floors: false }));
-            trigger("total_floors");
-          }}
-        />
-        {errors.total_floors && !isInteracting.total_floors && (
-          <p className="text-red-500 text-sm">{errors.total_floors.message}</p>
-        )}
-      </div>
+      )}
     </div>
   );
 }

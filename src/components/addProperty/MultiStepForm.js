@@ -16,8 +16,6 @@ import useFetchAndSetProperty from "../services/useFetchAndSetProperty";
 import { submitBasicDetails } from "../services/submitBasicDetails";
 import { submitPropertyDetails } from "../services/submitPropertyDetails";
 import { submitAddress } from "../services/submitAddress";
-
-// Move steps and utilities outside component to prevent re-creation
 const steps = [
   { label: "Basic Details", component: BasicDetails, key: "basicdetails" },
   {
@@ -29,8 +27,6 @@ const steps = [
   { label: "Property Photos", component: Photos, key: "propertyphotos" },
   { label: "Review", component: Review, key: "review" },
 ];
-
-// Custom lightweight comparison function to replace lodash isEqual
 const areObjectsEqual = (obj1, obj2) => {
   const keys1 = Object.keys(obj1);
   const keys2 = Object.keys(obj2);
@@ -40,13 +36,11 @@ const areObjectsEqual = (obj1, obj2) => {
   }
   return true;
 };
-
 const getBasicDetailsPayload = (formData) => ({
   property_in: formData.property_in || "",
   property_for: formData.property_for || "",
   transaction_type: formData.transaction_type || "",
 });
-
 const compareBasicDetails = (formData, property) => {
   const formPayload = getBasicDetailsPayload(formData);
   const propertyPayload = {
@@ -56,7 +50,6 @@ const compareBasicDetails = (formData, property) => {
   };
   return areObjectsEqual(formPayload, propertyPayload);
 };
-
 const getAddressPayload = (formData) => ({
   city_id: formData.city_id || "",
   state_id: formData.state_id || "",
@@ -66,11 +59,11 @@ const getAddressPayload = (formData) => ({
   total_floors: formData.total_floors || "",
   property_name: formData.property_name || "",
   plot_number: formData.plot_number || "",
+  builder_name: formData.builder_name || "",
   google_address: formData.locality
     ? `${formData.locality}, ${formData.city_id}, ${formData.state_id}`
     : "",
 });
-
 const compareAddress = (formData, property) => {
   const formPayload = getAddressPayload(formData);
   const propertyPayload = {
@@ -83,10 +76,10 @@ const compareAddress = (formData, property) => {
     property_name: property?.property_name || "",
     plot_number: property?.plot_number || "",
     google_address: property?.google_address || "",
+    builder_name: property?.builder_name,
   };
   return areObjectsEqual(formPayload, propertyPayload);
 };
-
 export default function MultiStepForm() {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -106,8 +99,6 @@ export default function MultiStepForm() {
   });
   const [places, setPlaces] = useState([]);
   const [fac, setFac] = useState([]);
-
-  // Memoize searchParams parsing
   const params = useMemo(
     () => ({
       propertyId: searchParams.get("property_id"),
@@ -115,8 +106,6 @@ export default function MultiStepForm() {
     }),
     [searchParams]
   );
-
-  // Initialize form with mode: "onSubmit" for better performance
   const methods = useForm({
     mode: "onSubmit",
     defaultValues: {
@@ -126,13 +115,10 @@ export default function MultiStepForm() {
     },
     shouldUnregister: true,
   });
-
   const { property, setProperty, getPropertyDetails } = useFetchAndSetProperty(
     propertyId,
     methods.reset
   );
-
-  // Handle searchParams changes
   useEffect(() => {
     if (params.propertyId) {
       setPropertyId(params.propertyId);
@@ -146,12 +132,9 @@ export default function MultiStepForm() {
       }
     }
   }, [params]);
-
-  // Memoized callbacks
   const handlePhotosSubmit = useCallback((success) => {
     setMediaState((prev) => ({ ...prev, isPhotosSubmitSuccess: success }));
   }, []);
-
   const proceedToNextStep = useCallback(
     async (newPropertyId) => {
       setIsSubmitting(false);
@@ -167,7 +150,6 @@ export default function MultiStepForm() {
     },
     [currentStep, propertyId, router, methods]
   );
-
   const onNext = useCallback(async () => {
     const isValid = await methods.trigger();
     if (!isValid) {
@@ -178,7 +160,6 @@ export default function MultiStepForm() {
     setIsSubmitting(true);
     const formData = methods.getValues();
     const userInfo = JSON.parse(localStorage.getItem("userDetails")) || {};
-
     if (currentStep === 0) {
       if (compareBasicDetails(formData, property)) {
         await proceedToNextStep();
@@ -318,7 +299,6 @@ export default function MultiStepForm() {
     fac,
     proceedToNextStep,
   ]);
-
   const onBack = useCallback(() => {
     const prevStep = currentStep - 1;
     setCurrentStep(prevStep);
@@ -328,16 +308,12 @@ export default function MultiStepForm() {
       { scroll: false }
     );
   }, [currentStep, propertyId, router]);
-
   const onSubmit = useCallback((data) => {}, []);
-
   const handleRoute = useCallback(() => {
     router.push("/dashboard", { scroll: false });
   }, [router]);
-
   const progressPercentage = ((currentStep + 1) / steps.length) * 100;
   const CurrentComponent = steps[currentStep].component;
-
   return (
     <div className="min-h-screen bg-gray-50 p-2 w-full">
       <FormProvider {...methods}>
