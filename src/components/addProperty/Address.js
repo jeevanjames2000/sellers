@@ -19,6 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
+import { debounce } from "lodash";
 import {
   setCity,
   setLocality,
@@ -83,8 +84,8 @@ export default function Address({ property }) {
   }, []);
 
   const fetchLocalities = useCallback(
-    async (city, query) => {
-      if (!city || !query) {
+    debounce(async (city, query) => {
+      if (!city || !query || query.length < 2) {
         setLocalitySuggestions([]);
         return;
       }
@@ -95,7 +96,7 @@ export default function Address({ property }) {
           )}&query=${encodeURIComponent(query)}`
         );
         const data = await res.json();
-        // Ensure property?.location_id is included if not in API response
+        console.log("Locality API response:", data); // Debug API response
         const suggestions = data || [];
         if (
           property?.location_id &&
@@ -108,66 +109,45 @@ export default function Address({ property }) {
         console.error("Error fetching localities:", error);
         setLocalitySuggestions([]);
       }
-    },
+    }, 300),
     [property?.location_id]
   );
 
-  // Initialize form and state with property data
   useEffect(() => {
     fetchStates();
-
-    // Set state
-    if (property?.state_id) {
-      dispatch(setState(property.state_id));
-      setValue("state_id", property.state_id, { shouldValidate: true });
-    }
-
-    // Set city and fetch cities
-    if (property?.state_id || property?.city_id) {
-      fetchCities(property?.state_id || selectedState);
-    }
-
-    // Set city
-    if (property?.city_id) {
-      dispatch(setCity(property.city_id));
-      setValue("city_id", property.city_id, { shouldValidate: true });
-    }
-
-    // Set locality
-    if (property?.location_id) {
-      dispatch(setLocality(property.location_id));
-      setValue("locality", property.location_id, { shouldValidate: true });
-      setLocalityInput(property.location_id);
-      if (property?.city_id) {
-        fetchLocalities(property.city_id, property.location_id);
+    if (property) {
+      if (property.state_id) {
+        dispatch(setState(property.state_id));
+        setValue("state_id", property.state_id, { shouldValidate: true });
+        fetchCities(property.state_id);
       }
+      if (property.city_id) {
+        dispatch(setCity(property.city_id));
+        setValue("city_id", property.city_id, { shouldValidate: true });
+      }
+      if (property.location_id) {
+        dispatch(setLocality(property.location_id));
+        setValue("locality", property.location_id, { shouldValidate: true });
+        setLocalityInput(property.location_id);
+        if (property.city_id) {
+          fetchLocalities(property.city_id, property.location_id);
+        }
+      }
+      setValue("property_name", property?.property_name || "", {
+        shouldValidate: true,
+      });
+      setValue("floors", property?.floors || "", { shouldValidate: true });
+      setValue("total_floors", property?.total_floors || "", {
+        shouldValidate: true,
+      });
+      setValue("unit_flat_house_no", property?.unit_flat_house_no || "", {
+        shouldValidate: true,
+      });
     }
+  }, [property, dispatch, setValue, fetchStates, fetchCities, fetchLocalities]);
 
-    // Set other fields
-    setValue("property_name", property?.property_name || "", {
-      shouldValidate: true,
-    });
-    setValue("floors", property?.floors || "", { shouldValidate: true });
-    setValue("total_floors", property?.total_floors || "", {
-      shouldValidate: true,
-    });
-    setValue("unit_flat_house_no", property?.unit_flat_house_no || "", {
-      shouldValidate: true,
-    });
-  }, [
-    property,
-    dispatch,
-    setValue,
-    fetchStates,
-    fetchCities,
-    fetchLocalities,
-    selectedState,
-  ]);
-
-  // Handle state changes
   useEffect(() => {
     if (selectedState) {
-      setValue("state_id", selectedState, { shouldValidate: true });
       fetchCities(selectedState);
       if (selectedState !== property?.state_id) {
         dispatch(setCity(""));
@@ -179,54 +159,17 @@ export default function Address({ property }) {
       }
     } else {
       fetchCities();
-      dispatch(setCity(""));
-      setValue("city_id", "", { shouldValidate: true });
+    }
+  }, [selectedState, fetchCities, dispatch, setValue, property?.state_id]);
+
+  useEffect(() => {
+    if (selectedCity && selectedCity !== property?.city_id) {
       dispatch(setLocality(""));
       setValue("locality", "", { shouldValidate: true });
       setLocalityInput("");
-    }
-  }, [selectedState, setValue, fetchCities, dispatch, property?.state_id]);
-
-  // Handle city changes
-  useEffect(() => {
-    if (selectedCity) {
-      setValue("city_id", selectedCity, { shouldValidate: true });
-      if (selectedCity !== property?.city_id) {
-        dispatch(setLocality(""));
-        setValue("locality", "", { shouldValidate: true });
-        setLocalityInput("");
-        setLocalitySuggestions([]);
-      }
-      if (localityInput || selectedLocality || property?.location_id) {
-        fetchLocalities(
-          selectedCity,
-          localityInput || selectedLocality || property?.location_id || ""
-        );
-      }
-    } else {
       setLocalitySuggestions([]);
-      dispatch(setLocality(""));
-      setValue("locality", "", { shouldValidate: true });
-      setLocalityInput("");
     }
-  }, [
-    selectedCity,
-    localityInput,
-    selectedLocality,
-    setValue,
-    fetchLocalities,
-    dispatch,
-    property?.city_id,
-    property?.location_id,
-  ]);
-
-  // Handle locality changes
-  useEffect(() => {
-    if (selectedLocality) {
-      setValue("locality", selectedLocality, { shouldValidate: true });
-      setLocalityInput(selectedLocality);
-    }
-  }, [selectedLocality, setValue]);
+  }, [selectedCity, dispatch, setValue, property?.city_id]);
 
   return (
     <div className="space-y-6">
@@ -356,9 +299,9 @@ export default function Address({ property }) {
               aria-expanded={openLocality}
               className="w-full justify-between"
             >
-              {localityInput ||
+              {locality ||
+                localityInput ||
                 selectedLocality ||
-                locality ||
                 "Select Locality"}
               <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
             </Button>
@@ -370,8 +313,10 @@ export default function Address({ property }) {
                 value={localityInput}
                 onValueChange={(value) => {
                   setLocalityInput(value);
-                  if (selectedCity) {
+                  if (selectedCity && value.length >= 2) {
                     fetchLocalities(selectedCity, value);
+                  } else {
+                    setLocalitySuggestions([]);
                   }
                 }}
               />
@@ -382,7 +327,13 @@ export default function Address({ property }) {
                     key={item.locality}
                     value={item.locality}
                     onSelect={() => {
-                      dispatch(setLocality(item.locality));
+                      if (item.locality !== selectedLocality) {
+                        dispatch(setLocality(item.locality));
+                        setValue("locality", item.locality, {
+                          shouldValidate: true,
+                        });
+                        setLocalityInput(item.locality);
+                      }
                       setOpenLocality(false);
                     }}
                   >
@@ -390,9 +341,7 @@ export default function Address({ property }) {
                     <Check
                       className={cn(
                         "ml-auto h-4 w-4",
-                        selectedLocality === item.locality
-                          ? "opacity-100"
-                          : "opacity-0"
+                        locality === item.locality ? "opacity-100" : "opacity-0"
                       )}
                     />
                   </CommandItem>

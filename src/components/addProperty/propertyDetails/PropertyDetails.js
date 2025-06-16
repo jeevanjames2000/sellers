@@ -38,7 +38,6 @@ export default function PropertyDetails({
   fac,
   setFac,
 }) {
-  console.log("property: ", property);
   const {
     register,
     watch,
@@ -46,7 +45,6 @@ export default function PropertyDetails({
     getValues,
     formState: { errors },
   } = useFormContext();
-  console.log("errors: ", errors);
   const formValues = watch();
   const propertySubtype = watch("sub_type");
   const isRent = formValues?.property_for === "Rent";
@@ -63,8 +61,6 @@ export default function PropertyDetails({
   const [constructionEndDate, setConstructionEndDate] = useState(
     watch("under_construction") ? new Date(watch("under_construction")) : null
   );
-  console.log("security_deposit: ", watch("security_deposit"));
-
   useEffect(() => {
     if (isCommercial && !propertySubtype && !property?.sub_type) {
       setValue("sub_type", "Office", { shouldValidate: true });
@@ -127,7 +123,6 @@ export default function PropertyDetails({
     suitable: watch("suitable"),
     pantry_room: watch("pantry_room"),
   };
-
   const fieldVisibility = {
     ...(isResidential &&
       isSell && {
@@ -213,10 +208,11 @@ export default function PropertyDetails({
           rera_approved: true,
           property_age: true,
           area_units: true,
-          builtup_area: true,
-          carpet_area: true,
-          total_project_area: true,
+          length_area: true,
           builtup_unit: true,
+          width_area: true,
+          plot_area: true,
+          total_project_area: true,
           property_cost: true,
           possession_status: true,
           investor_property: true,
@@ -229,10 +225,10 @@ export default function PropertyDetails({
         Land: {
           rera_approved: true,
           area_units: true,
-          builtup_area: true,
-          carpet_area: true,
-          total_project_area: true,
+          length_area: true,
           builtup_unit: true,
+          width_area: true,
+          total_project_area: true,
           property_cost: true,
           possession_status: true,
           loan_facility: true,
@@ -476,44 +472,6 @@ export default function PropertyDetails({
           servant_room: true,
           description: true,
           unit_flat_house_no: true,
-        },
-        Plot: {
-          available_from: true,
-          monthly_rent: true,
-          maintenance: true,
-          security_deposit: true,
-          lock_in: true,
-          brokerage_charge: true,
-          types: true,
-          area_units: true,
-          length_area: true,
-          width_area: true,
-          plot_area: true,
-          total_project_area: true,
-          facing: true,
-          around_places: true,
-          description: true,
-          plot_number: true,
-        },
-        Land: {
-          available_from: true,
-          monthly_rent: true,
-          maintenance: true,
-          security_deposit: true,
-          lock_in: true,
-          brokerage_charge: true,
-          types: true,
-          area_units: true,
-          builtup_area: true,
-          carpet_area: true,
-          length_area: true,
-          width_area: true,
-          total_project_area: true,
-          facing: true,
-          around_places: true,
-          description: true,
-          plot_number: true,
-          land_sub_type: true,
         },
       }),
     ...(isCommercial &&
@@ -694,8 +652,6 @@ export default function PropertyDetails({
     { id: "Apartment", label: "Apartment", icon: Building },
     { id: "Independent House", label: "Independent House", icon: Home },
     { id: "Independent Villa", label: "Independent Villa", icon: Building2 },
-    { id: "Plot", label: "Plot", icon: MapPin },
-    { id: "Land", label: "Land", icon: Landmark },
   ];
   const commercialSubTypes = [
     { id: "Office", label: "Office", icon: Building },
@@ -867,7 +823,11 @@ export default function PropertyDetails({
         setValue(key, `${numericRawValue || ""}`, { shouldDirty: true });
       } else if (!isNaN(numericValue) && numericValue <= 4) {
         setCustom(false);
-        setValue(key, `${numericValue}`, { shouldDirty: true });
+        setValue(
+          key,
+          key === "bedrooms" ? `${numericValue} BHK` : `${numericValue}`,
+          { shouldDirty: true }
+        );
       }
     });
   }, [
@@ -881,7 +841,7 @@ export default function PropertyDetails({
     setValue,
   ]);
   const formatFieldValue = (key, value) => {
-    const intVal = parseInt(value);
+    let intVal = parseInt(value);
     switch (key) {
       case "brokerage_charge":
         return intVal === 30 ? "30 Days" : intVal === 15 ? "15 Days" : "None";
@@ -892,7 +852,11 @@ export default function PropertyDetails({
           : `${intVal} Month${intVal > 1 ? "s" : ""}`;
       case "rera_approved":
         return value === 1 || value === "1" ? "Yes" : "No";
+      case "bhk":
       case "bedrooms":
+        const bhkMatch = value?.match(/^(\d+)/);
+        const numericVal = bhkMatch ? bhkMatch[1] : parseInt(value) || "0";
+        return numericVal === "0" ? "0" : `${numericVal} BHK`;
       case "bathroom":
       case "balconies":
       case "bike_parking":
@@ -2433,7 +2397,6 @@ export default function PropertyDetails({
           </div>
         </div>
       )}
-      import toast from "react-hot-toast";
       {isFieldVisible("around_places") && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -2792,7 +2755,7 @@ export default function PropertyDetails({
             <span className="text-red-500">*</span>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            {["Immediate", "Within 3 Months", "Within 6 Months"].map((val) => (
+            {["Immediate", "Future"].map((val) => (
               <Button
                 key={val}
                 type="button"
