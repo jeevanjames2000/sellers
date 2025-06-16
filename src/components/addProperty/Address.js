@@ -314,7 +314,7 @@ export default function Address({ property }) {
     "Independent Villa",
     "Office",
     "Retail Shop",
-    "Showroom",
+    "Show Room",
     "Warehouse",
     "Others",
   ].includes(subType);
@@ -324,7 +324,7 @@ export default function Address({ property }) {
     "Independent Villa",
     "Office",
     "Retail Shop",
-    "Showroom",
+    "Show Room",
     "Warehouse",
     "Others",
   ].includes(subType);
