@@ -61,11 +61,6 @@ export default function PropertyDetails({
   const [constructionEndDate, setConstructionEndDate] = useState(
     watch("under_construction") ? new Date(watch("under_construction")) : null
   );
-  useEffect(() => {
-    if (isCommercial && !propertySubtype && !property?.sub_type) {
-      setValue("sub_type", "Office", { shouldValidate: true });
-    }
-  }, [isCommercial, propertySubtype, property, setValue]);
   const handleConstructionEndDateChange = (selectedDates) => {
     const dateObj = selectedDates[0];
     let formatted = null;
@@ -123,6 +118,24 @@ export default function PropertyDetails({
     suitable: watch("suitable"),
     pantry_room: watch("pantry_room"),
   };
+  useEffect(() => {
+    if (isCommercial && !propertySubtype && !property?.sub_type) {
+      setValue("sub_type", "Office", { shouldValidate: true });
+    }
+    if (isResidential && isRent && ["Plot", "Land"].includes(propertySubtype)) {
+      setValue("sub_type", "Apartment", { shouldValidate: true });
+    }
+    if (isCommercial) {
+      setValue("sub_type", "Office", { shouldValidate: true });
+    }
+  }, [
+    isCommercial,
+    isResidential,
+    isRent,
+    propertySubtype,
+    property,
+    setValue,
+  ]);
   const fieldVisibility = {
     ...(isResidential &&
       isSell && {
@@ -652,6 +665,8 @@ export default function PropertyDetails({
     { id: "Apartment", label: "Apartment", icon: Building },
     { id: "Independent House", label: "Independent House", icon: Home },
     { id: "Independent Villa", label: "Independent Villa", icon: Building2 },
+    { id: "Plot", label: "Plot", icon: MapPin },
+    { id: "Land", label: "Land", icon: Landmark },
   ];
   const commercialSubTypes = [
     { id: "Office", label: "Office", icon: Building },
@@ -956,29 +971,38 @@ export default function PropertyDetails({
             <span className="text-red-500">*</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-            {propertySubtypes.map((type) => {
-              const IconComponent = type.icon;
-              const isSelected = propertySubtype === type.id;
-              return (
-                <Button
-                  key={type.id}
-                  type="button"
-                  onClick={() =>
-                    setValue("sub_type", type.id, { shouldValidate: true })
-                  }
-                  className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
-                    isSelected
-                      ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
-                      : "bg-white text-black hover:bg-gray-100 border"
-                  }`}
-                >
-                  <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <span className="text-center leading-tight">
-                    {type.label}
-                  </span>
-                </Button>
-              );
-            })}
+            {propertySubtypes
+              .filter(
+                (type) =>
+                  !(
+                    isResidential &&
+                    isRent &&
+                    ["Plot", "Land"].includes(type.id)
+                  )
+              )
+              .map((type) => {
+                const IconComponent = type.icon;
+                const isSelected = propertySubtype === type.id;
+                return (
+                  <Button
+                    key={type.id}
+                    type="button"
+                    onClick={() =>
+                      setValue("sub_type", type.id, { shouldValidate: true })
+                    }
+                    className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
+                      isSelected
+                        ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+                        : "bg-white text-black hover:bg-gray-100 border"
+                    }`}
+                  >
+                    <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <span className="text-center leading-tight">
+                      {type.label}
+                    </span>
+                  </Button>
+                );
+              })}
           </div>
           <input
             type="hidden"
