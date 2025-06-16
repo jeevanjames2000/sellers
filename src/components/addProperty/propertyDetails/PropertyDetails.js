@@ -125,9 +125,6 @@ export default function PropertyDetails({
     if (isResidential && isRent && ["Plot", "Land"].includes(propertySubtype)) {
       setValue("sub_type", "Apartment", { shouldValidate: true });
     }
-    if (isCommercial) {
-      setValue("sub_type", "Office", { shouldValidate: true });
-    }
   }, [
     isCommercial,
     isResidential,
