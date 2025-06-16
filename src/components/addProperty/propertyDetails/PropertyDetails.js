@@ -115,7 +115,7 @@ export default function PropertyDetails({
     unit_flat_house_no: watch("unit_flat_house_no"),
     plot_number: watch("plot_number"),
     zone_types: watch("zone_types"),
-    suitable: watch("suitable"),
+    suitable: watch("business_types"),
     pantry_room: watch("pantry_room"),
   };
   useEffect(() => {
@@ -877,6 +877,8 @@ export default function PropertyDetails({
         return !isNaN(intVal) ? `${intVal}` : "0";
       case "under_construction":
         return value ? value : null;
+      case "available_from":
+        return null;
       default:
         return value;
     }
@@ -925,6 +927,23 @@ export default function PropertyDetails({
       }));
       setPlaces(mappedPlaces);
     }
+    if (property?.available_from) {
+      const date = new Date(property.available_from);
+
+      if (!isNaN(date.getTime())) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const formatted = `${year}-${month}-${day}`;
+        setValue("available_from", formatted, { shouldValidate: true });
+        setStartDate(date);
+      } else {
+        console.warn(
+          "Invalid date in property.available_from:",
+          property.available_from
+        );
+      }
+    }
   }, [property, setValue]);
   const deleteAroundProperty = async (placeid, unique_property_id) => {
     try {
@@ -942,13 +961,26 @@ export default function PropertyDetails({
       console.error("Error deleting place:", error);
     }
   };
-  const [startDate, setStartDate] = useState(
-    watch("available_from") ? new Date(watch("available_from")) : null
-  );
+  const [startDate, setStartDate] = useState(() => {
+    if (property?.available_from) {
+      const date = new Date(property.available_from);
+
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+    const formDate = watch("available_from");
+    if (formDate) {
+      const date = new Date(formDate);
+      return !isNaN(date.getTime()) ? date : null;
+    }
+    return null;
+  });
+
   const handleStartDateChange = (selectedDates) => {
     const dateObj = selectedDates[0];
     let formatted = null;
-    if (dateObj instanceof Date && !isNaN(dateObj)) {
+    if (dateObj instanceof Date && !isNaN(dateObj.getTime())) {
       const year = dateObj.getFullYear();
       const month = String(dateObj.getMonth() + 1).padStart(2, "0");
       const day = String(dateObj.getDate()).padStart(2, "0");
@@ -1883,19 +1915,18 @@ export default function PropertyDetails({
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               {["Yes", "No"].map((val) => {
-                const mappedValue = val === "Yes" ? "1" : "0";
                 return (
                   <Button
                     key={val}
                     type="button"
                     variant="outline"
                     onClick={() =>
-                      setValue("pent_house", mappedValue, {
+                      setValue("pent_house", val, {
                         shouldValidate: true,
                       })
                     }
                     className={`px-6 sm:px-8 py-3 capitalize ${
-                      watchedFields.pent_house === mappedValue
+                      watchedFields.pent_house === val
                         ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
                         : "bg-white text-black hover:bg-gray-100 border"
                     }`}
@@ -2746,7 +2777,7 @@ export default function PropertyDetails({
                 type="button"
                 variant="outline"
                 onClick={() =>
-                  setValue("suitable", item, { shouldValidate: true })
+                  setValue("business_types", item, { shouldValidate: true })
                 }
                 className={`px-3 sm:px-6 py-3 text-xs sm:text-sm capitalize ${
                   watchedFields.suitable === item
@@ -2760,7 +2791,9 @@ export default function PropertyDetails({
           </div>
           <input
             type="hidden"
-            {...register("suitable", { required: "Suitable For is required" })}
+            {...register("business_types", {
+              required: "Suitable For is required",
+            })}
           />
           {errors.suitable && (
             <p className="text-red-500 text-sm mt-1">

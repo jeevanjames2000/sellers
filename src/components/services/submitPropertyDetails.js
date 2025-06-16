@@ -43,7 +43,6 @@ export const submitPropertyDetails = async (
   places,
   fac
 ) => {
-  console.log("Form data before transformation:", formData);
   try {
     const formattedFacilities = Array.isArray(fac)
       ? fac
@@ -57,6 +56,7 @@ export const submitPropertyDetails = async (
         distance: parseFloat(place.distance),
       }));
     const transformedData = transformValuesForDb(formData);
+
     const payload = {
       sub_type: transformedData.sub_type,
       land_sub_type: transformedData.land_sub_type,
@@ -102,7 +102,7 @@ export const submitPropertyDetails = async (
       facilities: formattedFacilities || null,
       unit_flat_house_no: transformedData.unit_flat_house_no,
       plot_number: transformedData.plot_number,
-      business_types: transformedData.suitable,
+      business_types: transformedData.business_types,
       zone_types: transformedData.zone_types,
       investor_property: transformedData.investor_property,
       loan_facility: transformedData.loan_facility,
@@ -118,7 +118,7 @@ export const submitPropertyDetails = async (
       total_places_around_property: newPlaces,
       under_construction: transformedData?.under_construction,
     };
-    console.log("Payload sent to backend:", payload);
+
     const response = await axios.post(
       `${config.api_url}/property/v1/addPropertyDetails`,
       payload,

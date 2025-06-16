@@ -42,7 +42,6 @@ export default function Address({ property }) {
   const locality = watch("locality");
   const totalFloors = watch("total_floors");
   const subType = property?.sub_type;
-  console.log("subType: ", subType);
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [localitySuggestions, setLocalitySuggestions] = useState([]);
@@ -210,8 +209,19 @@ export default function Address({ property }) {
         fieldsToValidate.push("plot_number");
       }
       if (property.villa_number && subType === "Independent Villa") {
-        setValue("villa_number", property.villa_number);
-        fieldsToValidate.push("villa_number");
+        const villaNumber = parseInt(property.villa_number);
+        if (!isNaN(villaNumber) && villaNumber > 0) {
+          setValue("villa_number", String(villaNumber));
+          fieldsToValidate.push("villa_number");
+        } else {
+          console.warn(
+            "Invalid villa_number in property:",
+            property.villa_number
+          );
+        }
+      }
+      if (subType !== "Independent Villa") {
+        setValue("villa_number", null);
       }
       if (fieldsToValidate.length > 0) {
         trigger(fieldsToValidate);
@@ -296,12 +306,19 @@ export default function Address({ property }) {
     "Apartment",
     "Independent House",
     "Independent Villa",
+    "Office",
+    "Retail Shop",
+    "Showroom",
+    "Warehouse",
   ].includes(subType);
-  const showFloorNo = ["Apartment", "Independent House"].includes(subType);
   const showTotalFloors = [
     "Apartment",
     "Independent House",
     "Independent Villa",
+    "Office",
+    "Retail Shop",
+    "Showroom",
+    "Warehouse",
   ].includes(subType);
   return (
     <div className="space-y-6">
@@ -567,14 +584,20 @@ export default function Address({ property }) {
                 {numberField().label} <span className="text-red-500">*</span>
               </Label>
               <Input
+                type={numberField().name === "villa_number" ? "number" : "text"}
                 {...register(numberField().name, {
                   required: `${numberField().label} is required`,
-                  minLength: {
-                    value: 1,
-                    message: `${
-                      numberField().label
-                    } must be at least 1 character`,
-                  },
+                  validate:
+                    numberField().name === "villa_number"
+                      ? (value) => {
+                          const intValue = parseInt(value);
+                          return !isNaN(intValue) && intValue > 0
+                            ? true
+                            : `${
+                                numberField().label
+                              } must be a positive integer`;
+                        }
+                      : undefined,
                 })}
                 placeholder={numberField().placeholder}
                 onFocus={() =>
@@ -599,7 +622,6 @@ export default function Address({ property }) {
                 )}
             </div>
           )}
-
           {showFloors && (
             <div className="space-y-2">
               <Label>
@@ -636,39 +658,15 @@ export default function Address({ property }) {
             </div>
           )}
         </div>
-        {showFloorNo && (
+        {showFloors && (
           <div className="space-y-2">
             <Label>
               Flat No. <span className="text-red-500">*</span>
             </Label>
             <Input
-              {...register("unit_flat_house_no", {
-                required: "Flat number is required",
-                minLength: {
-                  value: 1,
-                  message: "Flat number must be at least 1 character",
-                },
-              })}
+              {...register("unit_flat_house_no")}
               placeholder="Enter flat number"
-              onFocus={() =>
-                setIsInteracting((prev) => ({
-                  ...prev,
-                  unit_flat_house_no: true,
-                }))
-              }
-              onBlur={() => {
-                setIsInteracting((prev) => ({
-                  ...prev,
-                  unit_flat_house_no: false,
-                }));
-                trigger("unit_flat_house_no");
-              }}
             />
-            {errors.unit_flat_house_no && !isInteracting.unit_flat_house_no && (
-              <p className="text-red-500 text-sm">
-                {errors.unit_flat_house_no.message}
-              </p>
-            )}
           </div>
         )}
       </div>

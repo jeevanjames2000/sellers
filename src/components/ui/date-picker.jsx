@@ -1,10 +1,8 @@
 import { useEffect, useRef } from "react";
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.css";
-
 import { Calendar } from "lucide-react";
 import { Label } from "./label";
-
 export default function DatePicker({
   id,
   mode,
@@ -14,7 +12,6 @@ export default function DatePicker({
   placeholder,
 }) {
   const flatpickrRef = useRef(null);
-
   useEffect(() => {
     flatpickrRef.current = flatpickr(`#${id}`, {
       mode: mode || "single",
@@ -24,7 +21,6 @@ export default function DatePicker({
       defaultDate,
       onChange,
     });
-
     return () => {
       if (flatpickrRef.current) {
         flatpickrRef.current.destroy();
@@ -32,8 +28,6 @@ export default function DatePicker({
       }
     };
   }, [mode, id]);
-
-  // New effect to handle defaultDate changes
   useEffect(() => {
     if (flatpickrRef.current) {
       if (defaultDate) {
@@ -43,7 +37,6 @@ export default function DatePicker({
       }
     }
   }, [defaultDate]);
-
   return (
     <div>
       {label && <Label htmlFor={id}>{label}</Label>}

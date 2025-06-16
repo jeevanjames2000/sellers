@@ -50,20 +50,30 @@ const compareBasicDetails = (formData, property) => {
   };
   return areObjectsEqual(formPayload, propertyPayload);
 };
-const getAddressPayload = (formData) => ({
-  city_id: formData.city_id || "",
-  state_id: formData.state_id || "",
-  locality: formData.locality || "",
-  unit_flat_house_no: formData.unit_flat_house_no || "",
-  floors: formData.floors || "",
-  total_floors: formData.total_floors || "",
-  property_name: formData.property_name || "",
-  plot_number: formData.plot_number || "",
-  builder_name: formData.builder_name || "",
-  google_address: formData.locality
-    ? `${formData.locality}, ${formData.city_id}, ${formData.state_id}`
-    : "",
-});
+const getAddressPayload = (formData) => {
+  const payload = {
+    city_id: formData.city_id || "",
+    state_id: formData.state_id || "",
+    locality: formData.locality || "",
+    unit_flat_house_no: formData.unit_flat_house_no || "",
+    floors: formData.floors || "",
+    total_floors: formData.total_floors || "",
+    property_name: formData.property_name || "",
+    plot_number: formData.plot_number || "",
+    builder_name: formData.builder_name || "",
+    google_address: formData.locality
+      ? `${formData.locality}, ${formData.city_id}, ${formData.state_id}`
+      : "",
+  };
+  if (formData.sub_type === "Independent Villa") {
+    const villaNumber = parseInt(formData.villa_number);
+    payload.villa_number = !isNaN(villaNumber) ? villaNumber : null;
+  } else {
+    payload.villa_number = null;
+  }
+  return payload;
+};
+
 const compareAddress = (formData, property) => {
   const formPayload = getAddressPayload(formData);
   const propertyPayload = {
@@ -76,7 +86,11 @@ const compareAddress = (formData, property) => {
     property_name: property?.property_name || "",
     plot_number: property?.plot_number || "",
     google_address: property?.google_address || "",
-    builder_name: property?.builder_name,
+    builder_name: property?.builder_name || "",
+    villa_number:
+      property?.sub_type === "Independent Villa"
+        ? parseInt(property.villa_number) || null
+        : null,
   };
   return areObjectsEqual(formPayload, propertyPayload);
 };
@@ -239,6 +253,10 @@ export default function MultiStepForm() {
             ...data,
             property_id: propertyId,
             unique_property_id: propertyId,
+            villa_number:
+              formData.sub_type === "Independent Villa"
+                ? formData.villa_number
+                : null,
           },
           { keepDirty: false }
         );
