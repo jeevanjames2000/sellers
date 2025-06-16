@@ -227,11 +227,7 @@ const EnquiriesPage = ({ activeTab }) => {
                 We'll notify you when we find tenants that match your property
                 requirements.
               </p>
-              <div className="mt-8">
-                <Button className="bg-[#1D3A76] hover:bg-[#2B4A86] text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
-                  Set Up Alerts
-                </Button>
-              </div>
+             
             </div>
           </div>
         )}
