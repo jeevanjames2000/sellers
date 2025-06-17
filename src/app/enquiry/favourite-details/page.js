@@ -67,7 +67,6 @@ function ContactedDetailsContent({ initialPage }) {
         userId = null;
       }
     } else {
-      console.log("No userDetails found in localStorage");
       userId = null;
     }
     if (!userId) {

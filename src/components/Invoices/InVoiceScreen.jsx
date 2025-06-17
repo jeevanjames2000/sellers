@@ -1,54 +1,74 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Search, Filter, Eye, FileText, Calendar, CreditCard } from 'lucide-react';
-import { setInvoices, setLoading, setError } from '@/store/slices/invoiceSlice';
-
-
+import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Download,
+  Search,
+  Filter,
+  Eye,
+  FileText,
+  Calendar,
+  CreditCard,
+} from "lucide-react";
+import { setInvoices, setLoading, setError } from "@/store/slices/invoiceSlice";
 
 const InvoiceScreen = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const dispatch = useDispatch();
   const { invoices, loading, error } = useSelector((state) => state.invoices);
 
   // Fetch invoices from API
   useEffect(() => {
-    const storedUser = localStorage.getItem('userDetails');
-      let userId;
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser); 
-          userId = parsedUser.user_id;
-          
-        } catch (error) {
-          console.error('Error parsing userDetails from localStorage:', error);
-          userId = null; 
-        }
-      } else {
-        console.log('No userDetails found in localStorage');
-        userId = null; 
+    const storedUser = localStorage.getItem("userDetails");
+    let userId;
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        userId = parsedUser.user_id;
+      } catch (error) {
+        console.error("Error parsing userDetails from localStorage:", error);
+        userId = null;
       }
+    } else {
+      userId = null;
+    }
     const fetchInvoices = async () => {
       dispatch(setLoading());
       try {
-        const response = await fetch(`https://api.meetowner.in/payments/getAllInvoicesByID?user_id=${userId}`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          },
-        });
+        const response = await fetch(
+          `https://api.meetowner.in/payments/getAllInvoicesByID?user_id=${userId}`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+          }
+        );
 
         if (!response.ok) {
-          throw new Error('Failed to fetch invoices');
+          throw new Error("Failed to fetch invoices");
         }
 
         const data = await response.json();
@@ -63,40 +83,65 @@ const InvoiceScreen = () => {
 
   // Format date to DD/MM/YYYY
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
+      return date.toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
       });
     } catch {
-      return 'N/A';
+      return "N/A";
     }
   };
 
   // Format currency to INR
   const formatCurrency = (amount) => {
-    if (!amount || isNaN(Number(amount))) return '₹0.00';
-    return `₹${parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    if (!amount || isNaN(Number(amount))) return "₹0.00";
+    return `₹${parseFloat(amount).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+    })}`;
   };
 
   // Filter invoices based on search term and status
   const filteredInvoices = invoices.filter((invoice) => {
-    const matchesSearch = invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || invoice.payment_status === statusFilter || invoice.subscription_status === statusFilter;
+    const matchesSearch = invoice.invoice_number
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" ||
+      invoice.payment_status === statusFilter ||
+      invoice.subscription_status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      success: { className: 'bg-green-100 text-green-800 border-green-200', label: 'Success' },
-      pending: { className: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'Pending' },
-      failed: { className: 'bg-red-100 text-red-800 border-red-200', label: 'Failed' },
-      active: { className: 'bg-blue-100 text-blue-800 border-blue-200', label: 'Active' },
-      inactive: { className: 'bg-gray-100 text-gray-800 border-gray-200', label: 'Inactive' },
-      expired: { className: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Expired' },
+      success: {
+        className: "bg-green-100 text-green-800 border-green-200",
+        label: "Success",
+      },
+      pending: {
+        className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+        label: "Pending",
+      },
+      failed: {
+        className: "bg-red-100 text-red-800 border-red-200",
+        label: "Failed",
+      },
+      active: {
+        className: "bg-blue-100 text-blue-800 border-blue-200",
+        label: "Active",
+      },
+      inactive: {
+        className: "bg-gray-100 text-gray-800 border-gray-200",
+        label: "Inactive",
+      },
+      expired: {
+        className: "bg-orange-100 text-orange-800 border-orange-200",
+        label: "Expired",
+      },
     };
 
     const config = statusConfig[status] || statusConfig.inactive;
@@ -110,7 +155,7 @@ const InvoiceScreen = () => {
   // Handle invoice view button click
   const handleViewInvoice = (invoiceUrl) => {
     if (invoiceUrl) {
-      window.open(invoiceUrl, '_blank', 'noopener,noreferrer');
+      window.open(invoiceUrl, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -124,7 +169,9 @@ const InvoiceScreen = () => {
               <h1 className="text-3xl lg:text-4xl font-bold bg-[#1D3A76] bg-clip-text text-transparent">
                 Invoice Management
               </h1>
-              <p className="text-gray-600 mt-2">Track and manage your subscription invoices</p>
+              <p className="text-gray-600 mt-2">
+                Track and manage your subscription invoices
+              </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <div className="relative w-full sm:w-64">
@@ -160,9 +207,20 @@ const InvoiceScreen = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-green-600">Total Paid</p>
+                    <p className="text-sm font-medium text-green-600">
+                      Total Paid
+                    </p>
                     <p className="text-2xl font-bold text-green-900">
-                      ₹{invoices.reduce((sum, inv) => inv.payment_status === 'success' ? sum + parseFloat(inv.payment_amount || 0) : sum, 0).toLocaleString('en-IN')}
+                      ₹
+                      {invoices
+                        .reduce(
+                          (sum, inv) =>
+                            inv.payment_status === "success"
+                              ? sum + parseFloat(inv.payment_amount || 0)
+                              : sum,
+                          0
+                        )
+                        .toLocaleString("en-IN")}
                     </p>
                   </div>
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -175,8 +233,12 @@ const InvoiceScreen = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-blue-600">Total Invoices</p>
-                    <p className="text-2xl font-bold text-blue-900">{invoices.length}</p>
+                    <p className="text-sm font-medium text-blue-600">
+                      Total Invoices
+                    </p>
+                    <p className="text-2xl font-bold text-blue-900">
+                      {invoices.length}
+                    </p>
                   </div>
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                     <FileText className="w-6 h-6 text-blue-600" />
@@ -188,9 +250,20 @@ const InvoiceScreen = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-yellow-600">Pending</p>
+                    <p className="text-sm font-medium text-yellow-600">
+                      Pending
+                    </p>
                     <p className="text-2xl font-bold text-yellow-900">
-                      ₹{invoices.reduce((sum, inv) => inv.payment_status === 'pending' ? sum + parseFloat(inv.payment_amount || 0) : sum, 0).toLocaleString('en-IN')}
+                      ₹
+                      {invoices
+                        .reduce(
+                          (sum, inv) =>
+                            inv.payment_status === "pending"
+                              ? sum + parseFloat(inv.payment_amount || 0)
+                              : sum,
+                          0
+                        )
+                        .toLocaleString("en-IN")}
                     </p>
                   </div>
                   <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
@@ -203,9 +276,15 @@ const InvoiceScreen = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-purple-600">Active Plans</p>
+                    <p className="text-sm font-medium text-purple-600">
+                      Active Plans
+                    </p>
                     <p className="text-2xl font-bold text-purple-900">
-                      {invoices.filter((inv) => inv.subscription_status === 'active').length}
+                      {
+                        invoices.filter(
+                          (inv) => inv.subscription_status === "active"
+                        ).length
+                      }
                     </p>
                   </div>
                   <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
@@ -225,47 +304,89 @@ const InvoiceScreen = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {loading && <p className="p-4 text-center text-gray-600">Loading...</p>}
-            {error && <p className="p-4 text-center text-red-600">Error: {error}</p>}
+            {loading && (
+              <p className="p-4 text-center text-gray-600">Loading...</p>
+            )}
+            {error && (
+              <p className="p-4 text-center text-red-600">Error: {error}</p>
+            )}
             {!loading && !error && filteredInvoices.length === 0 && (
-              <p className="p-4 text-center text-gray-600">No invoices found.</p>
+              <p className="p-4 text-center text-gray-600">
+                No invoices found.
+              </p>
             )}
             {!loading && !error && filteredInvoices.length > 0 && (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50 hover:bg-gray-50">
-                      <TableHead className="font-semibold text-gray-900 p-4">ID</TableHead>
-                      <TableHead className="font-semibold text-gray-900 p-4">Invoice No</TableHead>
-                      <TableHead className="font-semibold text-gray-900 p-4">Package</TableHead>
-                      <TableHead className="font-semibold text-gray-900 p-4">Amount</TableHead>
-                      <TableHead className="font-semibold text-gray-900 p-4">Payment Status</TableHead>
-                      <TableHead className="font-semibold text-gray-900 p-4">Subscription Status</TableHead>
-                      <TableHead className="font-semibold text-gray-900 p-4">Created At</TableHead>
-                      <TableHead className="font-semibold text-gray-900 p-4 text-center">Action</TableHead>
+                      <TableHead className="font-semibold text-gray-900 p-4">
+                        ID
+                      </TableHead>
+                      <TableHead className="font-semibold text-gray-900 p-4">
+                        Invoice No
+                      </TableHead>
+                      <TableHead className="font-semibold text-gray-900 p-4">
+                        Package
+                      </TableHead>
+                      <TableHead className="font-semibold text-gray-900 p-4">
+                        Amount
+                      </TableHead>
+                      <TableHead className="font-semibold text-gray-900 p-4">
+                        Payment Status
+                      </TableHead>
+                      <TableHead className="font-semibold text-gray-900 p-4">
+                        Subscription Status
+                      </TableHead>
+                      <TableHead className="font-semibold text-gray-900 p-4">
+                        Created At
+                      </TableHead>
+                      <TableHead className="font-semibold text-gray-900 p-4 text-center">
+                        Action
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredInvoices.map((invoice) => (
-                      <TableRow key={invoice.id} className="hover:bg-blue-50/50 transition-colors">
-                        <TableCell className="p-4 font-medium text-gray-900">{invoice.id}</TableCell>
-                        <TableCell className="p-4">
-                          <span className="font-mono text-[#1D3A76] font-medium">{invoice.invoice_number}</span>
+                      <TableRow
+                        key={invoice.id}
+                        className="hover:bg-blue-50/50 transition-colors"
+                      >
+                        <TableCell className="p-4 font-medium text-gray-900">
+                          {invoice.id}
                         </TableCell>
                         <TableCell className="p-4">
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          <span className="font-mono text-[#1D3A76] font-medium">
+                            {invoice.invoice_number}
+                          </span>
+                        </TableCell>
+                        <TableCell className="p-4">
+                          <Badge
+                            variant="outline"
+                            className="bg-blue-50 text-blue-700 border-blue-200"
+                          >
                             {invoice.subscription_package}
                           </Badge>
                         </TableCell>
-                        <TableCell className="p-4 font-semibold text-gray-900">{formatCurrency(invoice.payment_amount)}</TableCell>
-                        <TableCell className="p-4">{getStatusBadge(invoice.payment_status)}</TableCell>
-                        <TableCell className="p-4">{getStatusBadge(invoice.subscription_status)}</TableCell>
-                        <TableCell className="p-4 text-gray-600">{formatDate(invoice.created_at)}</TableCell>
+                        <TableCell className="p-4 font-semibold text-gray-900">
+                          {formatCurrency(invoice.payment_amount)}
+                        </TableCell>
+                        <TableCell className="p-4">
+                          {getStatusBadge(invoice.payment_status)}
+                        </TableCell>
+                        <TableCell className="p-4">
+                          {getStatusBadge(invoice.subscription_status)}
+                        </TableCell>
+                        <TableCell className="p-4 text-gray-600">
+                          {formatDate(invoice.created_at)}
+                        </TableCell>
                         <TableCell className="p-4 text-center">
                           <Button
                             size="sm"
                             className="bg-[#1D3A76] hover:bg-blue-800 text-white shadow-sm"
-                            onClick={() => handleViewInvoice(invoice.invoice_url)}
+                            onClick={() =>
+                              handleViewInvoice(invoice.invoice_url)
+                            }
                             disabled={!invoice.invoice_url}
                           >
                             <Eye className="w-3 h-3 mr-1" />

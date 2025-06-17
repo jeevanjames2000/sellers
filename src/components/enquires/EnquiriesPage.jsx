@@ -24,15 +24,12 @@ const EnquiriesPage = ({ activeTab }) => {
   const itemsPerPage = 5;
   const totalPages = Math.ceil(count / itemsPerPage);
 
-
   const initialPage = parseInt(searchParams.get("page")) || 1;
   const [currentPage, setCurrentPage] = useState(initialPage);
 
- 
   useEffect(() => {
     if (loading || activeTab !== "my-enquiries") return;
 
-    
     if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages || 1);
     }
@@ -43,14 +40,13 @@ const EnquiriesPage = ({ activeTab }) => {
 
     const params = new URLSearchParams(searchParams.toString());
     if (currentPage === 1) {
-      params.delete("page"); 
+      params.delete("page");
     } else {
       params.set("page", currentPage);
     }
     router.replace(`?${params.toString()}`, { scroll: false });
   }, [currentPage, activeTab, router, searchParams]);
 
- 
   useEffect(() => {
     const fetchEnquiries = async () => {
       if (activeTab !== "my-enquiries") return;
@@ -65,7 +61,6 @@ const EnquiriesPage = ({ activeTab }) => {
           userId = null;
         }
       } else {
-        console.log("No userDetails found in localStorage");
         userId = null;
       }
 
@@ -87,7 +82,6 @@ const EnquiriesPage = ({ activeTab }) => {
   }, [activeTab, dispatch]);
 
   const mapToEnquiryCardProps = (enquiry) => {
-    console.log("enquiry: ", enquiry.image);
     const avatarUrl = enquiry.image
       ? `https://api.meetowner.in/uploads/${enquiry.image}`
       : "https://placehold.co/100x100";
@@ -117,8 +111,6 @@ const EnquiriesPage = ({ activeTab }) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-
-  
   const handleViewContacted = () => {
     router.push(`/enquiry/contact-details`);
   };
@@ -158,9 +150,14 @@ const EnquiriesPage = ({ activeTab }) => {
                   <div className="flex flex-col md:flex-row  items-center justify-between">
                     <p className="text-gray-600 text-base sm:text-lg">
                       Displaying{" "}
-                      <span className="font-semibold text-[#1D3A76]">{paginatedData.length}</span>{" "}
+                      <span className="font-semibold text-[#1D3A76]">
+                        {paginatedData.length}
+                      </span>{" "}
                       out of{" "}
-                      <span className="font-semibold text-[#1D3A76]">{count}</span> Listings
+                      <span className="font-semibold text-[#1D3A76]">
+                        {count}
+                      </span>{" "}
+                      Listings
                     </p>
                     <div className="flex gap-4">
                       <Button
@@ -175,13 +172,12 @@ const EnquiriesPage = ({ activeTab }) => {
                         className="flex-1 bg-[#1D3A76] text-white  transition-all duration-200 font-semibold py-3 cursor-pointer"
                         onClick={handleViewContacted}
                       >
-                         Contacted
+                        Contacted
                       </Button>
                     </div>
                   </div>
-                   <div className="mt-4 pt-4">
-                  </div>
-               </div>
+                  <div className="mt-4 pt-4"></div>
+                </div>
                 <div className="space-y-3">
                   {paginatedData.length > 0 ? (
                     paginatedData.map((enquiry, index) => (
@@ -227,7 +223,6 @@ const EnquiriesPage = ({ activeTab }) => {
                 We'll notify you when we find tenants that match your property
                 requirements.
               </p>
-             
             </div>
           </div>
         )}

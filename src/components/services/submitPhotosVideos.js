@@ -89,11 +89,6 @@ export const submitPhotosVideos = async (
         throw new Error("Featured image ID not found for existing image");
       }
     }
-    for (let [key, value] of formData.entries()) {
-      console.log(
-        `FormData: ${key}: ${value instanceof File ? value.name : value}`
-      );
-    }
 
     const response = await axios.post(
       `${config.api_url}/property/addphotosvideos`,

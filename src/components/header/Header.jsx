@@ -3,14 +3,21 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import MainNavigation from "./MainNavigation";
 import { Home, Menu, X, Download, LogIn } from "lucide-react";
 import logo from "../../../public/assets/logo.svg";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { setLogin, clearLogin } from "@/store/slices/loginSlice"; // Import setLogin to restore state
-
+import { setLogin, clearLogin } from "@/store/slices/loginSlice";
+import { QRCodeSVG } from "qrcode.react";
 function Header() {
   const pathname = usePathname();
   const router = useRouter();
@@ -18,13 +25,15 @@ function Header() {
   const { user, token } = useSelector((state) => state.login);
   const [scrollY, setScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isQRDialogOpen, setIsQRDialogOpen] = useState(false);
   const isLoggedIn = !!token;
 
-  // Rehydrate Redux state from localStorage on mount
+  const playStoreUrl =
+    "https://play.google.com/store/apps/details?id=com.meetowner.app&pcampaignid=web_share";
+
   useEffect(() => {
     const storedToken = localStorage.getItem("userToken");
     const storedUser = localStorage.getItem("userDetails");
-
     if (storedToken && storedUser && !token) {
       try {
         const userDetails = JSON.parse(storedUser);
@@ -36,8 +45,6 @@ function Header() {
         dispatch(clearLogin());
       }
     }
-
-    // Prefetch routes
     router.prefetch("/addProperty");
     router.prefetch("/listings");
     router.prefetch("/enquiry");
@@ -63,7 +70,6 @@ function Header() {
         setIsMobileMenuOpen(false);
       }
     };
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -82,14 +88,12 @@ function Header() {
         setIsMobileMenuOpen(false);
       }
     };
-
     if (isMobileMenuOpen) {
       document.addEventListener("click", handleClickOutside);
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
     }
-
     return () => {
       document.removeEventListener("click", handleClickOutside);
       document.body.style.overflow = "unset";
@@ -111,14 +115,12 @@ function Header() {
           className="3xl:h-20 3xl:w-56 object-cover"
         />
       </Link>
-
       <div className="flex items-center space-x-3">
         {isLoggedIn ? (
           <>
             <div className="hidden lg:flex items-center space-x-8">
               <MainNavigation isLoggedIn={isLoggedIn} />
             </div>
-
             <Button
               onClick={handleAddProperty}
               className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
@@ -131,7 +133,6 @@ function Header() {
               <span className="sm:hidden font-semibold">Add</span>
             </Button>
 
-            {/* Mobile Menu Trigger */}
             <div className="lg:hidden">
               <Button
                 id="mobile-menu-trigger"
@@ -146,17 +147,47 @@ function Header() {
           </>
         ) : (
           <div className="flex items-center space-x-3">
-            {/* Download App Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-gray-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
-            >
-              <Download className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-              Download App
-            </Button>
+            <Dialog open={isQRDialogOpen} onOpenChange={setIsQRDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-gray-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                >
+                  <Download className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                  Download App
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-md border-gray-200/50">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-semibold text-[#1D3A76]">
+                    Download Meetowner App
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col items-center gap-4 p-4">
+                  <p className="text-gray-600 text-center">
+                    Scan the QR code to download the Meetowner app from the
+                    Google Play Store.
+                  </p>
+                  <div className="p-4 bg-white rounded-lg shadow-md">
+                    <QRCodeSVG value={playStoreUrl} size={160} />
+                  </div>
+                  <Link
+                    href={playStoreUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button
+                      className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg"
+                      size="sm"
+                    >
+                      Open in Play Store
+                    </Button>
+                  </Link>
+                </div>
+              </DialogContent>
+            </Dialog>
 
-            {/* Add Property Button (Visible but redirects to login if not logged in) */}
             <div className="hidden md:block">
               {pathname !== "/addProperty" && (
                 <Button
@@ -173,7 +204,6 @@ function Header() {
               )}
             </div>
 
-            {/* Sign Up Button */}
             <div className="hidden md:block">
               <Link href="/">
                 <Button
@@ -190,16 +220,13 @@ function Header() {
         )}
       </div>
 
-      {/* Mobile Sidebar */}
       {isMobileMenuOpen && (
         <>
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden" />
-
           <div
             id="mobile-sidebar"
             className="fixed top-0 right-0 h-full w-80 sm:w-96 bg-white/98 backdrop-blur-md border-l border-gray-200/50 z-50 lg:hidden"
           >
-            {/* Mobile Menu Header */}
             <div className="flex items-center justify-between p-3 border-b border-gray-100">
               <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
                 <div className="flex items-center space-x-3">
@@ -221,14 +248,12 @@ function Header() {
               </button>
             </div>
 
-            {/* Mobile Navigation */}
             <div className="flex-1">
               <MainNavigation
                 toggleSidebar={() => setIsMobileMenuOpen(false)}
                 isMobile={true}
                 isLoggedIn={isLoggedIn}
               />
-
               {!isLoggedIn && (
                 <div className="p-3 space-y-2">
                   <Button
@@ -243,14 +268,49 @@ function Header() {
                     <LogIn className="w-4 h-4 mr-2" />
                     Sign Up
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-gray-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                  <Dialog
+                    open={isQRDialogOpen}
+                    onOpenChange={setIsQRDialogOpen}
                   >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download App
-                  </Button>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-gray-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download App
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-md border-gray-200/50">
+                      <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold text-[#1D3A76]">
+                          Download Meetowner App
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="flex flex-col items-center gap-4 p-4">
+                        <p className="text-gray-600 text-center">
+                          Scan the QR code to download the Meetowner app from
+                          the Google Play Store.
+                        </p>
+                        <div className="p-4 bg-white rounded-lg shadow-md">
+                          <QRCodeSVG value={playStoreUrl} size={160} />
+                        </div>
+                        <Link
+                          href={playStoreUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button
+                            className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg"
+                            size="sm"
+                          >
+                            Open in Play Store
+                          </Button>
+                        </Link>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               )}
             </div>

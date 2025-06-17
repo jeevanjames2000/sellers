@@ -10,10 +10,9 @@ import { setLogin, setLoading, setError } from "@/store/slices/loginSlice";
 import { Eye, EyeOff } from "lucide-react";
 import { Loading } from "@/lib/loader";
 
-
 export function LoginForm({ className, ...props }) {
   const router = useRouter();
- 
+
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.login);
   const [formData, setFormData] = useState({
@@ -29,7 +28,7 @@ export function LoginForm({ className, ...props }) {
     const mobileRegex = /^(?:\+91)?[6-9]\d{9}$/;
     return mobileRegex.test(mobile)
       ? ""
-      : "Please enter a valid Indian phone number (10 digits, starting with 6-9)";
+      : "Please enter a valid 10 digits mobile number";
   };
   const validatePassword = (password) => {
     return password.length >= 4 ? "" : "Password must be at least 4 characters";
@@ -43,7 +42,7 @@ export function LoginForm({ className, ...props }) {
       setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
     }
   };
- 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const mobileError = validateMobile(formData.mobile);
@@ -67,6 +66,7 @@ export function LoginForm({ className, ...props }) {
         body: JSON.stringify({ mobile: formData.mobile }),
       });
       const data = await response.json();
+
       if (!response.ok || data.status !== "success") {
         throw new Error(data.message || "Login failed");
       }
@@ -78,12 +78,13 @@ export function LoginForm({ className, ...props }) {
       );
       localStorage.setItem("userToken", data.accessToken);
       localStorage.setItem("userDetails", JSON.stringify(data.user_details));
+      localStorage.setItem("City", data.user_details.city);
       router.push("/dashboard");
     } catch (err) {
       dispatch(setError(err.message || "An error occurred during login"));
     }
   };
-   const togglePasswordVisibility = () => {
+  const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
   return (
@@ -147,7 +148,7 @@ export function LoginForm({ className, ...props }) {
           )}
         </div>
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-         <Button
+        <Button
           type="submit"
           className="w-full bg-[#1D3A76] flex items-center justify-center gap-2"
           disabled={loading}

@@ -1,13 +1,9 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import {  CardContent, CustomCard } from "@/components/ui/card";
+import { CardContent, CustomCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-import {
-  Phone,
-  Ruler,
-  CreditCard,
-} from "lucide-react";
+import { Phone, Ruler, CreditCard } from "lucide-react";
 
 const EnquiryCard = ({
   property_name,
@@ -20,18 +16,14 @@ const EnquiryCard = ({
   price,
   avatar,
   totalContacted,
-  
 }) => {
   const [imageSrc, setImageSrc] = useState(avatar);
-  console.log("imageSrc: ", imageSrc);
   const router = useRouter();
   router.prefetch("/enquiry/contact-details");
 
   const handleImageError = () => {
-    console.log("Image failed to load, falling back to placeholder:", avatar);
     setImageSrc("https://placehold.co/100x100");
   };
-
 
   return (
     <CustomCard className="group border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-white hover:scale-[1.01] overflow-hidden">
@@ -67,7 +59,7 @@ const EnquiryCard = ({
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 mb-4">
               <h4 className="text-xs font-semibold text-gray-700 mb-2 tracking-wide">
                 Property Details
@@ -93,13 +85,11 @@ const EnquiryCard = ({
                     </p>
                   </div>
                   <Badge className="bg-[#1D37A6] text-white px-2 py-1 text-sm font-bold ml-2">
-                     {price}
+                    {price}
                   </Badge>
                 </div>
               </div>
             </div>
-            
-
           </div>
           {/* Desktop Layout (md and above) */}
           <div className="hidden md:block">
@@ -166,7 +156,7 @@ const EnquiryCard = ({
                       </div>
                       <div className="text-center lg:text-right">
                         <Badge className="bg-[#1D37A6] text-white transition-colors px-3 py-2 text-base font-bold">
-                           {price}
+                          {price}
                         </Badge>
                       </div>
                     </div>
@@ -174,7 +164,6 @@ const EnquiryCard = ({
                 </div>
               </div>
             </div>
-           
           </div>
         </div>
       </CardContent>

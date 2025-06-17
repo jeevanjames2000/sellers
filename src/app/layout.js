@@ -31,7 +31,7 @@ export default function RootLayout({ children }) {
           <Toaster
             position="top-right"
             toastOptions={{
-              duration: 5000,
+              duration: 1000,
               style: {
                 background: "#333",
                 color: "#fff",

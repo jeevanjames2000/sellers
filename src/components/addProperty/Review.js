@@ -9,11 +9,9 @@ const formatKey = (key) =>
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
 export default function Review({ property, setCurrentStep }) {
-  console.log("property: ", property);
   const { watch } = useFormContext();
 
   const formData = watch();
-  console.log("formData: ", formData);
 
   return (
     <div className="space-y-6">

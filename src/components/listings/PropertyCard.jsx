@@ -19,6 +19,7 @@ import { uniq } from "lodash";
 import axios from "axios";
 
 import { ReusableAlertDialog } from "../shared/ReusableAlertDialog";
+import toast from "react-hot-toast";
 const PropertyCard = ({
   id,
   title,
@@ -114,7 +115,6 @@ const PropertyCard = ({
   const showFurnishedStatus = !["Plot", "Land"].includes(propertySubType);
 
   const handleEdit = () => {
-    console.log("clicked");
     if (setCurrentStep) {
       setCurrentStep(0);
     }
@@ -135,10 +135,11 @@ const PropertyCard = ({
         }
       );
       if (response.data?.status === "success") {
-        alert("Property deleted successfully");
+        toast.success("Property deleted successfully");
+
         fetchProperties();
       } else {
-        alert("Failed to delete property: " + response.data.message);
+        toast.error("Failed to delete property: " + response.data.message);
       }
     } catch (error) {
       console.error("Delete property error:", error);

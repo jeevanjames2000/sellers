@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Check, ChevronDown } from "lucide-react";
 import PricingCards from "./PricingCards";
 import CustomPricing from "./CustomPricing";
@@ -18,26 +18,33 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { setState, setCity } from "@/store/slices/addPropertySlice/addressSlice";
+import {
+  setState,
+  setCity,
+} from "@/store/slices/addPropertySlice/addressSlice";
 
 function PackagesWrapper() {
   const dispatch = useDispatch();
 
-  const [userInfo, setUserInfo] = useState("");
+  const [userInfo, setUserInfo] = useState(null);
   const [isLoadingEffect, setIsLoadingEffect] = useState(false);
   const [cities, setCities] = useState([]);
   const [plans, setPlans] = useState([]);
   const [subscription, setSubscription] = useState(null);
   const [customPackage, setCustomPackage] = useState(null);
   const [openState, setOpenState] = useState(false);
-  const [selectedCity, setSelectedCity] = useState("Hyderabad");
-  const cityName = useMemo(() => selectedCity || userInfo?.city, [selectedCity]);
+  const [selectedCity, setSelectedCity] = useState("");
+
+  const cityName = useMemo(
+    () => selectedCity || userInfo?.city || "Hyderabad",
+    [selectedCity, userInfo]
+  );
 
   const fetchCities = async () => {
     try {
       const res = await fetch(`https://api.meetowner.in/api/v1/getAllCities`);
       const data = await res.json();
-      setCities(data);
+      setCities(data || []);
     } catch (error) {
       console.error("Error fetching cities:", error);
     }
@@ -97,10 +104,36 @@ function PackagesWrapper() {
       if (!storedUser) return;
       const parsedUser = JSON.parse(storedUser);
       setUserInfo(parsedUser);
+      await fetchCities();
     };
     loadData();
-    fetchCities();
   }, []);
+
+  useEffect(() => {
+    if (cities.length > 0 && userInfo) {
+      const storedCity = localStorage.getItem("City");
+      const userCity = userInfo.city;
+      const isStoredCityValid = cities.some((city) => city.city === storedCity);
+      const isUserCityValid = cities.some((city) => city.city === userCity);
+
+      let defaultCity = "Hyderabad";
+      if (isStoredCityValid) {
+        defaultCity = storedCity;
+      } else if (isUserCityValid) {
+        defaultCity = userCity;
+      }
+
+      setSelectedCity(defaultCity);
+      dispatch(setCity(defaultCity));
+
+      const selectedCityObj = cities.find((city) => city.city === defaultCity);
+      if (selectedCityObj) {
+        dispatch(setState(selectedCityObj.state));
+      } else if (userInfo.state && isUserCityValid) {
+        dispatch(setState(userInfo.state));
+      }
+    }
+  }, [userInfo, cities, dispatch]);
 
   useEffect(() => {
     if (userInfo?.user_id && cityName) {
@@ -129,7 +162,7 @@ function PackagesWrapper() {
                 role="combobox"
                 className="w-full sm:w-[200px] md:w-[250px] h-10 sm:h-12 justify-between text-sm sm:text-base"
               >
-                {selectedCity}
+                {selectedCity || "Select City"}
                 <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
               </Button>
             </PopoverTrigger>
@@ -144,7 +177,9 @@ function PackagesWrapper() {
                       value={state.city}
                       onSelect={() => {
                         setSelectedCity(state.city);
+                        localStorage.setItem("City", state.city);
                         dispatch(setCity(state.city));
+                        dispatch(setState(state.state));
                         setOpenState(false);
                       }}
                     >
@@ -152,7 +187,9 @@ function PackagesWrapper() {
                       <Check
                         className={cn(
                           "ml-auto h-4 w-4",
-                          selectedCity === state.city ? "opacity-100" : "opacity-0"
+                          selectedCity === state.city
+                            ? "opacity-100"
+                            : "opacity-0"
                         )}
                       />
                     </CommandItem>
@@ -163,23 +200,26 @@ function PackagesWrapper() {
           </Popover>
         </div>
       </div>
-
       {userInfo?.user_type === 3 || customPackage ? (
-        <CustomPricing
-          userInfo={userInfo}
-          customPackage={customPackage}
-          subscription={subscription}
-          cityName={cityName}
-        />
+        <div className="flex justify-center">
+          <CustomPricing
+            userInfo={userInfo}
+            customPackage={customPackage}
+            subscription={subscription}
+            cityName={cityName}
+          />
+        </div>
       ) : (
-        <PricingCards
-          isLoadingEffect={isLoadingEffect}
-          plans={plans}
-          userInfo={userInfo}
-          cityName={cityName}
-          subscription={subscription}
-          fetchPlans={fetchPlans}
-        />
+        <div className="flex justify-center">
+          <PricingCards
+            isLoadingEffect={isLoadingEffect}
+            plans={plans}
+            userInfo={userInfo}
+            cityName={cityName}
+            subscription={subscription}
+            fetchPlans={fetchPlans}
+          />
+        </div>
       )}
     </div>
   );

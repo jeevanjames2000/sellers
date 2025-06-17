@@ -11,17 +11,21 @@ export const submitBasicDetails = async (formData, dispatch, userInfo) => {
         property_for: formData.lookingTo,
         transaction_type: formData.transactionType || "",
         user_id: userInfo.user_id,
-        unique_property_id: formData.unique_property_id || "",
+        unique_property_id: formData?.unique_property_id || "",
         user_type: userInfo.user_type || 2,
+        city: formData.city,
       }
     );
-    const { status, property, message } = response.data;
-    console.log(response.data);
-    if (status === "success") {
-      dispatch(setBasicDetails(property));
-      return { success: true, data: property };
+    const { status, message, data } = response.data;
+
+    if (status === "success" && data?.property) {
+      dispatch(setBasicDetails(data.property));
+      return { success: true, data: data.property };
     } else {
-      return { success: false, message };
+      return {
+        success: false,
+        message: message || "Failed to submit basic details",
+      };
     }
   } catch (error) {
     console.error(

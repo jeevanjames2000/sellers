@@ -5,17 +5,22 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Phone } from "lucide-react";
 import toast from "react-hot-toast";
-import BasicDetails from "./BasicDetails";
-import PropertyDetails from "./propertyDetails/PropertyDetails";
-import Address from "./Address";
-import Photos from "./Photos";
-import Review from "./Review";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch } from "react-redux";
 import useFetchAndSetProperty from "../services/useFetchAndSetProperty";
 import { submitBasicDetails } from "../services/submitBasicDetails";
 import { submitPropertyDetails } from "../services/submitPropertyDetails";
 import { submitAddress } from "../services/submitAddress";
+import LimitReachedDialog from "../shared/LimitReachedDialog";
+import dynamic from "next/dynamic";
+const BasicDetails = dynamic(() => import("./BasicDetails"), { ssr: true });
+const PropertyDetails = dynamic(
+  () => import("./propertyDetails/PropertyDetails"),
+  { ssr: true }
+);
+const Address = dynamic(() => import("./Address"), { ssr: true });
+const Photos = dynamic(() => import("./Photos"), { ssr: false });
+const Review = dynamic(() => import("./Review"), { ssr: true });
 const steps = [
   { label: "Basic Details", component: BasicDetails, key: "basicdetails" },
   {
@@ -73,7 +78,6 @@ const getAddressPayload = (formData) => {
   }
   return payload;
 };
-
 const compareAddress = (formData, property) => {
   const formPayload = getAddressPayload(formData);
   const propertyPayload = {
@@ -164,6 +168,8 @@ export default function MultiStepForm() {
     },
     [currentStep, propertyId, router, methods]
   );
+  const [isLimitDialogOpen, setIsLimitDialogOpen] = useState(false);
+  const [packageCity, setPackageCity] = useState("");
   const onNext = useCallback(async () => {
     const isValid = await methods.trigger();
     if (!isValid) {
@@ -174,9 +180,13 @@ export default function MultiStepForm() {
     setIsSubmitting(true);
     const formData = methods.getValues();
     const userInfo = JSON.parse(localStorage.getItem("userDetails")) || {};
+    const selectedCity =
+      localStorage.getItem("City") || formData.city || "Hyderabad";
+    setPackageCity(selectedCity);
     if (currentStep === 0) {
       if (compareBasicDetails(formData, property)) {
         await proceedToNextStep();
+        setIsSubmitting(false);
         return;
       }
       const { success, data, message } = await submitBasicDetails(
@@ -185,13 +195,14 @@ export default function MultiStepForm() {
           lookingTo: formData.property_for,
           transactionType: formData.transaction_type,
           unique_property_id: propertyId,
+          city: selectedCity,
         },
         dispatch,
         userInfo
       );
-      console.log("message: ", message);
       setIsSubmitting(false);
       if (success) {
+        localStorage.setItem("City", selectedCity);
         setPropertyId(data.unique_property_id);
         await getPropertyDetails();
         methods.reset(
@@ -207,8 +218,8 @@ export default function MultiStepForm() {
         );
         await proceedToNextStep(data.unique_property_id);
       } else {
+        setIsLimitDialogOpen(true);
         toast.error(message || "Failed to submit basic details");
-        setIsSubmitting(false);
       }
     } else if (currentStep === 1) {
       const { success, data, message } = await submitPropertyDetails(
@@ -218,7 +229,6 @@ export default function MultiStepForm() {
         places,
         fac
       );
-
       setIsSubmitting(false);
       if (success) {
         await getPropertyDetails();
@@ -234,11 +244,11 @@ export default function MultiStepForm() {
         await proceedToNextStep();
       } else {
         toast.error("Failed to submit property details");
-        setIsSubmitting(false);
       }
     } else if (currentStep === 2) {
       if (compareAddress(formData, property)) {
         await proceedToNextStep();
+        setIsSubmitting(false);
         return;
       }
       const { success, data, message } = await submitAddress(
@@ -265,7 +275,6 @@ export default function MultiStepForm() {
         await proceedToNextStep();
       } else {
         toast.error("Failed to submit address");
-        setIsSubmitting(false);
       }
     } else if (currentStep === 3) {
       setIsSubmitting(false);
@@ -303,7 +312,6 @@ export default function MultiStepForm() {
       } else if (isPhotosSubmitSuccess === false) {
         toast.error("Failed to submit photos/videos");
         setMediaState((prev) => ({ ...prev, isPhotosSubmitSuccess: null }));
-        setIsSubmitting(false);
       }
     } else {
       await proceedToNextStep();
@@ -531,6 +539,11 @@ export default function MultiStepForm() {
           </div>
         </form>
       </FormProvider>
+      <LimitReachedDialog
+        open={isLimitDialogOpen}
+        onOpenChange={setIsLimitDialogOpen}
+        city={packageCity}
+      />
     </div>
   );
 }
