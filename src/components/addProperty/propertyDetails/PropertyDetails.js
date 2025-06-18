@@ -42,11 +42,11 @@ export default function PropertyDetails({
     watch,
     setValue,
     getValues,
+    reset,
     formState: { errors },
   } = useFormContext();
   const formValues = watch();
-  const [localSubType, setLocalSubType] = useState(formValues?.sub_type || "");
-  const propertySubtype = localSubType || formValues?.sub_type;
+  const propertySubtype = watch("sub_type");
   const isRent = formValues?.property_for === "Rent";
   const isSell = formValues?.property_for === "Sell";
   const isResidential = formValues?.property_in === "Residential";
@@ -212,6 +212,7 @@ export default function PropertyDetails({
   };
   useEffect(() => {
     if (property && property.id) {
+      reset();
       const fields = [
         "sub_type",
         "property_for",
@@ -269,16 +270,8 @@ export default function PropertyDetails({
         "ownership_type",
         "description",
       ];
-      if (property.sub_type) {
-        const formattedSubType = formatFieldValue(
-          "sub_type",
-          property.sub_type
-        );
-        setValue("sub_type", formattedSubType, { shouldDirty: false });
-        setLocalSubType(formattedSubType);
-      }
       fields.forEach((key) => {
-        if (key !== "sub_type" && key in property) {
+        if (key in property) {
           const formattedValue = formatFieldValue(key, property[key]);
           if (formattedValue !== null) {
             setValue(key, formattedValue, { shouldDirty: false });
@@ -316,21 +309,13 @@ export default function PropertyDetails({
         });
       }
     }
-  }, [property, setValue, setPlaces, setFac]);
-  useEffect(() => {
-    const currentSubType = formValues?.sub_type;
-    if (currentSubType && currentSubType !== localSubType) {
-      setLocalSubType(currentSubType);
-    }
-  }, [formValues?.sub_type, localSubType]);
+  }, [property, setValue, setPlaces, setFac, reset]);
   useEffect(() => {
     if (isCommercial && !propertySubtype && !property?.sub_type) {
       setValue("sub_type", "Office", { shouldValidate: true });
-      setLocalSubType("Office");
     }
     if (isResidential && isRent && ["Plot", "Land"].includes(propertySubtype)) {
       setValue("sub_type", "Apartment", { shouldValidate: true });
-      setLocalSubType("Apartment");
     }
   }, [
     isCommercial,
@@ -1117,10 +1102,9 @@ export default function PropertyDetails({
                   <Button
                     key={type.id}
                     type="button"
-                    onClick={() => {
-                      setValue("sub_type", type.id, { shouldValidate: true });
-                      setLocalSubType(type.id);
-                    }}
+                    onClick={() =>
+                      setValue("sub_type", type.id, { shouldValidate: true })
+                    }
                     className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
                       isSelected
                         ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -1162,10 +1146,9 @@ export default function PropertyDetails({
                 <Button
                   key={type.id}
                   type="button"
-                  onClick={() => {
-                    setValue("sub_type", type.id, { shouldValidate: true });
-                    setLocalSubType(type.id);
-                  }}
+                  onClick={() =>
+                    setValue("sub_type", type.id, { shouldValidate: true })
+                  }
                   className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
                     isSelected
                       ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
