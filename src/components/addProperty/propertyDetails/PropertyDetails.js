@@ -205,7 +205,7 @@ export default function PropertyDetails({
       case "pantry_room":
       case "investor_property":
       case "loan_facility":
-        return value === "1" || value === true ? "Yes" : "No";
+        return value
       default:
         return `${value}`;
     }
