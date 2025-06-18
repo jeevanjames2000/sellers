@@ -1,24 +1,20 @@
 "use client";
+export const dynamic = "force-dynamic";
 import React, { Suspense, useState, useEffect } from "react";
 import MultiStepForm from "@/components/addProperty/MultiStepForm";
 import { useSearchParams } from "next/navigation";
 import { Loading } from "@/lib/loader";
-
-// Wrapper component to handle useSearchParams with Suspense
 function AddPropertyContent() {
   const [propertyId, setPropertyId] = useState(null);
   const searchParams = useSearchParams();
-
   useEffect(() => {
     const idFromURL = searchParams.get("property_id");
     if (idFromURL) {
       setPropertyId(idFromURL);
     }
   }, [searchParams]);
-
   return <MultiStepForm initialPropertyId={propertyId} />;
 }
-
 export default function Page() {
   return (
     <Suspense

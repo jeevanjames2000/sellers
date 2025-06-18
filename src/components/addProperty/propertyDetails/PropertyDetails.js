@@ -1,5 +1,4 @@
 "use client";
-
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,7 +28,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatCurrencyInWords } from "@/components/shared/formatCurrencyInWords";
 import DatePicker from "@/components/ui/date-picker";
-
 export default function PropertyDetails({
   property,
   setProperty,
@@ -47,7 +45,8 @@ export default function PropertyDetails({
     formState: { errors },
   } = useFormContext();
   const formValues = watch();
-  const propertySubtype = watch("sub_type");
+  const [localSubType, setLocalSubType] = useState(formValues?.sub_type || "");
+  const propertySubtype = localSubType || formValues?.sub_type;
   const isRent = formValues?.property_for === "Rent";
   const isSell = formValues?.property_for === "Sell";
   const isResidential = formValues?.property_in === "Residential";
@@ -74,7 +73,6 @@ export default function PropertyDetails({
     }
     return null;
   });
-
   const handleConstructionEndDateChange = (selectedDates) => {
     const dateObj = selectedDates[0];
     let formatted = null;
@@ -90,7 +88,6 @@ export default function PropertyDetails({
       shouldValidate: true,
     });
   };
-
   const handleStartDateChange = (selectedDates) => {
     const dateObj = selectedDates[0];
     let formatted = null;
@@ -107,7 +104,6 @@ export default function PropertyDetails({
       setValue("occupancy", "Ready To Move In");
     }
   };
-
   const watchedFields = {
     security_deposit: watch("security_deposit"),
     under_construction: watch("under_construction"),
@@ -151,8 +147,6 @@ export default function PropertyDetails({
     suitable: watch("business_types"),
     pantry_room: watch("pantry_room"),
   };
-
-  // Normalize and format field values for form population
   const formatFieldValue = (key, value) => {
     if (value === null || value === undefined || value === "") return "";
     switch (key) {
@@ -213,14 +207,11 @@ export default function PropertyDetails({
       case "loan_facility":
         return value === "1" || value === true ? "Yes" : "No";
       default:
-        return `${value}`; // Convert to string to ensure form compatibility
+        return `${value}`;
     }
   };
-
-  // Populate form with property data on edit
   useEffect(() => {
     if (property && property.id) {
-      // List of all possible fields to ensure none are missed
       const fields = [
         "sub_type",
         "property_for",
@@ -278,18 +269,22 @@ export default function PropertyDetails({
         "ownership_type",
         "description",
       ];
-
-      // Set all fields
+      if (property.sub_type) {
+        const formattedSubType = formatFieldValue(
+          "sub_type",
+          property.sub_type
+        );
+        setValue("sub_type", formattedSubType, { shouldDirty: false });
+        setLocalSubType(formattedSubType);
+      }
       fields.forEach((key) => {
-        if (key in property) {
+        if (key !== "sub_type" && key in property) {
           const formattedValue = formatFieldValue(key, property[key]);
           if (formattedValue !== null) {
             setValue(key, formattedValue, { shouldDirty: false });
           }
         }
       });
-
-      // Handle dates
       if (property.under_construction) {
         const date = new Date(property.under_construction);
         if (!isNaN(date.getTime())) {
@@ -302,8 +297,6 @@ export default function PropertyDetails({
           setStartDate(date);
         }
       }
-
-      // Handle nearby places
       if (property?.around_places?.length) {
         const mappedPlaces = property.around_places.map((place) => ({
           place_id: place.id,
@@ -312,8 +305,6 @@ export default function PropertyDetails({
         }));
         setPlaces(mappedPlaces);
       }
-
-      // Handle facilities
       if (property.facilities) {
         const cleanedFacilities = formatFieldValue(
           "facilities",
@@ -326,14 +317,20 @@ export default function PropertyDetails({
       }
     }
   }, [property, setValue, setPlaces, setFac]);
-
-  // Set default sub_type for Commercial properties
+  useEffect(() => {
+    const currentSubType = formValues?.sub_type;
+    if (currentSubType && currentSubType !== localSubType) {
+      setLocalSubType(currentSubType);
+    }
+  }, [formValues?.sub_type, localSubType]);
   useEffect(() => {
     if (isCommercial && !propertySubtype && !property?.sub_type) {
       setValue("sub_type", "Office", { shouldValidate: true });
+      setLocalSubType("Office");
     }
     if (isResidential && isRent && ["Plot", "Land"].includes(propertySubtype)) {
       setValue("sub_type", "Apartment", { shouldValidate: true });
+      setLocalSubType("Apartment");
     }
   }, [
     isCommercial,
@@ -343,8 +340,6 @@ export default function PropertyDetails({
     property,
     setValue,
   ]);
-
-  // Set default area units based on sub_type
   useEffect(() => {
     let defaultUnit;
     if (
@@ -364,8 +359,6 @@ export default function PropertyDetails({
       setValue("area_units", defaultUnit, { shouldValidate: true });
     }
   }, [propertySubtype, setValue, watchedFields.area_units]);
-
-  // Handle custom parking and room counts
   useEffect(() => {
     const config = [
       {
@@ -433,7 +426,6 @@ export default function PropertyDetails({
     property,
     setValue,
   ]);
-
   const normalizeAreaUnit = (unit) => {
     const mapping = {
       "sq.ft": "Sq.ft",
@@ -443,7 +435,6 @@ export default function PropertyDetails({
     };
     return mapping[unit?.toLowerCase()] || "Sq.ft";
   };
-
   const fieldVisibility = useMemo(
     () => ({
       ...(isResidential &&
@@ -943,20 +934,17 @@ export default function PropertyDetails({
           },
         }),
     }),
-    [isResidential, isCommercial, isRent, isSell]
+    [isResidential, isCommercial, isRent, isSell, propertySubtype]
   );
-
   const isFieldVisible = useCallback(
     (field) => fieldVisibility[propertySubtype]?.[field] || false,
     [fieldVisibility, propertySubtype]
   );
-
   const formatDistance = (meters) => {
     if (meters < 1000) return `${meters}m`;
     const km = meters / 1000;
     return km % 1 === 0 ? `${km}km` : `${km.toFixed(1)}km`;
   };
-
   const handleAdd = () => {
     const distNum = Number(watchedFields.distanceFromProperty);
     if (!watchedFields.nearbyPlace?.trim() || !distNum || isNaN(distNum))
@@ -969,7 +957,6 @@ export default function PropertyDetails({
     setValue("nearbyPlace", "");
     setValue("distanceFromProperty", "");
   };
-
   const handleDelete = async (placeid) => {
     if (placeid) {
       try {
@@ -992,7 +979,6 @@ export default function PropertyDetails({
     const updatedPlaces = places.filter((p) => p.place_id !== placeid);
     setPlaces(updatedPlaces);
   };
-
   const handleFacilityChange = (facility, checked) => {
     setFac((prev) => {
       let updated = [...prev];
@@ -1003,12 +989,10 @@ export default function PropertyDetails({
       return updated;
     });
   };
-
   useEffect(() => {
     const cleanedString = fac.join(", ");
     setValue("facilities", cleanedString, { shouldDirty: true });
   }, [fac, setValue]);
-
   const propertySubtypes = [
     { id: "Apartment", label: "Apartment", icon: Building },
     { id: "Independent House", label: "Independent House", icon: Home },
@@ -1016,7 +1000,6 @@ export default function PropertyDetails({
     { id: "Plot", label: "Plot", icon: MapPin },
     { id: "Land", label: "Land", icon: Landmark },
   ];
-
   const commercialSubTypes = [
     { id: "Office", label: "Office", icon: Building },
     { id: "Retail Shop", label: "Retail Shop", icon: Home },
@@ -1025,7 +1008,6 @@ export default function PropertyDetails({
     { id: "Plot", label: "Plot", icon: MapPin },
     { id: "Others", label: "Others", icon: MapPin },
   ];
-
   const landSubtypes = [
     { id: "Villa Development", label: "Villa Development", icon: House },
     {
@@ -1041,7 +1023,6 @@ export default function PropertyDetails({
     { id: "Out Rate Sale", label: "Out Rate Sale", icon: IndianRupee },
     { id: "Farm Land", label: "Farm Land", icon: Trees },
   ];
-
   const facilitiesOptions = [
     "Lift",
     "CCTV",
@@ -1073,7 +1054,6 @@ export default function PropertyDetails({
     "Lawn with Stepping Stones",
     "None",
   ];
-
   const facingOptions = ["East", "West", "South", "North"];
   const parkingOptions = ["0", "1", "2", "3", "4", "4+"];
   const bhkOptions = ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "4+ BHK"];
@@ -1112,7 +1092,6 @@ export default function PropertyDetails({
     "Clothing",
     "Others",
   ];
-
   return (
     <div className="space-y-8 sm:space-y-2 gap-4">
       {!isCommercial && (
@@ -1138,9 +1117,10 @@ export default function PropertyDetails({
                   <Button
                     key={type.id}
                     type="button"
-                    onClick={() =>
-                      setValue("sub_type", type.id, { shouldValidate: true })
-                    }
+                    onClick={() => {
+                      setValue("sub_type", type.id, { shouldValidate: true });
+                      setLocalSubType(type.id);
+                    }}
                     className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
                       isSelected
                         ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -1182,9 +1162,10 @@ export default function PropertyDetails({
                 <Button
                   key={type.id}
                   type="button"
-                  onClick={() =>
-                    setValue("sub_type", type.id, { shouldValidate: true })
-                  }
+                  onClick={() => {
+                    setValue("sub_type", type.id, { shouldValidate: true });
+                    setLocalSubType(type.id);
+                  }}
                   className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
                     isSelected
                       ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
