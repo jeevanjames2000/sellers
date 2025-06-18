@@ -42,15 +42,7 @@ const PropertyCard = ({
   setCurrentStep,
 }) => {
   const router = useRouter();
-  useEffect(() => {
-    if (id) {
-      router.prefetch(`/propertyDetails?Id=${encodeURIComponent(id)}`);
-      fetch(
-        `https://api.meetowner.in/listings/getsingleproperty?unique_property_id=${id}`
-      ).catch((err) => console.error("Prefetch error:", err));
-      router.prefetch(`/enquiry/contact-details`);
-    }
-  }, [id, router]);
+
   const [loading, setLoading] = useState(false);
   const formatToIndianCurrency = (value) => {
     if (!value || isNaN(Number(value))) return "N/A";

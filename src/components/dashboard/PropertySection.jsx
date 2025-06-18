@@ -107,7 +107,6 @@ const PropertySection = () => {
         </div>
         <Link
           href="/listings"
-          prefetch={true}
           className="inline-flex items-center px-4 py-2 bg-[#1D37A6] text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
         >
           <span>View All</span>

@@ -9,10 +9,6 @@ import { usePathname, useRouter } from "next/navigation";
 
 function DashboardWrapper() {
   const router = useRouter();
-  useEffect(() => {
-    router.prefetch("/listings");
-    router.prefetch("/enquiry");
-  }, []);
   return (
     <div className="w-full mx-auto p-6">
       <HeaderDashboard />

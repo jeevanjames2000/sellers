@@ -45,8 +45,7 @@ function Header() {
         dispatch(clearLogin());
       }
     }
-    router.prefetch("/listings");
-    router.prefetch("/enquiry");
+  
   }, [router, dispatch, token]);
 
   useEffect(() => {

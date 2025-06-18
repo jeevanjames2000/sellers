@@ -34,7 +34,6 @@ const MainNavigation = React.memo(({ toggleSidebar, isMobile = false }) => {
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const prefetchDone = useRef(false);
 
   const isActive = useCallback((path) => pathname === path, [pathname]);
 
@@ -69,17 +68,6 @@ const MainNavigation = React.memo(({ toggleSidebar, isMobile = false }) => {
     ],
     []
   );
-
-  // Prefetch routes when on /dashboard
-  useEffect(() => {
-    if (pathname === "/dashboard" && !prefetchDone.current) {
-      const routesToPrefetch = ["/packages", "/profile", "/invoice"];
-      routesToPrefetch.forEach((route) => {
-        router.prefetch(route); // Use Next.js prefetch
-      });
-      prefetchDone.current = true;
-    }
-  }, [pathname, router]);
 
   // Handle navigation (no caching needed)
   const handleNavigation = useCallback(
@@ -124,7 +112,6 @@ const MainNavigation = React.memo(({ toggleSidebar, isMobile = false }) => {
                   href={item.href}
                   onClick={() => handleNavigation(item.href)}
                   className="block rounded-lg transition-all duration-200 cursor-pointer"
-                  prefetch={true}
                 >
                   <div
                     className={`flex items-center px-4 py-3 rounded-lg cursor-pointer ${
@@ -161,7 +148,6 @@ const MainNavigation = React.memo(({ toggleSidebar, isMobile = false }) => {
                   href={item.href}
                   onClick={() => handleNavigation(item.href)}
                   className="block rounded-lg transition-all duration-200"
-                  prefetch={true}
                 >
                   <div
                     className={`flex items-center px-4 py-3 rounded-lg ${
@@ -204,7 +190,6 @@ const MainNavigation = React.memo(({ toggleSidebar, isMobile = false }) => {
             href={item.href}
             onClick={() => handleNavigation(item.href)}
             className="relative group cursor-pointer"
-            prefetch={true}
           >
             <Button
               variant={isActive(item.href) ? "default" : "ghost"}
@@ -261,7 +246,6 @@ const MainNavigation = React.memo(({ toggleSidebar, isMobile = false }) => {
                         setIsMoreMenuOpen(false);
                         handleNavigation(item.href, item.external);
                       }}
-                      prefetch={!item.external}
                     >
                       <Icon className="w-4 h-4 text-gray-500 flex-shrink-0 group-hover:text-blue-600 transition-colors" />
                       <span className="font-medium text-gray-700 group-hover:text-gray-900">

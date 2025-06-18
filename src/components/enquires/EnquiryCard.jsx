@@ -19,7 +19,6 @@ const EnquiryCard = ({
 }) => {
   const [imageSrc, setImageSrc] = useState(avatar);
   const router = useRouter();
-  router.prefetch("/enquiry/contact-details");
 
   const handleImageError = () => {
     setImageSrc("https://placehold.co/100x100");

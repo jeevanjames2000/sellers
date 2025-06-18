@@ -20,15 +20,6 @@ const ServiceCard = ({
 }) => {
   const router = useRouter();
 
-  useEffect(() => {
-    if (title === "Upload Property") {
-    } else if (title === "Verify Your Identity") {
-      router.prefetch("/profile");
-    } else if (title === "Subscription Status") {
-      router.prefetch("/packages");
-    }
-  }, [router, title]);
-
   const handleButtonClick = () => {
     if (title === "Upload Property") {
       router.push("/addProperty");
