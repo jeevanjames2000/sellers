@@ -159,9 +159,7 @@ function ContactedDetailsContent({ initialPage }) {
     setSelectedState("");
     setCurrentPage(1);
   };
-  const handleViewDetails = (propertyId) => {
-    router.push(`/property/${propertyId}`);
-  };
+
   return (
     <div className="min-h-screen bg-[#f4f4f4]">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -436,18 +434,7 @@ function ContactedDetailsContent({ initialPage }) {
                                 >
                                   <Eye className="w-4 h-4" />
                                 </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-8 w-8 p-0"
-                                  onClick={() =>
-                                    handleViewDetails(item.unique_property_id)
-                                  }
-                                  aria-label="View property details"
-                                  disabled={!item.unique_property_id}
-                                >
-                                  <ExternalLink className="w-4 h-4" />
-                                </Button>
+                               
                               </div>
                             </TableCell>
                           </TableRow>
