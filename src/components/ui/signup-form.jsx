@@ -58,7 +58,7 @@ export function SignupForm({ className, ...props }) {
     error: locationsError,
   } = useSelector((state) => state.locations);
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState("Builder");
+  const [selectedRole, setSelectedRole] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   useEffect(() => {
