@@ -9,7 +9,7 @@ export default function useFetchAndSetProperty(unique_property_id, resetForm) {
   const getPropertyDetails = async () => {
     try {
       const res = await axios.get(
-        `${config.api_url}/listings/v1/getSinleProperty?unique_property_id=${unique_property_id}`
+        `${config.api_url}/listings/v1/getSingleProperty?unique_property_id=${unique_property_id}`
       );
       const propertyData = res.data.property;
       if (propertyData) {

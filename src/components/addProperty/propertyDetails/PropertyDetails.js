@@ -177,7 +177,7 @@ export default function PropertyDetails({
       case "car_parking":
       case "open_parking":
         const num = parseInt(value);
-        return !isNaN(num) ? `${num}` : "0";
+        return !isNaN(num) ? `${num}` : 0;
       case "under_construction":
       case "available_from":
         if (value) {
