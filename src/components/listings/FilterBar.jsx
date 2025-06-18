@@ -15,7 +15,7 @@ const debounce = (func, delay) => {
 
 const FilterBar = ({ onFilterChange = () => {} }) => {
   const dispatch = useDispatch();
-  const { property_for, property_in, sub_type, bhk, location } = useSelector((state) => state.search);
+  const { property_for, property_in, sub_type, bhk, location, statusFilter } = useSelector((state) => state.search);
 
   const [showBottomSheet, setShowBottomSheet] = useState(false);
   const [searchValue, setSearchValue] = useState(location || '');
@@ -27,6 +27,8 @@ const FilterBar = ({ onFilterChange = () => {} }) => {
     propertyType: property_in || '',
     propertySubType: sub_type || '',
     bhk: bhk || '',
+    statusFilterBuy: statusFilter?.buy ?? null,
+    statusFilterRent: statusFilter?.rent ?? null,
   };
 
   // Reset dependent filters when propertyType or propertySubType changes
@@ -78,8 +80,8 @@ const FilterBar = ({ onFilterChange = () => {} }) => {
     dispatch(setPropertyIn(''));
     dispatch(setSubType(''));
     dispatch(setBHK(''));
-    dispatch(setStatusFilter({ type: 'buy', value: '1' })); // Set Buy to Approved
-    dispatch(setStatusFilter({ type: 'rent', value: null })); // Clear Rent status
+    dispatch(setStatusFilter({ type: 'buy', value: null }));
+    dispatch(setStatusFilter({ type: 'rent', value: null }));
   };
 
   const hasActiveFilters = () => {
@@ -88,7 +90,9 @@ const FilterBar = ({ onFilterChange = () => {} }) => {
       filters.propertyFor !== 'Sell' ||
       filters.propertyType !== '' ||
       filters.propertySubType !== '' ||
-      filters.bhk !== ''
+      filters.bhk !== '' ||
+      filters.statusFilterBuy !== null ||
+      filters.statusFilterRent !== null
     );
   };
 
@@ -99,6 +103,8 @@ const FilterBar = ({ onFilterChange = () => {} }) => {
     if (filters.propertyType !== '') count++;
     if (filters.propertySubType !== '') count++;
     if (filters.bhk !== '') count++;
+    if (filters.statusFilterBuy !== null) count++;
+    if (filters.statusFilterRent !== null) count++;
     return count;
   };
 
@@ -136,6 +142,11 @@ const FilterBar = ({ onFilterChange = () => {} }) => {
       { value: '4', label: '4 BHK' },
       { value: '5+', label: '5+ BHK' },
     ],
+    status: [
+      { value: '0', label: 'Review' },
+      { value: '1', label: 'Approved' },
+      { value: '2', label: 'Rejected' },
+    ],
   };
 
   const subTypeOptions =
@@ -156,6 +167,7 @@ const FilterBar = ({ onFilterChange = () => {} }) => {
         break;
       case 'propertyFor':
         dispatch(setPropertyFor(value));
+        dispatch(setStatusFilter({ type: value === 'Sell' ? 'buy' : 'rent', value: null }));
         break;
       case 'propertyType':
         dispatch(setPropertyIn(value));
@@ -165,6 +177,10 @@ const FilterBar = ({ onFilterChange = () => {} }) => {
         break;
       case 'bhk':
         dispatch(setBHK(value));
+        break;
+      case 'statusFilter':
+        dispatch(setStatusFilter({ type: filters.propertyFor === 'Sell' ? 'buy' : 'rent', value: value ? parseInt(value) : null }));
+        onFilterChange('statusFilter', value); // Ensure onFilterChange is called for status
         break;
       default:
         break;
@@ -374,6 +390,17 @@ const FilterBar = ({ onFilterChange = () => {} }) => {
                   />
                 </div>
               )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <CustomSelect
+                  value={filters.propertyFor === 'Sell' ? filters.statusFilterBuy ?? '' : filters.statusFilterRent ?? ''}
+                  onChange={(value) => handleFilterChangeInternal('statusFilter', value)}
+                  placeholder="All Statuses"
+                  icon={Filter}
+                  options={filterOptions.status}
+                />
+              </div>
             </div>
 
             <div className="p-6 border-t border-gray-100 bg-gray-50">
