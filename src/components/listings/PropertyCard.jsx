@@ -1,23 +1,19 @@
-import React, { useState } from "react";
-import { Card, CardContent, CustomCard } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { CardContent, CustomCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  MapPin,
   Eye,
   Edit,
   Trash2,
   BarChart3,
-  ArrowUp,
   Camera,
-  Heart,
   Building,
+  Home,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import config from "../api/config";
-import { uniq } from "lodash";
 import axios from "axios";
-
 import { ReusableAlertDialog } from "../shared/ReusableAlertDialog";
 import toast from "react-hot-toast";
 const PropertyCard = ({
@@ -46,6 +42,15 @@ const PropertyCard = ({
   setCurrentStep,
 }) => {
   const router = useRouter();
+  useEffect(() => {
+    if (id) {
+      router.prefetch(`/propertyDetails?Id=${encodeURIComponent(id)}`);
+      fetch(
+        `https://api.meetowner.in/listings/getsingleproperty?unique_property_id=${id}`
+      ).catch((err) => console.error("Prefetch error:", err));
+      router.prefetch(`/enquiry/contact-details`);
+    }
+  }, [id, router]);
   const [loading, setLoading] = useState(false);
   const formatToIndianCurrency = (value) => {
     if (!value || isNaN(Number(value))) return "N/A";
@@ -113,7 +118,6 @@ const PropertyCard = ({
     return occupancy || "N/A";
   };
   const showFurnishedStatus = !["Plot", "Land"].includes(propertySubType);
-
   const handleEdit = () => {
     if (setCurrentStep) {
       setCurrentStep(0);
@@ -124,6 +128,9 @@ const PropertyCard = ({
   };
   const handleViewContacted = () => {
     router.push(`/enquiry/contact-details`);
+  };
+  const handleViewProperty = (id) => {
+    router.push(`/propertyDetails?Id=${encodeURIComponent(id)}`);
   };
   const handleDelete = async () => {
     try {
@@ -136,7 +143,6 @@ const PropertyCard = ({
       );
       if (response.data?.status === "success") {
         toast.success("Property deleted successfully");
-
         fetchProperties();
       } else {
         toast.error("Failed to delete property: " + response.data.message);
@@ -146,7 +152,6 @@ const PropertyCard = ({
       alert("Something went wrong while deleting the property.");
     }
   };
-
   const handleConfirm = (confirmed) => {
     if (confirmed) {
       handleDelete();
@@ -192,7 +197,6 @@ const PropertyCard = ({
               </div>
             </div>
           </div>
-
           <div className="lg:col-span-3 px-2 py-2 lg:px-4 lg:py-2 flex flex-col justify-between">
             <div className="space-y-1">
               <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-2">
@@ -236,7 +240,6 @@ const PropertyCard = ({
                   </div>
                 </div>
               </div>
-
               <div className="space-y-1">
                 <div className="flex items-center text-gray-600">
                   <span className="text-sm">{location}</span>
@@ -259,7 +262,6 @@ const PropertyCard = ({
                 </div>
               </div>
             </div>
-
             <div className="pt-2 space-y-2">
               <div className="grid grid-cols-2 gap-3">
                 <Button
@@ -290,11 +292,12 @@ const PropertyCard = ({
                   Analytics
                 </Button>
                 <Button
+                  onClick={() => handleViewProperty(id)}
                   variant="outline"
                   className="border-2 cursor-pointer border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 font-medium rounded-lg transition-all"
                 >
-                  <ArrowUp className="w-4 h-4 mr-2" />
-                  Upgrade
+                  <Home className="w-4 h-4 mr-2" />
+                  View Property
                 </Button>
               </div>
             </div>

@@ -24,7 +24,7 @@ const ServiceCard = ({
     if (title === "Upload Property") {
       router.prefetch("/addProperty");
     } else if (title === "Verify Your Identity") {
-      router.prefetch("/verify");
+      router.prefetch("/profile");
     } else if (title === "Subscription Status") {
       router.prefetch("/packages");
     }
@@ -34,7 +34,7 @@ const ServiceCard = ({
     if (title === "Upload Property") {
       router.push("/addProperty");
     } else if (title === "Verify Your Identity") {
-      router.push("/verify");
+      router.push("/profile");
     } else if (title === "Subscription Status") {
       router.push("/packages");
     }

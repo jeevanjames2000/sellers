@@ -1,4 +1,5 @@
 "use client";
+
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -29,6 +29,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatCurrencyInWords } from "@/components/shared/formatCurrencyInWords";
 import DatePicker from "@/components/ui/date-picker";
+
 export default function PropertyDetails({
   property,
   setProperty,
@@ -61,6 +62,19 @@ export default function PropertyDetails({
   const [constructionEndDate, setConstructionEndDate] = useState(
     watch("under_construction") ? new Date(watch("under_construction")) : null
   );
+  const [startDate, setStartDate] = useState(() => {
+    if (property?.available_from) {
+      const date = new Date(property.available_from);
+      return !isNaN(date.getTime()) ? date : null;
+    }
+    const formDate = watch("available_from");
+    if (formDate) {
+      const date = new Date(formDate);
+      return !isNaN(date.getTime()) ? date : null;
+    }
+    return null;
+  });
+
   const handleConstructionEndDateChange = (selectedDates) => {
     const dateObj = selectedDates[0];
     let formatted = null;
@@ -76,6 +90,24 @@ export default function PropertyDetails({
       shouldValidate: true,
     });
   };
+
+  const handleStartDateChange = (selectedDates) => {
+    const dateObj = selectedDates[0];
+    let formatted = null;
+    if (dateObj instanceof Date && !isNaN(dateObj)) {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const day = String(dateObj.getDate()).padStart(2, "0");
+      formatted = `${year}-${month}-${day}`;
+    }
+    setStartDate(dateObj || null);
+    setValue("available_from", formatted, { shouldValidate: true });
+    if (formatted) {
+      setValue("possession_status", "Ready To Move In");
+      setValue("occupancy", "Ready To Move In");
+    }
+  };
+
   const watchedFields = {
     security_deposit: watch("security_deposit"),
     under_construction: watch("under_construction"),
@@ -83,6 +115,7 @@ export default function PropertyDetails({
     land_sub_type: watch("land_sub_type"),
     brokerage_charge: watch("brokerage_charge"),
     property_cost: watch("property_cost"),
+    monthly_rent: watch("monthly_rent"),
     types: watch("types"),
     occupancy: watch("occupancy"),
     pent_house: watch("pent_house"),
@@ -118,6 +151,183 @@ export default function PropertyDetails({
     suitable: watch("business_types"),
     pantry_room: watch("pantry_room"),
   };
+
+  // Normalize and format field values for form population
+  const formatFieldValue = (key, value) => {
+    if (value === null || value === undefined || value === "") return "";
+    switch (key) {
+      case "brokerage_charge":
+        const intVal = parseInt(value);
+        return intVal === 30 ? "30 Days" : intVal === 15 ? "15 Days" : "None";
+      case "security_deposit":
+      case "lock_in":
+        const months = parseInt(value);
+        return isNaN(months)
+          ? "0 Months"
+          : `${months} Month${months > 1 ? "s" : ""}`;
+      case "rera_approved":
+        return value === 1 || value === "1" || value === true ? "Yes" : "No";
+      case "bedrooms":
+        const bhkMatch = value?.match(/^(\d+)/);
+        const numericVal = bhkMatch ? bhkMatch[1] : parseInt(value) || 0;
+        return numericVal === 0 ? "0" : `${numericVal} BHK`;
+      case "bathroom":
+      case "balconies":
+      case "bike_parking":
+      case "car_parking":
+      case "open_parking":
+        const num = parseInt(value);
+        return !isNaN(num) ? `${num}` : "0";
+      case "under_construction":
+      case "available_from":
+        if (value) {
+          const date = new Date(value);
+          if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          }
+        }
+        return null;
+      case "facilities":
+        if (typeof value === "string") {
+          return value
+            .split(",")
+            .map((item) => item.trim())
+            .filter((item) => item);
+        }
+        return Array.isArray(value) ? value : [];
+      case "property_age":
+        const age = parseFloat(value);
+        if (age <= 5) return "5.00";
+        if (age <= 10) return "10.00";
+        if (age <= 15) return "15.00";
+        return "20.00";
+      case "area_units":
+        return normalizeAreaUnit(value);
+      case "pent_house":
+      case "servant_room":
+      case "pantry_room":
+      case "investor_property":
+      case "loan_facility":
+        return value === "1" || value === true ? "Yes" : "No";
+      default:
+        return `${value}`; // Convert to string to ensure form compatibility
+    }
+  };
+
+  // Populate form with property data on edit
+  useEffect(() => {
+    if (property && property.id) {
+      // List of all possible fields to ensure none are missed
+      const fields = [
+        "sub_type",
+        "property_for",
+        "property_in",
+        "land_sub_type",
+        "rera_approved",
+        "occupancy",
+        "under_construction",
+        "passenger_lifts",
+        "service_lifts",
+        "stair_cases",
+        "private_parking",
+        "public_parking",
+        "private_washrooms",
+        "public_washrooms",
+        "bedrooms",
+        "bathroom",
+        "balconies",
+        "furnished_status",
+        "property_age",
+        "available_from",
+        "monthly_rent",
+        "maintenance",
+        "security_deposit",
+        "lock_in",
+        "brokerage_charge",
+        "types",
+        "area_units",
+        "builtup_area",
+        "carpet_area",
+        "plot_area",
+        "length_area",
+        "width_area",
+        "total_project_area",
+        "total_project_area_type",
+        "builtup_unit",
+        "unit_cost_type",
+        "property_cost",
+        "property_cost_type",
+        "pent_house",
+        "facilities",
+        "facing",
+        "car_parking",
+        "bike_parking",
+        "open_parking",
+        "unit_flat_house_no",
+        "plot_number",
+        "zone_types",
+        "business_types",
+        "pantry_room",
+        "servant_room",
+        "investor_property",
+        "loan_facility",
+        "possession_status",
+        "ownership_type",
+        "description",
+      ];
+
+      // Set all fields
+      fields.forEach((key) => {
+        if (key in property) {
+          const formattedValue = formatFieldValue(key, property[key]);
+          if (formattedValue !== null) {
+            setValue(key, formattedValue, { shouldDirty: false });
+          }
+        }
+      });
+
+      // Handle dates
+      if (property.under_construction) {
+        const date = new Date(property.under_construction);
+        if (!isNaN(date.getTime())) {
+          setConstructionEndDate(date);
+        }
+      }
+      if (property.available_from) {
+        const date = new Date(property.available_from);
+        if (!isNaN(date.getTime())) {
+          setStartDate(date);
+        }
+      }
+
+      // Handle nearby places
+      if (property?.around_places?.length) {
+        const mappedPlaces = property.around_places.map((place) => ({
+          place_id: place.id,
+          place: place.title?.trim() || "",
+          distance: parseInt(place.distance) || 0,
+        }));
+        setPlaces(mappedPlaces);
+      }
+
+      // Handle facilities
+      if (property.facilities) {
+        const cleanedFacilities = formatFieldValue(
+          "facilities",
+          property.facilities
+        );
+        setFac(cleanedFacilities);
+        setValue("facilities", cleanedFacilities.join(", "), {
+          shouldDirty: false,
+        });
+      }
+    }
+  }, [property, setValue, setPlaces, setFac]);
+
+  // Set default sub_type for Commercial properties
   useEffect(() => {
     if (isCommercial && !propertySubtype && !property?.sub_type) {
       setValue("sub_type", "Office", { shouldValidate: true });
@@ -133,6 +343,107 @@ export default function PropertyDetails({
     property,
     setValue,
   ]);
+
+  // Set default area units based on sub_type
+  useEffect(() => {
+    let defaultUnit;
+    if (
+      ["Apartment", "Independent Villa", "Independent House"].includes(
+        propertySubtype
+      )
+    ) {
+      defaultUnit = "Sq.ft";
+    } else if (propertySubtype === "Plot") {
+      defaultUnit = "Sq.yd";
+    } else if (propertySubtype === "Land") {
+      defaultUnit = "Acres";
+    } else {
+      defaultUnit = "Sq.ft";
+    }
+    if (!watchedFields.area_units) {
+      setValue("area_units", defaultUnit, { shouldValidate: true });
+    }
+  }, [propertySubtype, setValue, watchedFields.area_units]);
+
+  // Handle custom parking and room counts
+  useEffect(() => {
+    const config = [
+      {
+        value: watchedFields.car_parking,
+        key: "car_parking",
+        setCustom: setCarCustomMode,
+        rawValue: property?.car_parking,
+      },
+      {
+        value: watchedFields.bike_parking,
+        key: "bike_parking",
+        setCustom: setBikeCustomMode,
+        rawValue: property?.bike_parking,
+      },
+      {
+        value: watchedFields.open_parking,
+        key: "open_parking",
+        setCustom: setOpenCustomMode,
+        rawValue: property?.open_parking,
+      },
+      {
+        value: watchedFields.bedrooms,
+        key: "bedrooms",
+        setCustom: setBhkCustom,
+        rawValue: property?.bedrooms,
+      },
+      {
+        value: watchedFields.bathroom,
+        key: "bathroom",
+        setCustom: setBathroomCustom,
+        rawValue: property?.bathroom,
+      },
+      {
+        value: watchedFields.balconies,
+        key: "balconies",
+        setCustom: setBalconyCustom,
+        rawValue: property?.balconies,
+      },
+    ];
+    config.forEach(({ value, key, setCustom, rawValue }) => {
+      const numericValue = parseInt(value);
+      const numericRawValue = parseInt(rawValue);
+      if (!isNaN(numericRawValue) && numericRawValue > 4) {
+        setCustom(true);
+        setValue(key, `${numericRawValue}`, { shouldDirty: false });
+      } else if (value === "4+" || value === "4+ BHK") {
+        setCustom(true);
+        setValue(key, `${numericRawValue || ""}`, { shouldDirty: false });
+      } else if (!isNaN(numericValue) && numericValue <= 4) {
+        setCustom(false);
+        setValue(
+          key,
+          key === "bedrooms" ? `${numericValue} BHK` : `${numericValue}`,
+          { shouldDirty: false }
+        );
+      }
+    });
+  }, [
+    watchedFields.car_parking,
+    watchedFields.bike_parking,
+    watchedFields.open_parking,
+    watchedFields.bedrooms,
+    watchedFields.bathroom,
+    watchedFields.balconies,
+    property,
+    setValue,
+  ]);
+
+  const normalizeAreaUnit = (unit) => {
+    const mapping = {
+      "sq.ft": "Sq.ft",
+      "sq.yd": "Sq.yd",
+      acres: "Acres",
+      sq: "Sq.ft",
+    };
+    return mapping[unit?.toLowerCase()] || "Sq.ft";
+  };
+
   const fieldVisibility = useMemo(
     () => ({
       ...(isResidential &&
@@ -634,14 +945,18 @@ export default function PropertyDetails({
     }),
     [isResidential, isCommercial, isRent, isSell]
   );
+
   const isFieldVisible = useCallback(
-    (field) => fieldVisibility[propertySubtype]?.[field] || false
+    (field) => fieldVisibility[propertySubtype]?.[field] || false,
+    [fieldVisibility, propertySubtype]
   );
-  function formatDistance(meters) {
+
+  const formatDistance = (meters) => {
     if (meters < 1000) return `${meters}m`;
     const km = meters / 1000;
     return km % 1 === 0 ? `${km}km` : `${km.toFixed(1)}km`;
-  }
+  };
+
   const handleAdd = () => {
     const distNum = Number(watchedFields.distanceFromProperty);
     if (!watchedFields.nearbyPlace?.trim() || !distNum || isNaN(distNum))
@@ -654,13 +969,46 @@ export default function PropertyDetails({
     setValue("nearbyPlace", "");
     setValue("distanceFromProperty", "");
   };
+
   const handleDelete = async (placeid) => {
     if (placeid) {
-      await deleteAroundProperty(placeid, unique_property_id);
+      try {
+        const res = await fetch(
+          `https://api.meetowner.in/property/deleteplacesaroundproperty`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ placeid, unique_property_id }),
+          }
+        );
+        if (!res.ok) {
+          const data = await res.json();
+          console.error("Failed to delete place:", data);
+        }
+      } catch (error) {
+        console.error("Error deleting place:", error);
+      }
     }
     const updatedPlaces = places.filter((p) => p.place_id !== placeid);
     setPlaces(updatedPlaces);
   };
+
+  const handleFacilityChange = (facility, checked) => {
+    setFac((prev) => {
+      let updated = [...prev];
+      if (facility === "None" && checked) return ["None"];
+      updated = updated.filter((f) => f !== "None");
+      if (checked && !updated.includes(facility)) updated.push(facility);
+      else if (!checked) updated = updated.filter((f) => f !== facility);
+      return updated;
+    });
+  };
+
+  useEffect(() => {
+    const cleanedString = fac.join(", ");
+    setValue("facilities", cleanedString, { shouldDirty: true });
+  }, [fac, setValue]);
+
   const propertySubtypes = [
     { id: "Apartment", label: "Apartment", icon: Building },
     { id: "Independent House", label: "Independent House", icon: Home },
@@ -668,6 +1016,7 @@ export default function PropertyDetails({
     { id: "Plot", label: "Plot", icon: MapPin },
     { id: "Land", label: "Land", icon: Landmark },
   ];
+
   const commercialSubTypes = [
     { id: "Office", label: "Office", icon: Building },
     { id: "Retail Shop", label: "Retail Shop", icon: Home },
@@ -676,6 +1025,7 @@ export default function PropertyDetails({
     { id: "Plot", label: "Plot", icon: MapPin },
     { id: "Others", label: "Others", icon: MapPin },
   ];
+
   const landSubtypes = [
     { id: "Villa Development", label: "Villa Development", icon: House },
     {
@@ -691,6 +1041,7 @@ export default function PropertyDetails({
     { id: "Out Rate Sale", label: "Out Rate Sale", icon: IndianRupee },
     { id: "Farm Land", label: "Farm Land", icon: Trees },
   ];
+
   const facilitiesOptions = [
     "Lift",
     "CCTV",
@@ -722,6 +1073,7 @@ export default function PropertyDetails({
     "Lawn with Stepping Stones",
     "None",
   ];
+
   const facingOptions = ["East", "West", "South", "North"];
   const parkingOptions = ["0", "1", "2", "3", "4", "4+"];
   const bhkOptions = ["1 BHK", "2 BHK", "3 BHK", "4 BHK", "4+ BHK"];
@@ -760,238 +1112,7 @@ export default function PropertyDetails({
     "Clothing",
     "Others",
   ];
-  useEffect(() => {
-    const currentFacilities = getValues("facilities");
-    let cleanedArray = [];
-    if (typeof currentFacilities === "string") {
-      cleanedArray = currentFacilities
-        .split(",")
-        .map((item) => item.trim())
-        .filter((item) => item && facilitiesOptions.includes(item));
-    } else if (Array.isArray(currentFacilities)) {
-      cleanedArray = currentFacilities.filter((item) =>
-        facilitiesOptions.includes(item)
-      );
-    }
-    setFac(cleanedArray);
-  }, [getValues, setFac]);
-  useEffect(() => {
-    const cleanedString = fac.join(", ");
-    setValue("facilities", cleanedString, { shouldDirty: true });
-  }, [fac, setValue]);
-  const handleFacilityChange = (facility, checked) => {
-    setFac((prev) => {
-      let updated = [...prev];
-      if (facility === "None" && checked) return ["None"];
-      updated = updated.filter((f) => f !== "None");
-      if (checked && !updated.includes(facility)) updated.push(facility);
-      else if (!checked) updated = updated.filter((f) => f !== facility);
-      return updated;
-    });
-  };
-  useEffect(() => {
-    const config = [
-      {
-        value: watchedFields.car_parking,
-        key: "car_parking",
-        setCustom: setCarCustomMode,
-        rawValue: property?.car_parking,
-      },
-      {
-        value: watchedFields.bike_parking,
-        key: "bike_parking",
-        setCustom: setBikeCustomMode,
-        rawValue: property?.bike_parking,
-      },
-      {
-        value: watchedFields.open_parking,
-        key: "open_parking",
-        setCustom: setOpenCustomMode,
-        rawValue: property?.open_parking,
-      },
-      {
-        value: watchedFields.bedrooms,
-        key: "bedrooms",
-        setCustom: setBhkCustom,
-        rawValue: property?.bedrooms,
-      },
-      {
-        value: watchedFields.bathroom,
-        key: "bathroom",
-        setCustom: setBathroomCustom,
-        rawValue: property?.bathroom,
-      },
-      {
-        value: watchedFields.balconies,
-        key: "balconies",
-        setCustom: setBalconyCustom,
-        rawValue: property?.balconies,
-      },
-    ];
-    config.forEach(({ value, key, setCustom, rawValue }) => {
-      const numericValue = parseInt(value);
-      const numericRawValue = parseInt(rawValue);
-      if (!isNaN(numericRawValue) && numericRawValue > 4) {
-        setCustom(true);
-        setValue(key, `${numericRawValue}`, { shouldDirty: true });
-      } else if (value === "4+" || value === "4+ BHK") {
-        setCustom(true);
-        setValue(key, `${numericRawValue || ""}`, { shouldDirty: true });
-      } else if (!isNaN(numericValue) && numericValue <= 4) {
-        setCustom(false);
-        setValue(
-          key,
-          key === "bedrooms" ? `${numericValue} BHK` : `${numericValue}`,
-          { shouldDirty: true }
-        );
-      }
-    });
-  }, [
-    watchedFields.car_parking,
-    watchedFields.bike_parking,
-    watchedFields.open_parking,
-    watchedFields.bedrooms,
-    watchedFields.bathroom,
-    watchedFields.balconies,
-    property,
-    setValue,
-  ]);
-  const formatFieldValue = (key, value) => {
-    let intVal = parseInt(value);
-    switch (key) {
-      case "brokerage_charge":
-        return intVal === 30 ? "30 Days" : intVal === 15 ? "15 Days" : "None";
-      case "security_deposit":
-      case "lock_in":
-        return isNaN(intVal)
-          ? "0 Months"
-          : `${intVal} Month${intVal > 1 ? "s" : ""}`;
-      case "rera_approved":
-        return value === 1 || value === "1" ? "Yes" : "No";
-      case "bhk":
-      case "bedrooms":
-        const bhkMatch = value?.match(/^(\d+)/);
-        const numericVal = bhkMatch ? bhkMatch[1] : parseInt(value) || "0";
-        return numericVal === "0" ? "0" : `${numericVal} BHK`;
-      case "bathroom":
-      case "balconies":
-      case "bike_parking":
-      case "car_parking":
-      case "open_parking":
-        return !isNaN(intVal) ? `${intVal}` : "0";
-      case "under_construction":
-        return value ? value : null;
-      case "available_from":
-        return null;
-      default:
-        return value;
-    }
-  };
-  const normalizeAreaUnit = (unit) => {
-    const mapping = {
-      "sq.ft": "Sq.ft",
-      "sq.yd": "Sq.yd",
-      acres: "Acres",
-      sq: "Sq.ft",
-    };
-    return mapping[unit?.toLowerCase()] || "Sq.ft";
-  };
-  useEffect(() => {
-    let defaultUnit;
-    if (
-      ["Apartment", "Independent Villa", "Independent House"].includes(
-        propertySubtype
-      )
-    ) {
-      defaultUnit = "Sq.ft";
-    } else if (propertySubtype === "Plot") {
-      defaultUnit = "Sq.yd";
-    } else if (propertySubtype === "Land") {
-      defaultUnit = "Acres";
-    } else {
-      defaultUnit = "Sq.ft";
-    }
-    setValue("area_units", defaultUnit);
-  }, [propertySubtype, setValue]);
-  useEffect(() => {
-    if (property && property.id) {
-      Object.entries(property).forEach(([key, value]) => {
-        const formattedVal = formatFieldValue(key, value);
-        setValue(key, formattedVal ?? "");
-      });
-      if (property.under_construction) {
-        setConstructionEndDate(new Date(property.under_construction));
-      }
-    }
-    if (property?.around_places?.length) {
-      const mappedPlaces = property.around_places.map((place) => ({
-        place_id: place.id,
-        place: place.title.trim(),
-        distance: parseInt(place.distance),
-      }));
-      setPlaces(mappedPlaces);
-    }
-    if (property?.available_from) {
-      const date = new Date(property.available_from);
-      if (!isNaN(date.getTime())) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        const formatted = `${year}-${month}-${day}`;
-        setValue("available_from", formatted, { shouldValidate: true });
-        setStartDate(date);
-      } else {
-        console.warn(
-          "Invalid date in property.available_from:",
-          property.available_from
-        );
-      }
-    }
-  }, [property, setValue]);
-  const deleteAroundProperty = async (placeid, unique_property_id) => {
-    try {
-      const res = await fetch(
-        `https://api.meetowner.in/property/deleteplacesaroundproperty`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ placeid, unique_property_id }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) console.error("Failed to delete place:", data);
-    } catch (error) {
-      console.error("Error deleting place:", error);
-    }
-  };
-  const [startDate, setStartDate] = useState(() => {
-    if (property?.available_from) {
-      const date = new Date(property.available_from);
-      if (!isNaN(date.getTime())) {
-        return date;
-      }
-    }
-    const formDate = watch("available_from");
-    if (formDate) {
-      const date = new Date(formDate);
-      return !isNaN(date.getTime()) ? date : null;
-    }
-    return null;
-  });
-  const handleStartDateChange = (selectedDates) => {
-    const dateObj = selectedDates[0];
-    let formatted = null;
-    if (dateObj instanceof Date && !isNaN(dateObj.getTime())) {
-      const year = dateObj.getFullYear();
-      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-      const day = String(dateObj.getDate()).padStart(2, "0");
-      formatted = `${year}-${month}-${day}`;
-    }
-    setStartDate(dateObj || null);
-    setValue("available_from", formatted || null, { shouldValidate: true });
-    setValue("possession_status", "Ready To Move In");
-    setValue("occupancy", "Ready To Move In");
-  };
+
   return (
     <div className="space-y-8 sm:space-y-2 gap-4">
       {!isCommercial && (
@@ -1915,27 +2036,23 @@ export default function PropertyDetails({
               <span className="text-red-500">*</span>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-              {["Yes", "No"].map((val) => {
-                return (
-                  <Button
-                    key={val}
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      setValue("pent_house", val, {
-                        shouldValidate: true,
-                      })
-                    }
-                    className={`px-6 sm:px-8 py-3 capitalize ${
-                      watchedFields.pent_house === val
-                        ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
-                        : "bg-white text-black hover:bg-gray-100 border"
-                    }`}
-                  >
-                    {val}
-                  </Button>
-                );
-              })}
+              {["Yes", "No"].map((val) => (
+                <Button
+                  key={val}
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    setValue("pent_house", val, { shouldValidate: true })
+                  }
+                  className={`px-6 sm:px-8 py-3 capitalize ${
+                    watchedFields.pent_house === val
+                      ? "bg-[#1D3A76] text-white hover:text-white hover:bg-[#1D3A76]"
+                      : "bg-white text-black hover:bg-gray-100 border"
+                  }`}
+                >
+                  {val}
+                </Button>
+              ))}
             </div>
             <input
               type="hidden"
@@ -1964,9 +2081,7 @@ export default function PropertyDetails({
                 type="button"
                 variant="outline"
                 onClick={() =>
-                  setValue("security_deposit", item, {
-                    shouldValidate: true,
-                  })
+                  setValue("security_deposit", item, { shouldValidate: true })
                 }
                 className={`px-4 sm:px-6 py-3 capitalize ${
                   watchedFields.security_deposit === item
@@ -2004,10 +2119,7 @@ export default function PropertyDetails({
                 type="button"
                 variant="outline"
                 onClick={() =>
-                  setValue("lock_in", item, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  })
+                  setValue("lock_in", item, { shouldValidate: true })
                 }
                 className={`px-4 sm:px-6 py-3 capitalize ${
                   watchedFields.lock_in === item
