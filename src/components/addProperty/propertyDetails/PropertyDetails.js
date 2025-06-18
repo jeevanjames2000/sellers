@@ -205,7 +205,7 @@ export default function PropertyDetails({
       case "pantry_room":
       case "investor_property":
       case "loan_facility":
-        return value
+        return value;
       default:
         return `${value}`;
     }
@@ -2360,10 +2360,6 @@ export default function PropertyDetails({
                     className="w-full sm:w-1/2 mt-2"
                     {...register("car_parking", {
                       required: "Car Parking is required",
-                      validate: (value) =>
-                        !value || parseInt(value) > 4
-                          ? true
-                          : "Value must be greater than 4",
                     })}
                     onChange={(e) =>
                       setValue("car_parking", e.target.value, {
@@ -2434,10 +2430,6 @@ export default function PropertyDetails({
                     className="w-full sm:w-1/2 mt-2"
                     {...register("bike_parking", {
                       required: "Bike Parking is required",
-                      validate: (value) =>
-                        !value || parseInt(value) > 4
-                          ? true
-                          : "Value must be greater than 4",
                     })}
                     onChange={(e) =>
                       setValue("bike_parking", e.target.value, {
@@ -2508,10 +2500,6 @@ export default function PropertyDetails({
                     className="w-full sm:w-1/2 mt-2"
                     {...register("open_parking", {
                       required: "Open Parking is required",
-                      validate: (value) =>
-                        !value || parseInt(value) > 4
-                          ? true
-                          : "Value must be greater than 4",
                     })}
                     onChange={(e) =>
                       setValue("open_parking", e.target.value, {
