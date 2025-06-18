@@ -10,7 +10,6 @@ import { usePathname, useRouter } from "next/navigation";
 function DashboardWrapper() {
   const router = useRouter();
   useEffect(() => {
-    router.prefetch("/addProperty");
     router.prefetch("/listings");
     router.prefetch("/enquiry");
   }, []);

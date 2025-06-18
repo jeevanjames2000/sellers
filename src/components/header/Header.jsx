@@ -45,7 +45,6 @@ function Header() {
         dispatch(clearLogin());
       }
     }
-    router.prefetch("/addProperty");
     router.prefetch("/listings");
     router.prefetch("/enquiry");
   }, [router, dispatch, token]);
