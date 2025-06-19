@@ -66,9 +66,6 @@ const getAddressPayload = (formData) => {
     property_name: formData.property_name || "",
     plot_number: formData.plot_number || "",
     builder_name: formData.builder_name || "",
-    google_address: formData.locality
-      ? `${formData.locality}, ${formData.city_id}, ${formData.state_id}`
-      : "",
   };
   if (formData.sub_type === "Independent Villa") {
     const villaNumber = parseInt(formData.villa_number);
@@ -89,7 +86,6 @@ const compareAddress = (formData, property) => {
     total_floors: property?.total_floors || "",
     property_name: property?.property_name || "",
     plot_number: property?.plot_number || "",
-    google_address: property?.google_address || "",
     builder_name: property?.builder_name || "",
     villa_number:
       property?.sub_type === "Independent Villa"

@@ -46,7 +46,8 @@ const ListingsPage = () => {
     propertyType: property_in,
     propertySubType: sub_type,
     bhk: bhk,
-    verificationStatus: statusFilter[property_for === "Sell" ? "buy" : "rent"] ?? null, // Remove default to '1'
+    verificationStatus:
+      statusFilter[property_for === "Sell" ? "buy" : "rent"] ?? null, // Remove default to '1'
     propertyId: "",
   };
 
@@ -75,7 +76,8 @@ const ListingsPage = () => {
     }
     try {
       let apiPropertyFor = property_for || "Sell";
-      let apiPropertyStatus = statusFilter[apiPropertyFor === "Sell" ? "buy" : "rent"] ?? ""; // Use empty string for no status filter
+      let apiPropertyStatus =
+        statusFilter[apiPropertyFor === "Sell" ? "buy" : "rent"] ?? ""; // Use empty string for no status filter
       const queryParams = {
         page: currentPage,
         property_for: apiPropertyFor,
@@ -168,7 +170,12 @@ const ListingsPage = () => {
         dispatch(setBHK(value));
         break;
       case "statusFilter":
-        dispatch(setStatusFilter({ type: property_for === "Sell" ? "buy" : "rent", value: value ? parseInt(value) : null }));
+        dispatch(
+          setStatusFilter({
+            type: property_for === "Sell" ? "buy" : "rent",
+            value: value ? parseInt(value) : null,
+          })
+        );
         break;
       default:
         break;
@@ -235,7 +242,12 @@ const ListingsPage = () => {
                   ? "Review"
                   : "Rejected"
               }
-              location={property.google_address || "N/A"}
+              location={
+                property.google_address ||
+                property.city_id ||
+                property.location_id ||
+                "N/A"
+              }
               facing={property.facing || null}
               lastUpdated={property.updated_date || "N/A"}
               expiryDate={property.expiry_date || "N/A"}

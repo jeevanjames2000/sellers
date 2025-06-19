@@ -237,9 +237,6 @@ const PropertyCard = ({
                   <span className="text-sm">{location}</span>
                 </div>
                 <div className="flex items-center text-gray-600 gap-2">
-                  {showFurnishedStatus && (
-                    <span className="text-sm">{furnished_status}</span>
-                  )}
                   <span className="text-sm">{facing} Facing</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 py-1">

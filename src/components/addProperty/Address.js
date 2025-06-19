@@ -310,8 +310,6 @@ export default function Address({ property }) {
   };
   const showFloors = [
     "Apartment",
-    "Independent House",
-    "Independent Villa",
     "Office",
     "Retail Shop",
     "Show Room",
@@ -320,8 +318,6 @@ export default function Address({ property }) {
   ].includes(subType);
   const showTotalFloors = [
     "Apartment",
-    "Independent House",
-    "Independent Villa",
     "Office",
     "Retail Shop",
     "Show Room",

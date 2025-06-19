@@ -42,11 +42,11 @@ export default function PropertyDetails({
     watch,
     setValue,
     getValues,
+    reset,
     formState: { errors },
   } = useFormContext();
   const formValues = watch();
-  const [localSubType, setLocalSubType] = useState(formValues?.sub_type || "");
-  const propertySubtype = localSubType || formValues?.sub_type;
+  const propertySubtype = watch("sub_type");
   const isRent = formValues?.property_for === "Rent";
   const isSell = formValues?.property_for === "Sell";
   const isResidential = formValues?.property_in === "Residential";
@@ -205,13 +205,15 @@ export default function PropertyDetails({
       case "pantry_room":
       case "investor_property":
       case "loan_facility":
-        return value === "1" || value === true ? "Yes" : "No";
+        return value;
       default:
         return `${value}`;
     }
   };
+  
   useEffect(() => {
     if (property && property.id) {
+      reset();
       const fields = [
         "sub_type",
         "property_for",
@@ -269,16 +271,8 @@ export default function PropertyDetails({
         "ownership_type",
         "description",
       ];
-      if (property.sub_type) {
-        const formattedSubType = formatFieldValue(
-          "sub_type",
-          property.sub_type
-        );
-        setValue("sub_type", formattedSubType, { shouldDirty: false });
-        setLocalSubType(formattedSubType);
-      }
       fields.forEach((key) => {
-        if (key !== "sub_type" && key in property) {
+        if (key in property) {
           const formattedValue = formatFieldValue(key, property[key]);
           if (formattedValue !== null) {
             setValue(key, formattedValue, { shouldDirty: false });
@@ -316,21 +310,13 @@ export default function PropertyDetails({
         });
       }
     }
-  }, [property, setValue, setPlaces, setFac]);
-  useEffect(() => {
-    const currentSubType = formValues?.sub_type;
-    if (currentSubType && currentSubType !== localSubType) {
-      setLocalSubType(currentSubType);
-    }
-  }, [formValues?.sub_type, localSubType]);
+  }, [property, setValue, setPlaces, setFac, reset]);
   useEffect(() => {
     if (isCommercial && !propertySubtype && !property?.sub_type) {
       setValue("sub_type", "Office", { shouldValidate: true });
-      setLocalSubType("Office");
     }
     if (isResidential && isRent && ["Plot", "Land"].includes(propertySubtype)) {
       setValue("sub_type", "Apartment", { shouldValidate: true });
-      setLocalSubType("Apartment");
     }
   }, [
     isCommercial,
@@ -366,66 +352,70 @@ export default function PropertyDetails({
         key: "car_parking",
         setCustom: setCarCustomMode,
         rawValue: property?.car_parking,
+        options: parkingOptions,
+        isBhk: false,
       },
       {
         value: watchedFields.bike_parking,
         key: "bike_parking",
         setCustom: setBikeCustomMode,
         rawValue: property?.bike_parking,
+        options: parkingOptions,
+        isBhk: false,
       },
       {
         value: watchedFields.open_parking,
         key: "open_parking",
         setCustom: setOpenCustomMode,
         rawValue: property?.open_parking,
+        options: parkingOptions,
+        isBhk: false,
       },
       {
         value: watchedFields.bedrooms,
         key: "bedrooms",
         setCustom: setBhkCustom,
         rawValue: property?.bedrooms,
+        options: bhkOptions,
+        isBhk: true,
       },
       {
         value: watchedFields.bathroom,
         key: "bathroom",
         setCustom: setBathroomCustom,
         rawValue: property?.bathroom,
+        options: bathroomOptions,
+        isBhk: false,
       },
       {
         value: watchedFields.balconies,
         key: "balconies",
         setCustom: setBalconyCustom,
         rawValue: property?.balconies,
+        options: balconyOptions,
+        isBhk: false,
       },
     ];
-    config.forEach(({ value, key, setCustom, rawValue }) => {
-      const numericValue = parseInt(value);
-      const numericRawValue = parseInt(rawValue);
+  
+    config.forEach(({ key, setCustom, rawValue, options, isBhk }) => {
+      const normalizedValue =
+        rawValue == null || rawValue === "" || rawValue === "0"
+          ? "0"
+          : String(rawValue);
+      const numericRawValue = parseInt(normalizedValue);
+  
       if (!isNaN(numericRawValue) && numericRawValue > 4) {
         setCustom(true);
-        setValue(key, `${numericRawValue}`, { shouldDirty: false });
-      } else if (value === "4+" || value === "4+ BHK") {
-        setCustom(true);
-        setValue(key, `${numericRawValue || ""}`, { shouldDirty: false });
-      } else if (!isNaN(numericValue) && numericValue <= 4) {
+        setValue(key, normalizedValue, { shouldDirty: false, shouldValidate: false });
+      } else if (options.includes(normalizedValue) || (isBhk && normalizedValue.match(/^\d+ BHK$/))) {
         setCustom(false);
-        setValue(
-          key,
-          key === "bedrooms" ? `${numericValue} BHK` : `${numericValue}`,
-          { shouldDirty: false }
-        );
+        setValue(key, normalizedValue, { shouldDirty: false, shouldValidate: false });
+      } else {
+        setCustom(false);
+        setValue(key, isBhk ? "1 BHK" : "0", { shouldDirty: false, shouldValidate: false });
       }
     });
-  }, [
-    watchedFields.car_parking,
-    watchedFields.bike_parking,
-    watchedFields.open_parking,
-    watchedFields.bedrooms,
-    watchedFields.bathroom,
-    watchedFields.balconies,
-    property,
-    setValue,
-  ]);
+  }, [property, setValue]); 
   const normalizeAreaUnit = (unit) => {
     const mapping = {
       "sq.ft": "Sq.ft",
@@ -675,9 +665,6 @@ export default function PropertyDetails({
             investor_property: true,
             loan_facility: true,
             facing: true,
-            car_parking: true,
-            bike_parking: true,
-            open_parking: true,
             around_places: true,
             description: true,
           },
@@ -1117,10 +1104,9 @@ export default function PropertyDetails({
                   <Button
                     key={type.id}
                     type="button"
-                    onClick={() => {
-                      setValue("sub_type", type.id, { shouldValidate: true });
-                      setLocalSubType(type.id);
-                    }}
+                    onClick={() =>
+                      setValue("sub_type", type.id, { shouldValidate: true })
+                    }
                     className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
                       isSelected
                         ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -1162,10 +1148,9 @@ export default function PropertyDetails({
                 <Button
                   key={type.id}
                   type="button"
-                  onClick={() => {
-                    setValue("sub_type", type.id, { shouldValidate: true });
-                    setLocalSubType(type.id);
-                  }}
+                  onClick={() =>
+                    setValue("sub_type", type.id, { shouldValidate: true })
+                  }
                   className={`h-16 sm:h-20 flex flex-col items-center justify-center space-y-1 sm:space-y-2 text-xs ${
                     isSelected
                       ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
@@ -1515,178 +1500,220 @@ export default function PropertyDetails({
           </div>
         </>
       )}
-      {isFieldVisible("bedrooms") && (
-        <div className="space-y-4">
-          <Label>BHK</Label>
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
-            {bhkOptions.map((option) => (
-              <Button
-                key={option}
-                type="button"
-                variant={
-                  watchedFields.bedrooms === option ||
-                  (bhkCustom && option === "4+ BHK")
-                    ? "default"
-                    : "outline"
-                }
-                onClick={() => {
-                  if (option === "4+ BHK") {
-                    setBhkCustom(true);
-                    setValue("bedrooms", "");
-                  } else {
-                    setBhkCustom(false);
-                    setValue("bedrooms", option);
-                  }
-                }}
-                className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
-                  watchedFields.bedrooms === option ||
-                  (bhkCustom && option === "4+ BHK")
-                    ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
-                    : "bg-white text-black hover:bg-gray-100 border"
-                }`}
-              >
-                {option}
-              </Button>
-            ))}
-          </div>
-          {bhkCustom && (
-            <Input
-              type="number"
-              placeholder="Enter custom bedrooms"
-              className="w-full sm:w-1/2"
-              {...register("bedrooms", {
-                validate: (value) =>
-                  !value || parseInt(value) > 4
-                    ? true
-                    : "Value must be greater than 4",
-              })}
-              onChange={(e) =>
-                setValue("bedrooms", e.target.value, { shouldDirty: true })
-              }
-            />
-          )}
-        </div>
-      )}
-      {isFieldVisible("bathroom") && (
-        <div className="space-y-4">
-          <Label>Bathroom</Label>
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
-            {bathroomOptions.map((option) => (
-              <Button
-                key={option}
-                type="button"
-                variant={
-                  watchedFields.bathroom === option ||
-                  (bathroomCustom && option === "4+")
-                    ? "default"
-                    : "outline"
-                }
-                onClick={() => {
-                  if (option === "4+") {
-                    setBathroomCustom(true);
-                    setValue("bathroom", "");
-                  } else {
-                    setBathroomCustom(false);
-                    setValue("bathroom", option);
-                  }
-                }}
-                className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
-                  watchedFields.bathroom === option ||
-                  (bathroomCustom && option === "4+")
-                    ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
-                    : "bg-white text-black hover:bg-gray-100 border"
-                }`}
-              >
-                {option}
-              </Button>
-            ))}
-          </div>
-          {bathroomCustom && (
-            <Input
-              type="number"
-              placeholder="Enter custom bathroom"
-              className="w-full sm:w-1/2"
-              {...register("bathroom", {
-                validate: (value) =>
-                  !value || parseInt(value) > 4
-                    ? true
-                    : "Value must be greater than 4",
-              })}
-              onChange={(e) =>
-                setValue("bathroom", e.target.value, { shouldDirty: true })
-              }
-            />
-          )}
-        </div>
-      )}
-      {isFieldVisible("balconies") && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Label>Balcony</Label>
-            <span className="text-red-500">*</span>
-          </div>
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
-            {balconyOptions.map((option) => (
-              <Button
-                key={option}
-                type="button"
-                variant={
-                  watchedFields.balconies === option ||
-                  (balconyCustom && option === "4+")
-                    ? "default"
-                    : "outline"
-                }
-                onClick={() => {
-                  if (option === "4+") {
-                    setBalconyCustom(true);
-                    setValue("balconies", "", { shouldValidate: true });
-                  } else {
-                    setBalconyCustom(false);
-                    setValue("balconies", option, { shouldValidate: true });
-                  }
-                }}
-                className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
-                  watchedFields.balconies === option ||
-                  (balconyCustom && option === "4+")
-                    ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
-                    : "bg-white text-black hover:bg-gray-100 border"
-                }`}
-              >
-                {option}
-              </Button>
-            ))}
-          </div>
-          <input
-            type="hidden"
-            {...register("balconies", { required: "Balcony is required" })}
-          />
-          {errors.balconies && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.balconies.message}
-            </p>
-          )}
-          {balconyCustom && (
-            <Input
-              type="number"
-              placeholder="Enter Custom Balcony"
-              className="w-full sm:w-1/2"
-              {...register("balconies", {
-                required: "Balcony is required",
-                validate: (value) =>
-                  !value || parseInt(value) > 4
-                    ? true
-                    : "Value must be greater than 4",
-              })}
-              onChange={(e) =>
-                setValue("balconies", e.target.value, {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                })
-              }
-            />
-          )}
-        </div>
-      )}
+{isFieldVisible("bedrooms") && (
+  <div className="space-y-4">
+    <Label>BHK</Label>
+    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
+      {bhkOptions.map((option) => (
+        <Button
+          key={option}
+          type="button"
+          variant={
+            watchedFields.bedrooms === option ||
+            (bhkCustom && option === "4+ BHK")
+              ? "default"
+              : "outline"
+          }
+          onClick={() => {
+            setBhkCustom(option === "4+ BHK");
+            setValue("bedrooms", option === "4+ BHK" ? "" : option, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+          }}
+          className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
+            watchedFields.bedrooms === option ||
+            (bhkCustom && option === "4+ BHK")
+              ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+              : "bg-white text-black hover:bg-gray-100 border"
+          }`}
+        >
+          {option}
+        </Button>
+      ))}
+    </div>
+    <input
+      type="hidden"
+      {...register("bedrooms", {
+        required: "BHK is required",
+      })}
+    />
+    {errors.bedrooms && (
+      <p className="text-red-500 text-sm mt-1">{errors.bedrooms.message}</p>
+    )}
+    {bhkCustom && (
+      <div className="flex items-center gap-2 mt-2">
+        <Input
+          type="number"
+          placeholder="Enter custom BHK"
+          className="w-full sm:w-1/2"
+          value={watchedFields.bedrooms || ""}
+          onChange={(e) =>
+            setValue("bedrooms", e.target.value, {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
+          }
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            setBhkCustom(false);
+            setValue("bedrooms", "1 BHK", { shouldValidate: true, shouldDirty: true });
+          }}
+          className="text-sm"
+        >
+          Clear
+        </Button>
+      </div>
+    )}
+  </div>
+)}
+     {isFieldVisible("bathroom") && (
+  <div className="space-y-4">
+    <Label>Bathroom</Label>
+    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
+      {bathroomOptions.map((option) => (
+        <Button
+          key={option}
+          type="button"
+          variant={
+            watchedFields.bathroom === option ||
+            (bathroomCustom && option === "4+")
+              ? "default"
+              : "outline"
+          }
+          onClick={() => {
+            setBathroomCustom(option === "4+");
+            setValue("bathroom", option === "4+" ? "" : option, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+          }}
+          className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
+            watchedFields.bathroom === option ||
+            (bathroomCustom && option === "4+")
+              ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+              : "bg-white text-black hover:bg-gray-100 border"
+          }`}
+        >
+          {option}
+        </Button>
+      ))}
+    </div>
+    <input
+      type="hidden"
+      {...register("bathroom", {
+        required: "Bathroom is required",
+       
+      })}
+    />
+    {errors.bathroom && (
+      <p className="text-red-500 text-sm mt-1">{errors.bathroom.message}</p>
+    )}
+    {bathroomCustom && (
+      <div className="flex items-center gap-2 mt-2">
+        <Input
+          type="number"
+          placeholder="Enter custom bathroom"
+          className="w-full sm:w-1/2"
+          value={watchedFields.bathroom || ""}
+          onChange={(e) =>
+            setValue("bathroom", e.target.value, {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
+          }
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            setBathroomCustom(false);
+            setValue("bathroom", "0", { shouldValidate: true, shouldDirty: true });
+          }}
+          className="text-sm"
+        >
+          Clear
+        </Button>
+      </div>
+    )}
+  </div>
+)}
+     {isFieldVisible("balconies") && (
+  <div className="space-y-4">
+    <div className="flex items-center gap-2">
+      <Label>Balcony</Label>
+      <span className="text-red-500">*</span>
+    </div>
+    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-4">
+      {balconyOptions.map((option) => (
+        <Button
+          key={option}
+          type="button"
+          variant={
+            watchedFields.balconies === option ||
+            (balconyCustom && option === "4+")
+              ? "default"
+              : "outline"
+          }
+          onClick={() => {
+            setBalconyCustom(option === "4+");
+            setValue("balconies", option === "4+" ? "" : option, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+          }}
+          className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
+            watchedFields.balconies === option ||
+            (balconyCustom && option === "4+")
+              ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+              : "bg-white text-black hover:bg-gray-100 border"
+          }`}
+        >
+          {option}
+        </Button>
+      ))}
+    </div>
+    <input
+      type="hidden"
+      {...register("balconies", {
+        required: "Balcony is required",
+      })}
+    />
+    {errors.balconies && (
+      <p className="text-red-500 text-sm mt-1">{errors.balconies.message}</p>
+    )}
+    {balconyCustom && (
+      <div className="flex items-center gap-2 mt-2">
+        <Input
+          type="number"
+          placeholder="Enter custom balcony"
+          className="w-full sm:w-1/2"
+          value={watchedFields.balconies || ""}
+          onChange={(e) =>
+            setValue("balconies", e.target.value, {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
+          }
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            setBalconyCustom(false);
+            setValue("balconies", "0", { shouldValidate: true, shouldDirty: true });
+          }}
+          className="text-sm"
+        >
+          Clear
+        </Button>
+      </div>
+    )}
+  </div>
+)}
       {isFieldVisible("furnished_status") && (
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -2320,227 +2347,228 @@ export default function PropertyDetails({
         <div className="space-y-4">
           <Label>Parking</Label>
           <div className="space-y-6">
-            {isFieldVisible("car_parking") && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Label>Car Parking</Label>
-                  <span className="text-red-500">*</span>
-                </div>
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 sm:gap-4">
-                  {parkingOptions.map((option) => (
-                    <Button
-                      key={option}
-                      type="button"
-                      variant={
-                        watchedFields.car_parking === option ||
-                        (carCustomMode && option === "4+")
-                          ? "default"
-                          : "outline"
-                      }
-                      onClick={() => {
-                        if (option === "4+") {
-                          setCarCustomMode(true);
-                          setValue("car_parking", "", { shouldValidate: true });
-                        } else {
-                          setCarCustomMode(false);
-                          setValue("car_parking", option, {
-                            shouldValidate: true,
-                          });
-                        }
-                      }}
-                      className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
-                        watchedFields.car_parking === option ||
-                        (carCustomMode && option === "4+")
-                          ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
-                          : "bg-white text-black hover:bg-gray-100 border"
-                      }`}
-                    >
-                      {option}
-                    </Button>
-                  ))}
-                </div>
-                <input
-                  type="hidden"
-                  {...register("car_parking", {
-                    required: "Car Parking is required",
-                  })}
-                />
-                {errors.car_parking && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.car_parking.message}
-                  </p>
-                )}
-                {carCustomMode && (
-                  <Input
-                    type="number"
-                    placeholder="Enter custom car parking"
-                    className="w-full sm:w-1/2 mt-2"
-                    {...register("car_parking", {
-                      required: "Car Parking is required",
-                      validate: (value) =>
-                        !value || parseInt(value) > 4
-                          ? true
-                          : "Value must be greater than 4",
-                    })}
-                    onChange={(e) =>
-                      setValue("car_parking", e.target.value, {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                      })
-                    }
-                  />
-                )}
-              </div>
-            )}
-            {isFieldVisible("bike_parking") && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Label>Bike Parking</Label>
-                  <span className="text-red-500">*</span>
-                </div>
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 sm:gap-4">
-                  {parkingOptions.map((option) => (
-                    <Button
-                      key={option}
-                      type="button"
-                      variant={
-                        watchedFields.bike_parking === option ||
-                        (bikeCustomMode && option === "4+")
-                          ? "default"
-                          : "outline"
-                      }
-                      onClick={() => {
-                        if (option === "4+") {
-                          setBikeCustomMode(true);
-                          setValue("bike_parking", "", {
-                            shouldValidate: true,
-                          });
-                        } else {
-                          setBikeCustomMode(false);
-                          setValue("bike_parking", option, {
-                            shouldValidate: true,
-                          });
-                        }
-                      }}
-                      className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
-                        watchedFields.bike_parking === option ||
-                        (bikeCustomMode && option === "4+")
-                          ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
-                          : "bg-white text-black hover:bg-gray-100 border"
-                      }`}
-                    >
-                      {option}
-                    </Button>
-                  ))}
-                </div>
-                <input
-                  type="hidden"
-                  {...register("bike_parking", {
-                    required: "Bike Parking is required",
-                  })}
-                />
-                {errors.bike_parking && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.bike_parking.message}
-                  </p>
-                )}
-                {bikeCustomMode && (
-                  <Input
-                    type="number"
-                    placeholder="Enter custom bike parking"
-                    className="w-full sm:w-1/2 mt-2"
-                    {...register("bike_parking", {
-                      required: "Bike Parking is required",
-                      validate: (value) =>
-                        !value || parseInt(value) > 4
-                          ? true
-                          : "Value must be greater than 4",
-                    })}
-                    onChange={(e) =>
-                      setValue("bike_parking", e.target.value, {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                      })
-                    }
-                  />
-                )}
-              </div>
-            )}
-            {isFieldVisible("open_parking") && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Label>Open Parking</Label>
-                  <span className="text-red-500">*</span>
-                </div>
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 sm:gap-4">
-                  {parkingOptions.map((option) => (
-                    <Button
-                      key={option}
-                      type="button"
-                      variant={
-                        watchedFields.open_parking === option ||
-                        (openCustomMode && option === "4+")
-                          ? "default"
-                          : "outline"
-                      }
-                      onClick={() => {
-                        if (option === "4+") {
-                          setOpenCustomMode(true);
-                          setValue("open_parking", "", {
-                            shouldValidate: true,
-                          });
-                        } else {
-                          setOpenCustomMode(false);
-                          setValue("open_parking", option, {
-                            shouldValidate: true,
-                          });
-                        }
-                      }}
-                      className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
-                        watchedFields.open_parking === option ||
-                        (openCustomMode && option === "4+")
-                          ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
-                          : "bg-white text-black hover:bg-gray-100 border"
-                      }`}
-                    >
-                      {option}
-                    </Button>
-                  ))}
-                </div>
-                <input
-                  type="hidden"
-                  {...register("open_parking", {
-                    required: "Open Parking is required",
-                  })}
-                />
-                {errors.open_parking && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.open_parking.message}
-                  </p>
-                )}
-                {openCustomMode && (
-                  <Input
-                    type="number"
-                    placeholder="Enter custom open parking"
-                    className="w-full sm:w-1/2 mt-2"
-                    {...register("open_parking", {
-                      required: "Open Parking is required",
-                      validate: (value) =>
-                        !value || parseInt(value) > 4
-                          ? true
-                          : "Value must be greater than 4",
-                    })}
-                    onChange={(e) =>
-                      setValue("open_parking", e.target.value, {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                      })
-                    }
-                  />
-                )}
-              </div>
-            )}
-          </div>
+ {isFieldVisible("car_parking") && (
+  <div className="space-y-2">
+    <div className="flex items-center gap-2">
+      <Label>Car Parking</Label>
+      <span className="text-red-500">*</span>
+    </div>
+    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 sm:gap-4">
+      {parkingOptions.map((option) => (
+        <Button
+          key={option}
+          type="button"
+          variant={
+            watchedFields.car_parking === option ||
+            (carCustomMode && option === "4+")
+              ? "default"
+              : "outline"
+          }
+          onClick={() => {
+            setCarCustomMode(option === "4+");
+            setValue("car_parking", option === "4+" ? "" : option, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+          }}
+          className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
+            watchedFields.car_parking === option ||
+            (carCustomMode && option === "4+")
+              ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+              : "bg-white text-black hover:bg-gray-100 border"
+          }`}
+        >
+          {option}
+        </Button>
+      ))}
+    </div>
+    <input
+      type="hidden"
+      {...register("car_parking", {
+        required: "Car Parking is required",
+       
+      })}
+    />
+    {errors.car_parking && (
+      <p className="text-red-500 text-sm mt-1">{errors.car_parking.message}</p>
+    )}
+    {carCustomMode && (
+      <div className="flex items-center gap-2 mt-2">
+        <Input
+          type="number"
+          placeholder="Enter custom car parking"
+          className="w-full sm:w-1/2"
+          value={watchedFields.car_parking || ""}
+          onChange={(e) =>
+            setValue("car_parking", e.target.value, {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
+          }
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            setCarCustomMode(false);
+            setValue("car_parking", "0", { shouldValidate: true, shouldDirty: true });
+          }}
+          className="text-sm"
+        >
+          Clear
+        </Button>
+      </div>
+    )}
+  </div>
+)}
+ {isFieldVisible("bike_parking") && (
+  <div className="space-y-2">
+    <div className="flex items-center gap-2">
+      <Label>Bike Parking</Label>
+      <span className="text-red-500">*</span>
+    </div>
+    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 sm:gap-4">
+      {parkingOptions.map((option) => (
+        <Button
+          key={option}
+          type="button"
+          variant={
+            watchedFields.bike_parking === option ||
+            (bikeCustomMode && option === "4+")
+              ? "default"
+              : "outline"
+          }
+          onClick={() => {
+            setBikeCustomMode(option === "4+");
+            setValue("bike_parking", option === "4+" ? "" : option, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+          }}
+          className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
+            watchedFields.bike_parking === option ||
+            (bikeCustomMode && option === "4+")
+              ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+              : "bg-white text-black hover:bg-gray-100 border"
+          }`}
+        >
+          {option}
+        </Button>
+      ))}
+    </div>
+    <input
+      type="hidden"
+      {...register("bike_parking", {
+        required: "Bike Parking is required",
+      
+      })}
+    />
+    {errors.bike_parking && (
+      <p className="text-red-500 text-sm mt-1">{errors.bike_parking.message}</p>
+    )}
+    {bikeCustomMode && (
+      <div className="flex items-center gap-2 mt-2">
+        <Input
+          type="number"
+          placeholder="Enter custom bike parking"
+          className="w-full sm:w-1/2"
+          value={watchedFields.bike_parking || ""}
+          onChange={(e) =>
+            setValue("bike_parking", e.target.value, {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
+          }
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            setBikeCustomMode(false);
+            setValue("bike_parking", "0", { shouldValidate: true, shouldDirty: true });
+          }}
+          className="text-sm"
+        >
+          Clear
+        </Button>
+      </div>
+    )}
+  </div>
+)}
+{isFieldVisible("open_parking") && (
+  <div className="space-y-2">
+    <div className="flex items-center gap-2">
+      <Label>Open Parking</Label>
+      <span className="text-red-500">*</span>
+    </div>
+    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 sm:gap-4">
+      {parkingOptions.map((option) => (
+        <Button
+          key={option}
+          type="button"
+          variant={
+            watchedFields.open_parking === option ||
+            (openCustomMode && option === "4+")
+              ? "default"
+              : "outline"
+          }
+          onClick={() => {
+            setOpenCustomMode(option === "4+");
+            setValue("open_parking", option === "4+" ? "" : option, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+          }}
+          className={`w-12 sm:w-16 h-10 sm:h-12 text-xs sm:text-sm capitalize ${
+            watchedFields.open_parking === option ||
+            (openCustomMode && option === "4+")
+              ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
+              : "bg-white text-black hover:bg-gray-100 border"
+          }`}
+        >
+          {option}
+        </Button>
+      ))}
+    </div>
+    <input
+      type="hidden"
+      {...register("open_parking", {
+        required: "Open Parking is required",
+      })}
+    />
+    {errors.open_parking && (
+      <p className="text-red-500 text-sm mt-1">{errors.open_parking.message}</p>
+    )}
+    {openCustomMode && (
+      <div className="flex items-center gap-2 mt-2">
+        <Input
+          type="number"
+          placeholder="Enter custom open parking"
+          className="w-full sm:w-1/2"
+          value={watchedFields.open_parking || ""}
+          onChange={(e) =>
+            setValue("open_parking", e.target.value, {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
+          }
+        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            setOpenCustomMode(false);
+            setValue("open_parking", "0", { shouldValidate: true, shouldDirty: true });
+          }}
+          className="text-sm"
+        >
+          Clear
+        </Button>
+      </div>
+    )}
+  </div>
+)}
+ </div>
         </div>
       )}
       {isFieldVisible("around_places") && (
