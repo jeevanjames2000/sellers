@@ -541,7 +541,7 @@ const ProfileScreen = () => {
 
               {/* Subscription Information */}
               <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
-                <CardHeader className="bg-purple-400 text-white p-6">
+                <CardHeader className="bg-[#1D3A76] text-white p-6">
                   <CardTitle className="text-xl font-semibold flex items-center">
                     <Briefcase className="w-5 h-5 mr-2" />
                     Subscription Information

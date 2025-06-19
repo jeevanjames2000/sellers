@@ -144,7 +144,7 @@ const PropertySection = () => {
                 key={property.id}
                 className="pl-2 md:pl-4 basis-full"
               >
-                <div className="h-[320px] sm:h-[400px] lg:h-[240px]">
+                <div className="h-[420px] sm:h-[420px] lg:h-[240px]">
                   <CustomCard className="group overflow-hidden hover:shadow-2xl transition-all duration-500 bg-white border-0 shadow-lg hover:scale-[1.02] transform h-full">
                     <CardContent className="p-0 h-full">
                       <div className="grid grid-cols-1 lg:grid-cols-5 gap-0 h-full">
