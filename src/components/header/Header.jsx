@@ -30,6 +30,7 @@ function Header() {
 
   const playStoreUrl =
     "https://play.google.com/store/apps/details?id=com.meetowner.app&pcampaignid=web_share";
+  const url = "https://meetowner.in/app";
 
   useEffect(() => {
     const storedToken = localStorage.getItem("userToken");
@@ -45,7 +46,6 @@ function Header() {
         dispatch(clearLogin());
       }
     }
-  
   }, [router, dispatch, token]);
 
   useEffect(() => {
@@ -116,9 +116,38 @@ function Header() {
       <div className="flex items-center space-x-3">
         {isLoggedIn ? (
           <>
+            <Dialog open={isQRDialogOpen} onOpenChange={setIsQRDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-gray-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                >
+                  <Download className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                  Download App
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-md border-gray-200/50">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-semibold text-[#1D3A76]">
+                    Download Meetowner App
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col items-center gap-4 p-4">
+                  <p className="text-gray-600 text-center">
+                    Scan the QR code to download the Meetowner app from the
+                    Google Play Store (or) App Store.
+                  </p>
+                  <div className="p-4 bg-white rounded-lg shadow-md">
+                    <QRCodeSVG value={url} size={160} />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
             <div className="hidden lg:flex items-center space-x-8">
               <MainNavigation isLoggedIn={isLoggedIn} />
             </div>
+
             <Button
               onClick={handleAddProperty}
               className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
@@ -168,20 +197,8 @@ function Header() {
                     Google Play Store.
                   </p>
                   <div className="p-4 bg-white rounded-lg shadow-md">
-                    <QRCodeSVG value={playStoreUrl} size={160} />
+                    <QRCodeSVG value={url} size={160} />
                   </div>
-                  <Link
-                    href={playStoreUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button
-                      className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg"
-                      size="sm"
-                    >
-                      Open in Play Store
-                    </Button>
-                  </Link>
                 </div>
               </DialogContent>
             </Dialog>
@@ -292,7 +309,7 @@ function Header() {
                           the Google Play Store.
                         </p>
                         <div className="p-4 bg-white rounded-lg shadow-md">
-                          <QRCodeSVG value={playStoreUrl} size={160} />
+                          <QRCodeSVG value={url} size={160} />
                         </div>
                         <Link
                           href={playStoreUrl}
