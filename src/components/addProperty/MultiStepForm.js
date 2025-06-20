@@ -345,7 +345,7 @@ export default function MultiStepForm() {
           onSubmit={methods.handleSubmit(onSubmit)}
           className="w-full bg-white rounded-lg shadow-lg overflow-hidden"
         >
-          <div className="px-6 py-4 border-b md:hidden">
+          <div className="px-6 py-4 border-b xl:hidden">
             <Progress
               value={progressPercentage}
               className="h-2 bg-blue-100 [&>div]:bg-[#1D3A76]"
@@ -355,7 +355,7 @@ export default function MultiStepForm() {
             </p>
           </div>
           <div className="flex min-h-[600px] w-full">
-            <div className="hidden md:flex flex-col w-[15%] min-w-[100px] max-w-[300px] bg-gray-50 p-6 border-r overflow-y-auto">
+            <div className="hidden xl:flex flex-col w-[15%] min-w-[100px] max-w-[300px] bg-gray-50 p-6 border-r overflow-y-auto">
               <Button
                 variant="ghost"
                 className="mb-6 text-gray-600 hover:text-gray-800"

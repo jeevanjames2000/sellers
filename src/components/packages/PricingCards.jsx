@@ -292,7 +292,7 @@ const PricingCard = ({
           {Object.entries(features).map(([feature, value]) => (
             <li
               key={feature}
-              className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm justify-center"
+              className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm justify-start"
             >
               {value === "yes" ? (
                 <Check className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0 mt-0.5" />
