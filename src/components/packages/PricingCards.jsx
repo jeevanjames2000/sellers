@@ -10,6 +10,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
     const script = document.createElement("script");
@@ -112,6 +113,11 @@ const handlePayment = async (plan, userInfo, fetchPlans, cityName) => {
           if (verifyData.success) {
             toast.success("Payment successful!");
             await fetchPlans();
+            router.push(
+              `/payments?transactionId=${response.razorpay_payment_id}&amount=${
+                plan.price
+              }&currency=INR&planName=${encodeURIComponent(plan.name)}`
+            );
           } else {
             toast.error(`Payment failed: ${verifyData.message}`);
           }
@@ -203,6 +209,7 @@ const PricingCard = ({
   onSubscribe,
   paymentStatus,
 }) => {
+  const router = useRouter();
   const getCardIcon = () => {
     switch (title) {
       case "Free Listing":
@@ -221,6 +228,9 @@ const PricingCard = ({
     if (isCurrentPlan) return "from-green-50 to-green-100 border-green-300";
     if (isPopular) return "from-blue-50 to-purple-100 border-purple-300";
     return "from-gray-50 to-white border-gray-200";
+  };
+  const route = () => {
+    router.push(`/payments?transactionId=&amount=`);
   };
   return (
     <Card
