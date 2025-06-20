@@ -77,7 +77,7 @@ const ListingsPage = () => {
     try {
       let apiPropertyFor = property_for || "Sell";
       let apiPropertyStatus =
-        statusFilter[apiPropertyFor === "Sell" ? "buy" : "rent"] ?? ""; // Use empty string for no status filter
+        statusFilter[apiPropertyFor === "Sell" ? "buy" : "rent"] ?? ""; 
       const queryParams = {
         page: currentPage,
         property_for: apiPropertyFor,

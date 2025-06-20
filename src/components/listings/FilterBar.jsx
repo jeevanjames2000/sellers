@@ -218,13 +218,13 @@ const FilterBar = ({ onFilterChange = () => {} }) => {
                 )}
               </div>
 
-              <CustomSelect
+              <CustomSelect 
                 value={filters.propertyFor}
                 onChange={(value) => handleFilterChangeInternal('propertyFor', value)}
                 placeholder="Property For"
                 icon={MapPin}
                 options={filterOptions.propertyFor}
-                className="w-40 flex-shrink-0"
+                className="w-30 flex-shrink-0"
               />
 
               <CustomSelect
@@ -233,7 +233,7 @@ const FilterBar = ({ onFilterChange = () => {} }) => {
                 placeholder="Property Types"
                 icon={Home}
                 options={filterOptions.propertyType}
-                className="w-44 flex-shrink-0"
+                className="w-35 flex-shrink-0"
               />
 
               <CustomSelect
@@ -252,18 +252,18 @@ const FilterBar = ({ onFilterChange = () => {} }) => {
                   placeholder="BHK"
                   icon={Bed}
                   options={filterOptions.bhk}
-                  className="w-32 flex-shrink-0"
+                  className="w-28 flex-shrink-0"
                 />
               )}
 
               {hasActiveFilters() && (
                 <button
                   onClick={clearFilters}
-                  className="flex items-center px-4 py-3 bg-[#1D37A6] hover:bg-[#1D37A6] text-white font-medium rounded-xl 
-                           transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0 text-sm"
+                  className="px-2 py-2 bg-[#1D37A6] hover:bg-[#1D37A6] text-white rounded-md
+                           transition-all duration-200 shadow-md hover:shadow-lg flex-shrink-0 "
                 >
-                  <X size={16} className="mr-1" />
-                  Clear
+                  <X size={16}  />
+
                 </button>
               )}
             </div>
@@ -434,18 +434,18 @@ const FilterBar = ({ onFilterChange = () => {} }) => {
     return (
       <div className={`relative group ${className}`}>
         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-hover:text-blue-600 transition-colors z-10">
-          <Icon size={16} color="#1D37A6" />
+          <Icon size={12} color="#1D37A6" />
         </div>
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full h-12 pl-10 pr-8 bg-white border-2 border-gray-200 rounded-xl text-gray-800 font-medium
+          className="w-full h-12 pl-8 pr-8 bg-white border-2 border-gray-200 rounded-xl text-gray-800 font-medium
                      hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 
                      transition-all duration-200 shadow-sm hover:shadow-md
                      appearance-none cursor-pointer text-sm
                      bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xIDFMNiA2TDExIDEiIHN0cm9rZT0iIzZCNzI4MCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==')] bg-no-repeat bg-[length:10px_6px] bg-[position:calc(100%-12px)_center]"
         >
-          <option value="">{placeholder}</option>
+          <option value="" >{placeholder}</option>
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}

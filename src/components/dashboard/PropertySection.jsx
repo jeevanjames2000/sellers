@@ -150,7 +150,7 @@ const PropertySection = () => {
                       <div className="grid grid-cols-1 lg:grid-cols-5 gap-0 h-full">
                         {/* Image Section - Fixed dimensions */}
                         <div className="lg:col-span-2 relative">
-                          <div className="w-full h-[140px] sm:h-[120px] lg:h-[250px] relative overflow-hidden">
+                          <div className="w-full h-[140px] sm:h-[120px] md:h-[180px] lg:h-[250px] relative overflow-hidden">
                             {property.image ? (
                               <img
                                 src={`https://api.meetowner.in/uploads/${property.image}`}
