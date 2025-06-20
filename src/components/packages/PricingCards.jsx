@@ -330,7 +330,7 @@ const PricingCard = ({
                 ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                 : "bg-gray-700 hover:bg-gray-800 text-white"
             }`}
-            onClick={route}
+            onClick={onSubscribe}
             disabled={isCurrentPlan || price === "Free" || anyPlanActive}
           >
             {isCurrentPlan
