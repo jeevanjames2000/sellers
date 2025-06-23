@@ -4,7 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import toast from "react-hot-toast";
-
+import config from "../api/config";
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 const handlePayment = async (
   userInfo,
   customPackage,
@@ -12,7 +21,6 @@ const handlePayment = async (
   cityName
 ) => {
   if (!userInfo?.user_id) {
-    // toast.error("User ID is required. Please log in.");
     return;
   }
   const isLoaded = await loadRazorpayScript();
@@ -74,6 +82,8 @@ const handlePayment = async (
           mobile: userInfo?.mobile || "N/A",
           email: userInfo?.email || "N/A",
           subscription_package: customPackage.name,
+          listingsLimit: customPackage.duration_days,
+          price: customPackage.price,
           payment_amount: customPackage.price,
           payment_reference: response.razorpay_payment_id,
           payment_mode: "online",
