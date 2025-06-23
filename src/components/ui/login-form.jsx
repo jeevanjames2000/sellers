@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setLogin, setLoading, setError } from "@/store/slices/loginSlice";
 import { Eye, EyeOff } from "lucide-react";
 import { Loading } from "@/lib/loader";
+import config from "../api/config";
 
 export function LoginForm({ className, ...props }) {
   const router = useRouter();
@@ -58,7 +59,7 @@ export function LoginForm({ className, ...props }) {
     }
     try {
       dispatch(setLoading());
-      const response = await fetch("https://api.meetowner.in/auth/login", {
+      const response = await fetch(`${config.api_url}/auth/v1/loginnew`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

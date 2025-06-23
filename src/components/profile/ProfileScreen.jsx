@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -15,6 +14,8 @@ import {
   Edit3,
   Camera,
   Briefcase,
+  CheckCircle,
+  BadgeCheck,
 } from "lucide-react";
 import EditProfilePopup from "./EditProfilePopup";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,7 +27,6 @@ import {
 } from "@/store/slices/profileSlice";
 import axios from "axios";
 import config from "../api/config";
-
 const userTypeMap = {
   1: "Admin",
   2: "User",
@@ -40,7 +40,6 @@ const userTypeMap = {
   10: "Customer Support",
   11: "Customer Service",
 };
-
 const ProfileScreen = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -50,11 +49,10 @@ const ProfileScreen = () => {
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   const [subscriptionError, setSubscriptionError] = useState(null);
   const fileInputRef = useRef(null);
-  const isFetching = useRef(false); // Prevent concurrent API calls
+  const isFetching = useRef(false);
   const dispatch = useDispatch();
   const router = useRouter();
   const { profile, loading, error } = useSelector((state) => state.profile);
-
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
     const date = new Date(dateStr);
@@ -64,8 +62,6 @@ const ProfileScreen = () => {
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   };
-
-  // Fetch profile data
   const fetchProfile = async () => {
     const storedUser = localStorage.getItem("userDetails");
     let userId;
@@ -80,25 +76,19 @@ const ProfileScreen = () => {
     } else {
       userId = null;
     }
-
     if (!userId) {
       dispatch(setError("User ID not found. Please log in again."));
       return;
     }
-
     try {
       dispatch(setLoading());
-
       const response = await fetch(
         `https://api.meetowner.in/user/v1/getProfile?user_id=${userId}`
       );
-
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || "Failed to fetch profile");
       }
-
       dispatch(setProfile(data));
     } catch (err) {
       dispatch(
@@ -106,33 +96,26 @@ const ProfileScreen = () => {
       );
     }
   };
-
-  // Fetch subscription data
   const fetchSubscriptionData = useCallback(async (userId, city) => {
     if (isFetching.current) {
       return;
     }
     isFetching.current = true;
-
     try {
       setSubscriptionLoading(true);
       setSubscriptionError(null);
-
       if (!userId) {
         throw new Error(
           "User not logged in. Please log in to view subscription details."
         );
       }
-
       const response = await axios.get(
         `${config.api_url}/property/v1/getAllPropertiesUploaded`,
         {
           params: { user_id: userId, city },
         }
       );
-
       const apiData = response.data.data || {};
-
       setSubscriptionData({
         package_name: apiData.subscriptionPackage || "None",
         start_date: formatDate(apiData.subscription_start_date),
@@ -153,7 +136,6 @@ const ProfileScreen = () => {
       isFetching.current = false;
     }
   }, []);
-
   useEffect(() => {
     fetchProfile();
     const userDetails = JSON.parse(localStorage.getItem("userDetails")) || {};
@@ -161,25 +143,20 @@ const ProfileScreen = () => {
     const city = localStorage.getItem("City") || "Hyderabad";
     fetchSubscriptionData(userId, city);
   }, [fetchSubscriptionData]);
-
-  // Handle image upload
   const handleImageUpload = async (file) => {
     if (!file) {
       setUploadError("Please select a file to upload");
       return;
     }
-
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
     if (!allowedTypes.includes(file.type)) {
       setUploadError("Please upload a JPEG, JPG, or PNG image");
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
       setUploadError("File size must be less than 5MB");
       return;
     }
-
     const storedUser = localStorage.getItem("userDetails");
     let userId;
     if (storedUser) {
@@ -191,20 +168,16 @@ const ProfileScreen = () => {
         userId = null;
       }
     }
-
     if (!userId) {
       setUploadError("User ID not found. Please log in again.");
       return;
     }
-
     const formData = new FormData();
     formData.append("user_id", userId);
     formData.append("photo", file);
-
     setUploading(true);
     setUploadError(null);
     setUploadMessage(null);
-
     try {
       const response = await fetch(
         "https://api.meetowner.in/user/v1/uploadUserImage",
@@ -213,17 +186,13 @@ const ProfileScreen = () => {
           body: formData,
         }
       );
-
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || "Failed to upload image");
       }
-
       const cleanedUserId = data.user_id
         ? data.user_id.replace(/\n/g, "").trim()
         : userId;
-
       dispatch(
         updateImageSuccess({
           message: data.message,
@@ -233,7 +202,6 @@ const ProfileScreen = () => {
           },
         })
       );
-
       setUploadMessage(data.message);
       await fetchProfile();
     } catch (err) {
@@ -244,18 +212,15 @@ const ProfileScreen = () => {
       setUploading(false);
     }
   };
-
   const handleCameraClick = () => {
     fileInputRef.current.click();
   };
-
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       handleImageUpload(file);
     }
   };
-
   const profileData = profile || {
     name: "Guest",
     mobile: "N/A",
@@ -269,16 +234,13 @@ const ProfileScreen = () => {
     user_type: 0,
     photo: null,
   };
-
   const getUserTypeName = (userTypeId) => {
     return userTypeMap[userTypeId] || "Unknown";
   };
-
   const baseURL = "https://api.meetowner.in/";
   const profileImageURL = profileData.photo
     ? `${baseURL}${profileData.photo}`
     : null;
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -288,7 +250,6 @@ const ProfileScreen = () => {
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -304,7 +265,6 @@ const ProfileScreen = () => {
       </div>
     );
   }
-
   if (!profileData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -314,12 +274,11 @@ const ProfileScreen = () => {
       </div>
     );
   }
-
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <div className="w-full max-w-[1920px] mx-auto p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12">
-          {/* Header Section */}
+          {}
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
@@ -339,13 +298,11 @@ const ProfileScreen = () => {
               </Button>
             </div>
           </div>
-
           {uploading && (
             <div className="mb-4 text-center">
               <p className="text-blue-600">Uploading image...</p>
             </div>
           )}
-
           {uploadError && (
             <div className="mb-4 text-center">
               <p className="text-red-600">{uploadError}</p>
@@ -357,7 +314,6 @@ const ProfileScreen = () => {
               </Button>
             </div>
           )}
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1">
               <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm overflow-hidden">
@@ -394,13 +350,19 @@ const ProfileScreen = () => {
                       className="hidden"
                     />
                   </div>
-                  <CardTitle className="text-xl font-semibold text-white">
+                  <CardTitle className="text-xl font-semibold text-white flex justify-center items-center gap-2">
                     {profileData.name}
                   </CardTitle>
-                  <Badge className="bg-white text-black mt-2">
-                    <Award className="w-3 h-3 mr-1" />
-                    {getUserTypeName(profileData.user_type)}
-                  </Badge>
+                  <div className="flex gap-2 justify-center">
+                    <Badge className="bg-white text-green-600 mt-2 text-base flex items-center px-3 ">
+                      <BadgeCheck className="!w-5 !h-5 shrink-0 mr-1" />
+                      {profileData.verified === 1 ? "Verified" : "Not Verified"}
+                    </Badge>
+                    <Badge className="bg-white text-black mt-2 text-sm flex items-center px-3">
+                      <Award className="!w-5 !h-5 mr-1" />
+                      {getUserTypeName(profileData.user_type)}
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="space-y-4">
@@ -426,7 +388,6 @@ const ProfileScreen = () => {
                 </CardContent>
               </Card>
             </div>
-
             <div className="lg:col-span-2 space-y-6">
               <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
                 <CardHeader className="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-6">
@@ -464,7 +425,6 @@ const ProfileScreen = () => {
                   </div>
                 </CardContent>
               </Card>
-
               <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
                 <CardHeader className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-6">
                   <CardTitle className="text-xl font-semibold flex items-center">
@@ -509,7 +469,6 @@ const ProfileScreen = () => {
                   </div>
                 </CardContent>
               </Card>
-
               <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
                 <CardHeader className="bg-[#1D3A76] text-white p-6">
                   <CardTitle className="text-xl font-semibold flex items-center">
@@ -538,8 +497,7 @@ const ProfileScreen = () => {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Subscription Information */}
+              {}
               <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
                 <CardHeader className="bg-[#1D3A76] text-white p-6">
                   <CardTitle className="text-xl font-semibold flex items-center">
@@ -596,7 +554,6 @@ const ProfileScreen = () => {
           </div>
         </div>
       </div>
-
       <EditProfilePopup
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
@@ -605,5 +562,4 @@ const ProfileScreen = () => {
     </>
   );
 };
-
 export default ProfileScreen;

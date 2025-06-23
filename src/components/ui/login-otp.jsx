@@ -34,11 +34,14 @@ export function LoginWithOtp({ className, ...props }) {
     if (mobileError) return;
     try {
       dispatch(setLoading());
-      const loginResponse = await fetch("https://api.meetowner.in/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile: formData.mobile }),
-      });
+      const loginResponse = await fetch(
+        "https://api.meetowner.in/auth/v1/loginnew",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mobile: formData.mobile }),
+        }
+      );
       const loginData = await loginResponse.json();
       if (!loginResponse.ok) {
         throw new Error(loginData.message || "Login failed");
