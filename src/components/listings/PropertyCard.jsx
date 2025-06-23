@@ -16,6 +16,7 @@ import config from "../api/config";
 import axios from "axios";
 import { ReusableAlertDialog } from "../shared/ReusableAlertDialog";
 import toast from "react-hot-toast";
+import Propertyapi from "../api/Propertyapi";
 const PropertyCard = ({
   id,
   title,
@@ -42,7 +43,6 @@ const PropertyCard = ({
   setCurrentStep,
 }) => {
   const router = useRouter();
-
   const [loading, setLoading] = useState(false);
   const formatToIndianCurrency = (value) => {
     if (!value || isNaN(Number(value))) return "N/A";
@@ -149,6 +149,28 @@ const PropertyCard = ({
       handleDelete();
     }
   };
+  const [files, setFiles] = useState([]);
+
+  const getPropertyPhotos = async () => {
+    try {
+      const response = await Propertyapi.get("getpropertyphotos", {
+        params: { unique_property_id: id, user_id: user_id },
+      });
+      const data = response.data;
+      if (data.status === "error") {
+        return;
+      }
+      const imageFilesData = data.images.map((image) => ({
+        file: new File([], image.url.split("/").pop()),
+        url: image.url,
+        image_id: image.id,
+      }));
+      setFiles(imageFilesData);
+    } catch (error) {}
+  };
+  useEffect(() => {
+    getPropertyPhotos();
+  }, []);
   return (
     <CustomCard className="group overflow-hidden hover:shadow-2xl transition-all duration-500 bg-white border-0 shadow-lg hover:scale-[1.02] transform">
       <CardContent className="p-0">
@@ -184,7 +206,7 @@ const PropertyCard = ({
                   className="bg-white/95 backdrop-blur-sm text-gray-800 border-white/50 shadow-lg"
                 >
                   <Camera className="w-3 h-3 mr-1" />
-                  {enquiries} Photos
+                  {files?.length || 0} Photos
                 </Badge>
               </div>
             </div>

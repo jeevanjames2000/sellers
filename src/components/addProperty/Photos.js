@@ -17,7 +17,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
-function Photoswrapper({ setCurrentStep }) {
+function Photoswrapper({ setCurrentStep, getPropertyDetails }) {
   const { register, handleSubmit } = useForm();
   const photoInputRef = useRef(null);
   const videoInputRef = useRef(null);
@@ -339,6 +339,7 @@ function Photoswrapper({ setCurrentStep }) {
     }
     await submitPhotosVideos(data);
     await submitFloorPlans(data);
+    await getPropertyDetails();
     setCurrentStep((prev) => prev + 1);
     router.replace(
       `/addProperty?active_step=${"review"}&status=inprogress&property_id=${unique_property_id}`

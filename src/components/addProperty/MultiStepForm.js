@@ -133,6 +133,7 @@ export default function MultiStepForm() {
     propertyId,
     methods.reset
   );
+  console.log("property: ", property);
   useEffect(() => {
     if (params.propertyId) {
       setPropertyId(params.propertyId);
@@ -495,6 +496,7 @@ export default function MultiStepForm() {
                   setCurrentStep={setCurrentStep}
                   steps={steps}
                   currentStep={currentStep}
+                  getPropertyDetails={getPropertyDetails}
                 />
               </div>
               <div className="flex justify-between pt-6 border-t">

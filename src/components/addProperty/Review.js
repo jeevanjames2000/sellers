@@ -1,6 +1,8 @@
 import { useFormContext } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PropertyCard from "../listings/PropertyCard";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 const formatKey = (key) =>
   key
@@ -8,10 +10,32 @@ const formatKey = (key) =>
     .replace(/_/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
-export default function Review({ property, setCurrentStep }) {
+export default function Review({
+  property,
+  setCurrentStep,
+  getPropertyDetails,
+}) {
   const { watch } = useFormContext();
-
+  const searchParams = useSearchParams();
   const formData = watch();
+
+  useEffect(() => {
+    const propertyId = searchParams.get("property_id");
+    const activeStep = searchParams.get("active_step");
+  }, [searchParams]);
+
+  if (!property) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-medium mb-4">
+            Review Your Property Details
+          </h3>
+          <p className="text-sm text-gray-600">Loading property details...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -46,7 +70,7 @@ export default function Review({ property, setCurrentStep }) {
         enquiries={property.enquiries || 0}
         favourites={property.favourites || 0}
         image={
-          property.image
+          property.image && property.image !== ""
             ? `https://api.meetowner.in/uploads/${property.image}`
             : "https://placehold.co/400x300"
         }
