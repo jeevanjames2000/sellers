@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 
-const LimitReachedDialog = ({ open, onOpenChange, message, city }) => {
+const LimitReachedDialog = ({ open, onOpenChange, city, message }) => {
   const router = useRouter();
 
   const handleUpgrade = () => {
@@ -29,7 +29,9 @@ const LimitReachedDialog = ({ open, onOpenChange, message, city }) => {
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-[425px]">
         <AlertDialogHeader>
-          <AlertDialogTitle>Listing Limit Reached</AlertDialogTitle>
+          <AlertDialogTitle>
+            {message ? "Contact Support" : "Listing Limit Reached"}
+          </AlertDialogTitle>
           <AlertDialogDescription>{displayMessage}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -166,6 +166,7 @@ export default function MultiStepForm() {
     [currentStep, propertyId, router, methods]
   );
   const [isLimitDialogOpen, setIsLimitDialogOpen] = useState(false);
+  const [message, setMessage] = useState("");
   const [packageCity, setPackageCity] = useState("");
   const onNext = useCallback(async () => {
     const isValid = await methods.trigger();
@@ -215,6 +216,7 @@ export default function MultiStepForm() {
         );
         await proceedToNextStep(data.unique_property_id);
       } else {
+        setMessage(message);
         setIsLimitDialogOpen(true);
         toast.error(message || "Failed to submit basic details");
       }
@@ -541,6 +543,7 @@ export default function MultiStepForm() {
         open={isLimitDialogOpen}
         onOpenChange={setIsLimitDialogOpen}
         city={packageCity}
+        message={message}
       />
     </div>
   );
