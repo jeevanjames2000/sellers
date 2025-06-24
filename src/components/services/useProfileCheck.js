@@ -4,7 +4,6 @@ import toast from "react-hot-toast";
 export function useProfileCheck() {
   const [userProfile, setUserProfile] = useState(null);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  console.log("isAlertOpen: ", isAlertOpen);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const router = useRouter();
