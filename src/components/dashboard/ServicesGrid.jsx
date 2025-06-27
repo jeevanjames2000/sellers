@@ -1,17 +1,14 @@
 "use client";
-
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Upload, Shield, Home, Briefcase } from "lucide-react";
 import ServiceCard from "../ui/servicesCard";
 import axios from "axios";
 import config from "../api/config";
-
 const ServicesGrid = () => {
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const isFetching = useRef(false); // Prevent concurrent API calls
-
+  const isFetching = useRef(false);
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
     const date = new Date(dateStr);
@@ -21,32 +18,26 @@ const ServicesGrid = () => {
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   };
-
   const fetchData = useCallback(async (userId, city) => {
     if (isFetching.current) {
       return;
     }
     isFetching.current = true;
-
     try {
       setIsLoading(true);
       setError(null);
-
       if (!userId) {
         throw new Error(
           "User not logged in. Please log in to view your services."
         );
       }
-
       const response = await axios.get(
         `${config.api_url}/property/v1/getAllPropertiesUploaded`,
         {
           params: { user_id: userId, city },
         }
       );
-
       const apiData = response.data.data || {};
-
       const servicesData = [
         {
           title: "Upload Property",
@@ -85,7 +76,6 @@ const ServicesGrid = () => {
           gradient: "bg-gradient-to-br from-orange-500 to-red-100",
         },
       ];
-
       setServices(servicesData);
     } catch (err) {
       console.error("Error fetching services data:", err);
@@ -132,22 +122,18 @@ const ServicesGrid = () => {
       isFetching.current = false;
     }
   }, []);
-
   useEffect(() => {
     const userDetails = JSON.parse(localStorage.getItem("userDetails")) || {};
     const userId = userDetails.user_id;
     const city = localStorage.getItem("City") || "Hyderabad";
     fetchData(userId, city);
   }, [fetchData]);
-
   if (isLoading) {
     return <div className="text-center p-6">Loading services...</div>;
   }
-
   if (error) {
     return <div className="text-center p-6 text-red-600">Error: {error}</div>;
   }
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
       {services.map((service, index) => (
@@ -156,5 +142,4 @@ const ServicesGrid = () => {
     </div>
   );
 };
-
 export default ServicesGrid;
