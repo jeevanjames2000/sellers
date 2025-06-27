@@ -62,6 +62,20 @@ export default function RootLayout({ children }) {
             />
           </ReduxProvider>
         </ProfileCheckProvider>
+        <Script id="zoho-init" strategy="afterInteractive">
+          {`
+      window.$zoho=window.$zoho || {};
+      $zoho.salesiq = $zoho.salesiq || {
+        ready: function() {}
+      };
+    `}
+        </Script>
+        <Script
+          id="zoho-widget"
+          src="https://salesiq.zohopublic.in/widget?wc=siqbdc3c6965f224357beb76e88daf7a326ebc82bba19dd5ed3c2d6ca40c5bcc10c"
+          strategy="afterInteractive"
+          defer
+        />
       </body>
     </html>
   );
