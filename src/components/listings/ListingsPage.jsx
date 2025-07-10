@@ -18,7 +18,6 @@ import {
 import { Loading } from "@/lib/loader";
 import { Button } from "@/components/ui/button";
 import config from "../api/config";
-
 const ListingsPage = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -39,7 +38,13 @@ const ListingsPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [currentCount, setCurrentCount] = useState(0);
-
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
   const filters = {
     searchLocation: location,
     propertyFor: property_for,
@@ -47,17 +52,15 @@ const ListingsPage = () => {
     propertySubType: sub_type,
     bhk: bhk,
     verificationStatus:
-      statusFilter[property_for === "Sell" ? "buy" : "rent"] ?? null, // Remove default to '1'
+      statusFilter[property_for === "Sell" ? "buy" : "rent"] ?? null,
     propertyId: "",
   };
-
   useEffect(() => {
     const pageFromUrl = parseInt(searchParams.get("page")) || 1;
     if (pageFromUrl !== currentPage) {
       setCurrentPage(pageFromUrl);
     }
   }, [searchParams]);
-
   const fetchProperties = async () => {
     dispatch(setLoading(true));
     dispatch(setError(null));
@@ -77,7 +80,7 @@ const ListingsPage = () => {
     try {
       let apiPropertyFor = property_for || "Sell";
       let apiPropertyStatus =
-        statusFilter[apiPropertyFor === "Sell" ? "buy" : "rent"] ?? ""; 
+        statusFilter[apiPropertyFor === "Sell" ? "buy" : "rent"] ?? "";
       const queryParams = {
         page: currentPage,
         property_for: apiPropertyFor,
@@ -117,7 +120,6 @@ const ListingsPage = () => {
       dispatch(setLoading(false));
     }
   };
-
   useEffect(() => {
     fetchProperties();
   }, [
@@ -130,13 +132,11 @@ const ListingsPage = () => {
     statusFilter,
     dispatch,
   ]);
-
   useEffect(() => {
     if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
   }, [totalPages, currentPage]);
-
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     if (currentPage === 1) {
@@ -146,12 +146,10 @@ const ListingsPage = () => {
     }
     router.replace(`?${params.toString()}`, { scroll: false });
   }, [currentPage, router, searchParams]);
-
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
   const handleFilterChange = (filterName, value) => {
     switch (filterName) {
       case "searchLocation":
@@ -182,7 +180,6 @@ const ListingsPage = () => {
     }
     setCurrentPage(1);
   };
-
   return (
     <div className="p-6 sm:p-2 lg:p-6 space-y-8">
       <FilterBar onFilterChange={handleFilterChange} />
@@ -284,5 +281,4 @@ const ListingsPage = () => {
     </div>
   );
 };
-
 export default ListingsPage;

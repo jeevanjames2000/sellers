@@ -137,6 +137,13 @@ const ProfileScreen = () => {
     }
   }, []);
   useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
+  useEffect(() => {
     fetchProfile();
     const userDetails = JSON.parse(localStorage.getItem("userDetails")) || {};
     const userId = userDetails.user_id;

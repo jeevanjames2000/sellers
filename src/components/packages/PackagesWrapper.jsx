@@ -142,6 +142,13 @@ function PackagesWrapper() {
       fetchCustomPackages();
     }
   }, [userInfo, cityName]);
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
   const popoverId = useId();
   return (
     <div className="flex flex-col gap-4 p-4 sm:p-6 md:p-8 bg-white rounded-bl-[10px] rounded-br-[10px] min-h-screen">

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import InputOTPForm from "@/app/otpscreen/page";
 import { setError, setLoading, setLogin } from "@/store/slices/loginSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -39,6 +39,13 @@ export function LoginWithOtp({ className, ...props }) {
             : "phone number"
         }`;
   };
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
   const fetchLoginData = useCallback(async () => {
     try {
       dispatch(setLoading());

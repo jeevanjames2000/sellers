@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,15 +30,18 @@ import {
   CreditCard,
 } from "lucide-react";
 import { setInvoices, setLoading, setError } from "@/store/slices/invoiceSlice";
-
 const InvoiceScreen = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
   const dispatch = useDispatch();
   const { invoices, loading, error } = useSelector((state) => state.invoices);
-
-  // Fetch invoices from API
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
   useEffect(() => {
     const storedUser = localStorage.getItem("userDetails");
     let userId;
@@ -66,22 +68,17 @@ const InvoiceScreen = () => {
             },
           }
         );
-
         if (!response.ok) {
           throw new Error("Failed to fetch invoices");
         }
-
         const data = await response.json();
         dispatch(setInvoices({ invoices: data.invoices || [] }));
       } catch (err) {
         dispatch(setError(err.message));
       }
     };
-
     fetchInvoices();
   }, [dispatch]);
-
-  // Format date to DD/MM/YYYY
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     try {
@@ -95,16 +92,12 @@ const InvoiceScreen = () => {
       return "N/A";
     }
   };
-
-  // Format currency to INR
   const formatCurrency = (amount) => {
     if (!amount || isNaN(Number(amount))) return "₹0.00";
     return `₹${parseFloat(amount).toLocaleString("en-IN", {
       minimumFractionDigits: 2,
     })}`;
   };
-
-  // Filter invoices based on search term and status
   const filteredInvoices = invoices.filter((invoice) => {
     const matchesSearch = invoice.invoice_number
       .toLowerCase()
@@ -115,7 +108,6 @@ const InvoiceScreen = () => {
       invoice.subscription_status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
   const getStatusBadge = (status) => {
     const statusConfig = {
       success: {
@@ -143,7 +135,6 @@ const InvoiceScreen = () => {
         label: "Expired",
       },
     };
-
     const config = statusConfig[status] || statusConfig.inactive;
     return (
       <Badge variant="outline" className={config.className}>
@@ -151,18 +142,15 @@ const InvoiceScreen = () => {
       </Badge>
     );
   };
-
-  // Handle invoice view button click
   const handleViewInvoice = (invoiceUrl) => {
     if (invoiceUrl) {
       window.open(invoiceUrl, "_blank", "noopener,noreferrer");
     }
   };
-
   return (
     <div className="min-h-screen bg-[#f4f4f4">
       <div className="w-full max-w-[1920px] mx-auto p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12">
-        {/* Header Section */}
+        {}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
@@ -200,8 +188,7 @@ const InvoiceScreen = () => {
               </Select>
             </div>
           </div>
-
-          {/* Stats Cards */}
+          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="p-4">
@@ -295,7 +282,6 @@ const InvoiceScreen = () => {
             </Card>
           </div>
         </div>
-
         <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm overflow-hidden">
           <CardHeader className="bg-[#1D3A76] text-white p-6">
             <CardTitle className="text-xl font-semibold flex items-center">
@@ -405,5 +391,4 @@ const InvoiceScreen = () => {
     </div>
   );
 };
-
 export default InvoiceScreen;

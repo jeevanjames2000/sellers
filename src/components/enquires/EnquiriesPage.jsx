@@ -26,7 +26,13 @@ const EnquiriesPage = ({ activeTab }) => {
 
   const initialPage = parseInt(searchParams.get("page")) || 1;
   const [currentPage, setCurrentPage] = useState(initialPage);
-
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
   useEffect(() => {
     if (loading || activeTab !== "my-enquiries") return;
 

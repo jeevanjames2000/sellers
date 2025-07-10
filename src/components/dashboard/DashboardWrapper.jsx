@@ -9,6 +9,13 @@ import { usePathname, useRouter } from "next/navigation";
 
 function DashboardWrapper() {
   const router = useRouter();
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
   return (
     <div className="w-full mx-auto p-6">
       <HeaderDashboard />

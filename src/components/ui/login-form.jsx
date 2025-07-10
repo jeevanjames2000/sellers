@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogin, setLoading, setError } from "@/store/slices/loginSlice";
 import { Eye, EyeOff } from "lucide-react";
@@ -42,6 +42,13 @@ export function LoginForm({ className, ...props }) {
       setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
     }
   };
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
   const handleSubmit = async (e) => {
     e.preventDefault();
     const mobileError = validateMobile(formData.mobile);
