@@ -15,7 +15,7 @@ import toast from "react-hot-toast";
 export function LoginWithOtp({ className, ...props }) {
   const dispatch = useDispatch();
   const router = useRouter();
-  const { user, token, loading, error } = useSelector((state) => state.login);
+  const { loading, error } = useSelector((state) => state.login);
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     mobile: "",
@@ -39,7 +39,7 @@ export function LoginWithOtp({ className, ...props }) {
             : "phone number"
         }`;
   };
-  const fetchLoginData = async () => {
+  const fetchLoginData = useCallback(async () => {
     try {
       dispatch(setLoading());
       const loginResponse = await fetch(
@@ -70,9 +70,12 @@ export function LoginWithOtp({ className, ...props }) {
       return true;
     } catch (err) {
       dispatch(setError(err.message || "An error occurred during login"));
+      toast.error(err.message || "An error occurred during login");
       return false;
+    } finally {
+      dispatch(setLoading(false));
     }
-  };
+  }, [dispatch, formData.mobile]);
   const sendWhatsAppOtp = useCallback(async () => {
     setEnteredOtp("");
     try {
@@ -94,16 +97,10 @@ export function LoginWithOtp({ className, ...props }) {
       setIsOtpModalOpen(true);
     } catch (err) {
       dispatch(setError("Failed to send OTP via WhatsApp. Please try again!"));
+      toast.error("Failed to send OTP via WhatsApp. Please try again!");
       setMessage("");
     }
-  }, [
-    formData.mobile,
-    formData.countryCode,
-    dispatch,
-    setEnteredOtp,
-    setMessage,
-    setOtpSent,
-  ]);
+  }, [formData.mobile, formData.countryCode, dispatch]);
   const sendSmsOtp = async () => {
     try {
       await fetch(
@@ -119,6 +116,7 @@ export function LoginWithOtp({ className, ...props }) {
       setIsOtpModalOpen(true);
     } catch (err) {
       dispatch(setError("Failed to send OTP via SMS. Please try again!"));
+      toast.error("Failed to send OTP via SMS. Please try again!");
       setMessage("");
     }
   };
@@ -126,18 +124,26 @@ export function LoginWithOtp({ className, ...props }) {
     e.preventDefault();
     const mobileError = validateMobile(formData.mobile, formData.countryCode);
     setErrors({ mobile: mobileError });
-    if (mobileError) return;
+    if (mobileError) {
+      toast.error(mobileError);
+      return;
+    }
     const loginSuccess = await fetchLoginData();
     if (!loginSuccess) return;
     if (formData.countryCode === "+91") {
       await sendSmsOtp();
     }
   };
-  const handleWhatsAppLogin = async (e) => {
+  const handleWhatsAppSubmit = async (e) => {
     e.preventDefault();
     const mobileError = validateMobile(formData.mobile, formData.countryCode);
     setErrors({ mobile: mobileError });
-    if (mobileError) return;
+    if (mobileError) {
+      toast.error(mobileError);
+      return;
+    }
+    const loginSuccess = await fetchLoginData();
+    if (!loginSuccess) return;
     await sendWhatsAppOtp();
   };
   const handleChange = (e) => {
@@ -172,7 +178,7 @@ export function LoginWithOtp({ className, ...props }) {
         )}
         {...props}
       >
-        <form onSubmit={handleSubmit}>
+        <form>
           <div className="flex flex-col gap-3">
             <div className="flex flex-col items-center mb-5">
               <span className="sr-only">Acme Inc.</span>
@@ -213,9 +219,10 @@ export function LoginWithOtp({ className, ...props }) {
               </div>
               {formData.countryCode === "+91" && (
                 <Button
-                  type="submit"
+                  type="button"
                   className="w-full bg-[#1D3A76] flex items-center justify-center"
                   disabled={loading}
+                  onClick={handleSubmit}
                 >
                   {loading ? (
                     <>
@@ -241,7 +248,7 @@ export function LoginWithOtp({ className, ...props }) {
                 formData.countryCode !== "+91" ? "mt-5" : ""
               }`}
               disabled={loading}
-              onClick={handleWhatsAppLogin}
+              onClick={handleWhatsAppSubmit}
             >
               {loading ? (
                 <>
