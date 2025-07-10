@@ -10,16 +10,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useProfileCheck } from "./useProfileCheck";
+
 export default function ProfileCheckProvider({ children }) {
-  const {
-    isAlertOpen,
-    setIsAlertOpen,
-    userProfile,
-    isLoading,
-    error,
-    handleUpdateProfile,
-    handleCancel,
-  } = useProfileCheck();
+  const { isAlertOpen, setIsAlertOpen, handleUpdateProfile, handleCancel } =
+    useProfileCheck();
+
   return (
     <>
       {children}
@@ -29,7 +24,7 @@ export default function ProfileCheckProvider({ children }) {
             <AlertDialogTitle>Update Your Profile</AlertDialogTitle>
             <AlertDialogDescription>
               Your profile is incomplete. Please update your profile details to
-              continue using the platform without disruption..
+              continue using the platform without disruption.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

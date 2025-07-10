@@ -10,10 +10,9 @@ import { setLogin, setLoading, setError } from "@/store/slices/loginSlice";
 import { Eye, EyeOff } from "lucide-react";
 import { Loading } from "@/lib/loader";
 import config from "../api/config";
-
+import toast from "react-hot-toast";
 export function LoginForm({ className, ...props }) {
   const router = useRouter();
-
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.login);
   const [formData, setFormData] = useState({
@@ -43,7 +42,6 @@ export function LoginForm({ className, ...props }) {
       setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const mobileError = validateMobile(formData.mobile);
@@ -54,6 +52,7 @@ export function LoginForm({ className, ...props }) {
     }
     const ENV_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
     if (formData.password !== ENV_PASSWORD) {
+      toast.error("Incorrect password!");
       dispatch(setError("Incorrect admin password"));
       return;
     }
@@ -67,7 +66,6 @@ export function LoginForm({ className, ...props }) {
         body: JSON.stringify({ mobile: formData.mobile }),
       });
       const data = await response.json();
-
       if (!response.ok || data.status !== "success") {
         throw new Error(data.message || "Login failed");
       }
@@ -81,6 +79,7 @@ export function LoginForm({ className, ...props }) {
       localStorage.setItem("userDetails", JSON.stringify(data.user_details));
       localStorage.setItem("City", data.user_details.city);
       router.push("/dashboard");
+      toast.success(`Welcome, ${data.user_details.name || "User"}!`);
     } catch (err) {
       dispatch(setError(err.message || "An error occurred during login"));
     }
@@ -126,7 +125,7 @@ export function LoginForm({ className, ...props }) {
             <Input
               id="password"
               name="password"
-              type={showPassword ? "text" : "password"} // Toggle type based on state
+              type={showPassword ? "text" : "password"}
               value={formData.password}
               onChange={handleChange}
               required
@@ -171,7 +170,10 @@ export function LoginForm({ className, ...props }) {
       </div>
       <div className="text-center text-sm">
         Don't have an account?{" "}
-        <a href="/" className="underline underline-offset-4">
+        <a
+          href="/"
+          className="text-blue-900  hover:text-blue-500 transition-colors duration-200 font-semibold  hover:no-underline"
+        >
           Sign up
         </a>
       </div>

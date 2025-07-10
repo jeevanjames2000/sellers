@@ -19,59 +19,135 @@ import {
 } from "@/components/ui/input-otp";
 import { X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { setError, setLogin } from "@/store/slices/loginSlice";
+import { setLogin } from "@/store/slices/loginSlice";
 import { useRouter } from "next/navigation";
 import { Loading } from "@/lib/loader";
-import { useState } from "react";
-const FormSchema = z.object({
-  pin: z.string().min(6, {
-    message: "Your one-time password must be 6 characters.",
-  }),
-});
-export default function InputOTPForm({ onClose, formData }) {
+import { useState, useEffect } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+const FormSchema = (isWhatsApp) =>
+  z.object({
+    pin: z
+      .string()
+      .min(isWhatsApp ? 4 : 6, {
+        message: `Your one-time password must be ${
+          isWhatsApp ? 4 : 6
+        } characters.`,
+      })
+      .max(isWhatsApp ? 4 : 6, {
+        message: `Your one-time password must be ${
+          isWhatsApp ? 4 : 6
+        } characters.`,
+      }),
+  });
+export default function InputOTPForm({
+  onClose,
+  formData,
+  otp,
+  message,
+  countryCode,
+  signup,
+}) {
   const router = useRouter();
-  const dispatch = useDispatch();
-  const [loading, setLoading] = useState(false);
+  const { user: loginUser, token: loginToken } = useSelector(
+    (state) => state.login
+  );
 
+  const { user: signupUser, token: signupToken } = useSelector(
+    (state) => state.signup
+  );
+  const [loading, setLoading] = useState(false);
+  const [localMessage, setLocalMessage] = useState(message || "");
+  const [localError, setLocalError] = useState("");
+  const isWhatsApp = !!otp;
+  const schema = FormSchema(isWhatsApp);
   const form = useForm({
-    resolver: zodResolver(FormSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       pin: "",
     },
   });
-  const { user, token } = useSelector((state) => state.login);
-  async function onSubmit(data) {
+  useEffect(() => {
+    setLocalMessage(
+      message ||
+        (isWhatsApp
+          ? "Please enter the WhatsApp OTP sent to your phone."
+          : "Please enter the OTP sent to your phone.")
+    );
+  }, [message, isWhatsApp]);
+  const verifyOtp = async (data) => {
     try {
-        setLoading(true);
-      const response = await fetch(
-        "https://api.meetowner.in/auth/v1/verifyOtpSellers",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mobile: formData.mobile, otp: data.pin }),
+      setLoading(true);
+      let isValid = false;
+      if (isWhatsApp) {
+        isValid = data.pin === otp;
+        if (!isValid) {
+          throw new Error("Incorrect OTP");
         }
-      );
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.message || "OTP verification failed");
+      } else {
+        const response = await fetch(
+          "https://api.meetowner.in/auth/v1/verifyOtpSellers",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mobile: formData.mobile, otp: data.pin }),
+          }
+        );
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.message || "OTP verification failed");
+        }
+        isValid = true;
       }
-      dispatch(
-        setLogin({
-          user: user,
-          token: token,
-        })
-      );
-      localStorage.setItem("userToken", token);
-      localStorage.setItem("userDetails", JSON.stringify(user));
-      router.push("/dashboard");
-       setLoading(false);
-      onClose();
+      if (isValid) {
+        const finalUser = signup ? signupUser : loginUser;
+        const finalToken = signup ? signupToken : loginToken;
+        if (finalUser && finalToken) {
+          localStorage.setItem("userToken", finalToken);
+          localStorage.setItem("userDetails", JSON.stringify(finalUser));
+          router.push("/dashboard");
+          toast.success(`Welcome, ${finalUser.name || "User"}!`);
+        } else {
+          throw new Error("User or token data is missing");
+        }
+        setLoading(false);
+        onClose();
+      }
     } catch (error) {
-      dispatch(setError(error.message || "OTP verification error"));
+      setLocalError(
+        error.message === "OTP has expired"
+          ? "The OTP has expired. Please request a new one."
+          : error.message === "Incorrect OTP"
+          ? "The OTP is incorrect. Please try again."
+          : "An error occurred. Please try again."
+      );
       setLoading(false);
-      alert("Invalid OTP. Please try again.");
     }
-  }
+  };
+  const resendOtp = async () => {
+    try {
+      if (isWhatsApp) {
+        const res = await axios.post(
+          "https://api.meetowner.in/auth/v1/sendGallaboxOTP",
+          {
+            mobile: formData.mobile,
+            countryCode: countryCode.replace("+", ""),
+          }
+        );
+        setLocalMessage(
+          `WhatsApp OTP sent successfully to ${countryCode} ${formData.mobile}`
+        );
+      } else {
+        await fetch(
+          `https://api.meetowner.in/auth/v1/sendOtpSellers?mobile=${formData.mobile}`
+        );
+        setLocalMessage("New OTP sent successfully!");
+      }
+      setLocalError("");
+    } catch (error) {
+      setLocalError("Failed to resend OTP. Please try again!");
+    }
+  };
   return (
     <div className="relative w-full">
       <button
@@ -83,48 +159,62 @@ export default function InputOTPForm({ onClose, formData }) {
       </button>
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={form.handleSubmit(verifyOtp)}
           className="w-full space-y-6"
         >
           <FormField
             control={form.control}
             name="pin"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col items-center">
                 <FormLabel>One-Time Password</FormLabel>
                 <FormControl>
-                  <InputOTP maxLength={6} {...field}>
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
+                  <div className="flex justify-center">
+                    <InputOTP maxLength={isWhatsApp ? 4 : 6} {...field}>
+                      <InputOTPGroup>
+                        {[...Array(isWhatsApp ? 4 : 6)].map((_, index) => (
+                          <InputOTPSlot key={index} index={index} />
+                        ))}
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
                 </FormControl>
-                <FormDescription>
-                  Please enter the one-time password sent to your phone.
+                <FormDescription className="text-center">
+                  {localMessage}
                 </FormDescription>
-                <FormMessage />
+                {localError && (
+                  <FormMessage className="text-center">
+                    {localError}
+                  </FormMessage>
+                )}
               </FormItem>
             )}
           />
-         <Button
-            type="submit"
-            className="w-full bg-[#1D3A76] flex items-center justify-center gap-2"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loading size={5} color="white" />
-                <span>Submitting...</span>
-              </>
-            ) : (
-              "Submit OTP"
-            )}
-          </Button>
+          <div className="flex flex-col gap-4">
+            <Button
+              type="submit"
+              className="w-full bg-[#1D3A76] flex items-center justify-center gap-2"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loading size={5} color="white" />
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                "Submit OTP"
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={resendOtp}
+              disabled={loading}
+            >
+              Resend OTP
+            </Button>
+          </div>
         </form>
       </Form>
     </div>

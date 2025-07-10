@@ -11,7 +11,6 @@ const HeaderDashboard = () => {
       const parsedUser = JSON.parse(storedUser);
       username = parsedUser.name;
       verified = parsedUser.verified;
-      console.log("verified: ", verified);
     } catch (error) {
       console.error("Error parsing userDetails from localStorage:", error);
       username = null;

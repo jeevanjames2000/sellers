@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   user: null,
-  apiResponse:null,
+  apiResponse: null,
   token: null,
   loading: false,
   error: null,
@@ -13,12 +13,12 @@ const signupSlice = createSlice({
   initialState,
   reducers: {
     setSignup: (state, action) => {
-      state.user = action.payload.user_details;
-      state.token = action.payload.accessToken;
+      state.user = action.payload.user;
+      state.token = action.payload.token;
       state.loading = false;
       state.error = null;
     },
-      setOtpSent: (state, action) => {
+    setOtpSent: (state, action) => {
       state.otp = action.payload.otp;
       state.apiResponse = action.payload.apiResponse;
       state.loading = false;
@@ -41,5 +41,6 @@ const signupSlice = createSlice({
   },
 });
 
-export const { setSignup, setLoading,setOtpSent, setError, clearSignup } = signupSlice.actions;
+export const { setSignup, setLoading, setOtpSent, setError, clearSignup } =
+  signupSlice.actions;
 export default signupSlice.reducer;

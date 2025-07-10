@@ -133,7 +133,7 @@ export default function MultiStepForm() {
     propertyId,
     methods.reset
   );
-  console.log("property: ", property);
+
   useEffect(() => {
     if (params.propertyId) {
       setPropertyId(params.propertyId);

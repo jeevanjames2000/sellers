@@ -1,5 +1,6 @@
+"use client";
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import toast from "react-hot-toast";
 export function useProfileCheck() {
   const [userProfile, setUserProfile] = useState(null);
@@ -7,6 +8,7 @@ export function useProfileCheck() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const router = useRouter();
+  const pathname = usePathname();
   const fetchProfile = useCallback(async () => {
     const storedUser = localStorage.getItem("userDetails");
     let userId;
@@ -46,21 +48,19 @@ export function useProfileCheck() {
   }, []);
   const checkProfileFields = useCallback(() => {
     if (!userProfile) return false;
-    const requiredFields = [
-      "name",
-      "mobile",
-      "email",
-      "rera_number",
-      "gst_number",
-    ];
+    const requiredFields = ["name", "mobile", "email"];
     return requiredFields.some((field) => {
       const value = userProfile[field];
       return value === null || value === undefined || value === "";
     });
   }, [userProfile]);
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    const storedUser = localStorage.getItem("userDetails");
+    const excludedRoutes = ["/login", "/signup", "/loginotp"];
+    if (storedUser && !excludedRoutes.includes(pathname)) {
+      fetchProfile();
+    }
+  }, [pathname, fetchProfile]);
   useEffect(() => {
     if (!userProfile || isLoading || error) return;
     const hasEmptyFields = checkProfileFields();
@@ -70,6 +70,8 @@ export function useProfileCheck() {
         setIsAlertOpen(true);
       }, 600000);
       return () => clearInterval(intervalId);
+    } else {
+      setIsAlertOpen(false);
     }
   }, [userProfile, isLoading, error, checkProfileFields]);
   const handleUpdateProfile = () => {

@@ -1,6 +1,5 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,11 +26,11 @@ function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isQRDialogOpen, setIsQRDialogOpen] = useState(false);
   const isLoggedIn = !!token;
-
   const playStoreUrl =
     "https://play.google.com/store/apps/details?id=com.meetowner.app&pcampaignid=web_share";
   const url = "https://meetowner.in/app";
-
+  const mainDialogId = useId();
+  const mobileDialogId = useId();
   useEffect(() => {
     const storedToken = localStorage.getItem("userToken");
     const storedUser = localStorage.getItem("userDetails");
@@ -46,14 +45,12 @@ function Header() {
         dispatch(clearLogin());
       }
     }
-  }, [router, dispatch, token]);
-
+  }, [dispatch, token]);
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
   const handleAddProperty = () => {
     if (!isLoggedIn) {
       router.push("/");
@@ -61,7 +58,6 @@ function Header() {
       router.push("/addProperty");
     }
   };
-
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
@@ -71,11 +67,9 @@ function Header() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
-
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -97,7 +91,6 @@ function Header() {
       document.body.style.overflow = "unset";
     };
   }, [isMobileMenuOpen]);
-
   return (
     <header
       className={`h-16 lg:h-20 bg-white/95 backdrop-blur-md w-full transition-all duration-300 border-b border-gray-200/50 flex items-center justify-between px-4 lg:px-8 xl:px-12 sticky top-0 z-50 ${
@@ -116,7 +109,11 @@ function Header() {
       <div className="flex items-center space-x-3">
         {isLoggedIn ? (
           <>
-            <Dialog open={isQRDialogOpen} onOpenChange={setIsQRDialogOpen}>
+            <Dialog
+              id={mainDialogId}
+              open={isQRDialogOpen}
+              onOpenChange={setIsQRDialogOpen}
+            >
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
@@ -127,14 +124,21 @@ function Header() {
                   Download App
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-md border-gray-200/50">
+              <DialogContent
+                id={`${mainDialogId}-content`}
+                className="sm:max-w-md bg-white/95 backdrop-blur-md border-gray-200/50"
+                aria-describedby={`${mainDialogId}-description`}
+              >
                 <DialogHeader>
                   <DialogTitle className="text-xl font-semibold text-[#1D3A76]">
                     Download Meetowner App
                   </DialogTitle>
                 </DialogHeader>
                 <div className="flex flex-col items-center gap-4 p-4">
-                  <p className="text-gray-600 text-center">
+                  <p
+                    id={`${mainDialogId}-description`}
+                    className="text-gray-600 text-center"
+                  >
                     Scan the QR code to download the Meetowner app from the
                     Google Play Store (or) App Store.
                   </p>
@@ -147,7 +151,6 @@ function Header() {
             <div className="hidden lg:flex items-center space-x-8">
               <MainNavigation isLoggedIn={isLoggedIn} />
             </div>
-
             <Button
               onClick={handleAddProperty}
               className="bg-gradient-to-r from-[#1D3A76] to-[#1D3A76] hover:from-[#1D3A76] hover:to-[#1D3A76] text-white shadow-lg hover:shadow-xl transition-all duration-300 group"
@@ -159,7 +162,6 @@ function Header() {
               </span>
               <span className="sm:hidden font-semibold">Add</span>
             </Button>
-
             <div className="lg:hidden">
               <Button
                 id="mobile-menu-trigger"
@@ -174,7 +176,11 @@ function Header() {
           </>
         ) : (
           <div className="flex items-center space-x-3">
-            <Dialog open={isQRDialogOpen} onOpenChange={setIsQRDialogOpen}>
+            <Dialog
+              id={mainDialogId}
+              open={isQRDialogOpen}
+              onOpenChange={setIsQRDialogOpen}
+            >
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
@@ -185,14 +191,21 @@ function Header() {
                   Download App
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-md border-gray-200/50">
+              <DialogContent
+                id={`${mainDialogId}-content`}
+                className="sm:max-w-md bg-white/95 backdrop-blur-md border-gray-200/50"
+                aria-describedby={`${mainDialogId}-description`}
+              >
                 <DialogHeader>
                   <DialogTitle className="text-xl font-semibold text-[#1D3A76]">
                     Download Meetowner App
                   </DialogTitle>
                 </DialogHeader>
                 <div className="flex flex-col items-center gap-4 p-4">
-                  <p className="text-gray-600 text-center">
+                  <p
+                    id={`${mainDialogId}-description`}
+                    className="text-gray-600 text-center"
+                  >
                     Scan the QR code to download the Meetowner app from the
                     Google Play Store.
                   </p>
@@ -202,7 +215,6 @@ function Header() {
                 </div>
               </DialogContent>
             </Dialog>
-
             <div className="hidden md:block">
               {pathname !== "/addProperty" && (
                 <Button
@@ -218,7 +230,6 @@ function Header() {
                 </Button>
               )}
             </div>
-
             <div className="hidden md:block">
               <Link href="/">
                 <Button
@@ -234,7 +245,6 @@ function Header() {
           </div>
         )}
       </div>
-
       {isMobileMenuOpen && (
         <>
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden" />
@@ -262,7 +272,6 @@ function Header() {
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
-
             <div className="flex-1">
               <MainNavigation
                 toggleSidebar={() => setIsMobileMenuOpen(false)}
@@ -284,6 +293,7 @@ function Header() {
                     Sign Up
                   </Button>
                   <Dialog
+                    id={mobileDialogId}
                     open={isQRDialogOpen}
                     onOpenChange={setIsQRDialogOpen}
                   >
@@ -297,14 +307,21 @@ function Header() {
                         Download App
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-md bg-white/95 backdrop-blur-md border-gray-200/50">
+                    <DialogContent
+                      id={`${mobileDialogId}-content`}
+                      className="sm:max-w-md bg-white/95 backdrop-blur-md border-gray-200/50"
+                      aria-describedby={`${mobileDialogId}-description`}
+                    >
                       <DialogHeader>
                         <DialogTitle className="text-xl font-semibold text-[#1D3A76]">
                           Download Meetowner App
                         </DialogTitle>
                       </DialogHeader>
                       <div className="flex flex-col items-center gap-4 p-4">
-                        <p className="text-gray-600 text-center">
+                        <p
+                          id={`${mobileDialogId}-description`}
+                          className="text-gray-600 text-center"
+                        >
                           Scan the QR code to download the Meetowner app from
                           the Google Play Store.
                         </p>
@@ -335,5 +352,4 @@ function Header() {
     </header>
   );
 }
-
 export default Header;

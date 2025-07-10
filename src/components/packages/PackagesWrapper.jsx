@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useId } from "react";
 import { useDispatch } from "react-redux";
 import { Check, ChevronDown } from "lucide-react";
 import PricingCards from "./PricingCards";
@@ -142,7 +142,7 @@ function PackagesWrapper() {
       fetchCustomPackages();
     }
   }, [userInfo, cityName]);
-
+  const popoverId = useId();
   return (
     <div className="flex flex-col gap-4 p-4 sm:p-6 md:p-8 bg-white rounded-bl-[10px] rounded-br-[10px] min-h-screen">
       <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6 mb-6 md:mb-8">
@@ -155,7 +155,7 @@ function PackagesWrapper() {
           </p>
         </div>
         <div className="flex justify-center md:justify-end">
-          <Popover open={openState} onOpenChange={setOpenState}>
+          <Popover open={openState} onOpenChange={setOpenState} id={popoverId}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"

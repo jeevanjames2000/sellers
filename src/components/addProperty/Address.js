@@ -1,6 +1,6 @@
 "use client";
 import { useFormContext } from "react-hook-form";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useId } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -324,6 +324,7 @@ export default function Address({ property }) {
     "Warehouse",
     "Others",
   ].includes(subType);
+  const popoverId = useId();
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -336,7 +337,7 @@ export default function Address({ property }) {
             required: "Please select a state",
           })}
         />
-        <Popover open={openState} onOpenChange={setOpenState}>
+        <Popover open={openState} onOpenChange={setOpenState} id={popoverId}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
