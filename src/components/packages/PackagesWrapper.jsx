@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo, useId } from "react";
+import { useEffect, useState, useMemo, useId, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { Check, ChevronDown } from "lucide-react";
 import PricingCards from "./PricingCards";
@@ -22,25 +22,22 @@ import {
   setState,
   setCity,
 } from "@/store/slices/addPropertySlice/addressSlice";
-
 function PackagesWrapper() {
   const dispatch = useDispatch();
-
   const [userInfo, setUserInfo] = useState(null);
   const [isLoadingEffect, setIsLoadingEffect] = useState(false);
   const [cities, setCities] = useState([]);
   const [plans, setPlans] = useState([]);
   const [subscription, setSubscription] = useState(null);
+  console.log("subscription: ", subscription);
   const [customPackage, setCustomPackage] = useState(null);
   const [openState, setOpenState] = useState(false);
   const [selectedCity, setSelectedCity] = useState("");
-
   const cityName = useMemo(
     () => selectedCity || userInfo?.city || "Hyderabad",
     [selectedCity, userInfo]
   );
-
-  const fetchCities = async () => {
+  const fetchCities = useCallback(async () => {
     try {
       const res = await fetch(`https://api.meetowner.in/api/v1/getAllCities`);
       const data = await res.json();
@@ -48,9 +45,9 @@ function PackagesWrapper() {
     } catch (error) {
       console.error("Error fetching cities:", error);
     }
-  };
-
-  const fetchPlans = async () => {
+  }, []);
+  const fetchPlans = useCallback(async () => {
+    if (!userInfo) return;
     const packageForMap = {
       1: "admin",
       2: "user",
@@ -72,9 +69,9 @@ function PackagesWrapper() {
     } finally {
       setIsLoadingEffect(false);
     }
-  };
-
-  const fetchSubscription = async () => {
+  }, [userInfo, cityName]);
+  const fetchSubscription = useCallback(async () => {
+    if (!userInfo) return;
     try {
       const res = await fetch(
         `https://api.meetowner.in/packages/v1/getSubscriptionDetails?user_id=${userInfo.user_id}&city=${cityName}`
@@ -84,9 +81,9 @@ function PackagesWrapper() {
     } catch (error) {
       console.error("Failed to fetch subscription:", error);
     }
-  };
-
-  const fetchCustomPackages = async () => {
+  }, [userInfo, cityName]);
+  const fetchCustomPackages = useCallback(async () => {
+    if (!userInfo) return;
     try {
       const res = await fetch(
         `https://api.meetowner.in/packages/v1/getCustomPackages?user_id=${userInfo.user_id}&city=${cityName}`
@@ -96,8 +93,7 @@ function PackagesWrapper() {
     } catch (error) {
       console.error("Failed to fetch custom packages:", error);
     }
-  };
-
+  }, [userInfo, cityName]);
   useEffect(() => {
     const loadData = async () => {
       const storedUser = localStorage.getItem("userDetails");
@@ -107,25 +103,21 @@ function PackagesWrapper() {
       await fetchCities();
     };
     loadData();
-  }, []);
-
+  }, [fetchCities]);
   useEffect(() => {
     if (cities.length > 0 && userInfo) {
       const storedCity = localStorage.getItem("City");
       const userCity = userInfo.city;
       const isStoredCityValid = cities.some((city) => city.city === storedCity);
       const isUserCityValid = cities.some((city) => city.city === userCity);
-
       let defaultCity = "Hyderabad";
       if (isStoredCityValid) {
         defaultCity = storedCity;
       } else if (isUserCityValid) {
         defaultCity = userCity;
       }
-
       setSelectedCity(defaultCity);
       dispatch(setCity(defaultCity));
-
       const selectedCityObj = cities.find((city) => city.city === defaultCity);
       if (selectedCityObj) {
         dispatch(setState(selectedCityObj.state));
@@ -134,14 +126,13 @@ function PackagesWrapper() {
       }
     }
   }, [userInfo, cities, dispatch]);
-
   useEffect(() => {
     if (userInfo?.user_id && cityName) {
       fetchPlans();
       fetchSubscription();
       fetchCustomPackages();
     }
-  }, [userInfo, cityName]);
+  }, [userInfo, cityName, fetchPlans, fetchSubscription, fetchCustomPackages]);
   useEffect(() => {
     const handleContextMenu = (e) => e.preventDefault();
     document.addEventListener("contextmenu", handleContextMenu);
@@ -231,5 +222,4 @@ function PackagesWrapper() {
     </div>
   );
 }
-
 export default PackagesWrapper;

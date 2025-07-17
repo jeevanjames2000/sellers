@@ -160,7 +160,7 @@ function ContactedDetailsContent({ initialPage }) {
     setCurrentPage(1);
   };
   const handleViewDetails = (propertyId) => {
-    router.push(`/property/${propertyId}`);
+    router.push(`/propertyDetails?Id=${propertyId}`);
   };
   return (
     <div className="min-h-screen bg-[#f4f4f4]">

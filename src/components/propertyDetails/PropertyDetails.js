@@ -511,7 +511,6 @@ const PropertyDetails = (initialPropertyId) => {
             bike_parking: true,
             open_parking: true,
             around_places: true,
-            pantry_room: true,
             description: true,
           },
         }),
@@ -1220,7 +1219,12 @@ const PropertyDetails = (initialPropertyId) => {
       <Card>
         <CardContent className="p-6">
           <Image
-            src={mainImage}
+            src={
+              mainImage ||
+              `https://placehold.co/1200x500?text=${
+                property.property_name || "No Image Found"
+              }`
+            }
             alt="Main Property"
             width={1200}
             height={500}
@@ -1238,7 +1242,12 @@ const PropertyDetails = (initialPropertyId) => {
                   {images.map((img, index) => (
                     <CarouselItem key={index} className="basis-1/4">
                       <Image
-                        src={img.url}
+                        src={
+                          img.url ||
+                          `https://placehold.co/1200x500?text=${
+                            property.property_name || "No Image Found"
+                          }`
+                        }
                         alt={`Thumbnail ${index + 1}`}
                         width={300}
                         height={150}
@@ -1267,7 +1276,10 @@ const PropertyDetails = (initialPropertyId) => {
               Floor Plan
             </h2>
             <Image
-              src={`https://api.meetowner.in/uploads/${floorplan.image}`}
+              src={
+                `https://api.meetowner.in/uploads/${floorplan.image}` ||
+                `https://placehold.co/1200x400?text=No Floor Plan Found`
+              }
               alt="Floor Plan"
               width={1200}
               height={400}
