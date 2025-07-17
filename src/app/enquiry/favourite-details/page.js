@@ -162,6 +162,13 @@ function ContactedDetailsContent({ initialPage }) {
   const handleViewDetails = (propertyId) => {
     router.push(`/propertyDetails?Id=${propertyId}`);
   };
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
   return (
     <div className="min-h-screen bg-[#f4f4f4]">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

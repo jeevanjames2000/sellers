@@ -159,6 +159,13 @@ function ContactedDetailsContent({ initialPage }) {
     setSelectedState("");
     setCurrentPage(1);
   };
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", handleContextMenu);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f4f4f4]">
@@ -434,7 +441,6 @@ function ContactedDetailsContent({ initialPage }) {
                                 >
                                   <Eye className="w-4 h-4" />
                                 </Button>
-                               
                               </div>
                             </TableCell>
                           </TableRow>
